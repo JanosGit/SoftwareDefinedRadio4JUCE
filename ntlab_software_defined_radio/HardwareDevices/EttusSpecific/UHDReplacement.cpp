@@ -103,215 +103,70 @@ namespace ntlab
         Ptr u = new UHDr();
         if (u->uhdLib.open (library)) {
             // successfully opened library
-            juce::DynamicLibrary &lib = u->uhdLib;
+            juce::DynamicLibrary& lib = u->uhdLib;
 
             // try loading all functions
             juce::String functionName;
             LoadingError loadingError (functionName, result);
 
-            u->usrpMake = (USRPMake) lib.getFunction (functionName = "uhd_usrp_make");
-            if (u->usrpMake == nullptr)
-                return loadingError.lastFunction();
+            // Define a macro to avoid a lot of repetitive boilerplate code
+#define NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS(fptr, fptrType, fnName) u->fptr = (fptrType) lib.getFunction (functionName = fnName); \
+                                                                          if (u->fptr == nullptr) \
+                                                                              return loadingError.lastFunction();
 
-            u->usrpFree = (USRPFree) lib.getFunction (functionName = "uhd_usrp_make");
-            if (u->usrpFree == nullptr)
-                return loadingError.lastFunction();
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (usrpMake,                 USRPMake,                 "uhd_usrp_make")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (usrpFree,                 USRPFree,                 "uhd_usrp_free")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (rxStreamerMake,           RxStreamerMake,           "uhd_rx_streamer_make")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (rxStreamerFree,           RxStreamerFree,           "uhd_rx_streamer_free")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (rxMetadataMake,           RxMetadataMake,           "uhd_rx_metadata_make")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (rxMetadataFree,           RxMetadataFree,           "uhd_rx_metadata_free")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (txStreamerMake,           TxStreamerMake,           "uhd_tx_streamer_make")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (txStreamerFree,           TxStreamerFree,           "uhd_tx_streamer_free")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (txMetadataMake,           TxMetadataMake,           "uhd_tx_metadata_make")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (txMetadataFree,           TxMetadataFree,           "uhd_tx_metadata_free")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (stringVectorMake,         StringVectorMake,         "uhd_string_vector_make")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (stringVectorFree,         StringVectorFree,         "uhd_string_vector_free")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (stringVectorSize,         StringVectorSize,         "uhd_string_vector_size")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (stringVectorAt,           StringVectorAt,           "uhd_string_vector_at")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (find,                     Find,                     "uhd_usrp_find")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (getNumRxChannels,         GetNumRxChannels,         "uhd_usrp_get_rx_num_channels")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (getNumTxChannels,         GetNumTxChannels,         "uhd_usrp_get_tx_num_channels")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (setRxSampleRate,          SetSampleRate,            "uhd_usrp_set_rx_rate")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (getRxSampleRate,          GetSampleRate,            "uhd_usrp_get_rx_rate")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (setTxSampleRate,          SetSampleRate,            "uhd_usrp_set_tx_rate")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (getTxSampleRate,          GetSampleRate,            "uhd_usrp_get_tx_rate")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (setRxGain,                SetGain,                  "uhd_usrp_set_rx_gain")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (getRxGain,                GetGain,                  "uhd_usrp_get_rx_gain")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (setTxGain,                SetGain,                  "uhd_usrp_set_tx_gain")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (getTxGain,                GetGain,                  "uhd_usrp_get_tx_gain")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (setRxFrequency,           SetFrequency,             "uhd_usrp_set_rx_freq")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (getRxFrequency,           GetFrequency,             "uhd_usrp_get_rx_freq")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (setTxFrequency,           SetFrequency,             "uhd_usrp_set_tx_freq")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (getTxFrequency,           GetFrequency,             "uhd_usrp_get_tx_freq")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (setRxBandwidth,           SetBandwidth,             "uhd_usrp_set_rx_bandwidth")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (getRxBandwidth,           GetBandwidth,             "uhd_usrp_get_rx_bandwidth")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (setTxBandwidth,           SetBandwidth,             "uhd_usrp_set_tx_bandwidth")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (getTxBandwidth,           GetBandwidth,             "uhd_usrp_get_tx_bandwidth")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (setRxAntenna,             SetAntenna,               "uhd_usrp_set_rx_antenna")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (getRxAntenna,             GetAntenna,               "uhd_usrp_get_rx_antenna")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (getRxAntennas,            GetAntennas,              "uhd_usrp_get_rx_antennas")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (setTxAntenna,             SetAntenna,               "uhd_usrp_set_tx_antenna")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (getTxAntenna,             GetAntenna,               "uhd_usrp_get_tx_antenna")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (getTxAntennas,            GetAntennas,              "uhd_usrp_get_tx_antennas")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (setClockSource,           SetSource,                "uhd_usrp_set_clock_source")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (setTimeSource,            SetSource,                "uhd_usrp_set_time_source")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (setTimeUnknownPPS,        SetTimeUnknownPPS,        "uhd_usrp_set_time_unknown_pps")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (setTimeNow,               SetTimeNow,               "uhd_usrp_set_time_now")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (getRxStream,              GetRxStream,              "uhd_usrp_get_rx_stream")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (getTxStream,              GetTxStream,              "uhd_usrp_get_tx_stream")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (getRxStreamMaxNumSamples, GetRxStreamMaxNumSamples, "uhd_rx_streamer_max_num_samps")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (getTxStreamMaxNumSamples, GetTxStreamMaxNumSamples, "uhd_tx_streamer_max_num_samps")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (rxStreamerIssueStreamCmd, RxStreamerIssueStreamCmd, "uhd_rx_streamer_issue_stream_cmd")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (rxStreamerReceive,        RxStreamerReceive,        "uhd_rx_streamer_recv")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (txStreamerSend,           TxStreamerSend,           "uhd_tx_streamer_send")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (getRxMetadataErrorCode,   GetRxMetadataErrorCode,   "uhd_rx_metadata_error_code")
 
-            u->rxStreamerMake = (RxStreamerMake) lib.getFunction (functionName = "uhd_rx_streamer_make");
-            if (u->rxStreamerMake == nullptr)
-                return loadingError.lastFunction();
-
-            u->rxStreamerFree = (RxStreamerFree) lib.getFunction (functionName = "uhd_rx_streamer_free");
-            if (u->rxStreamerFree == nullptr)
-                return loadingError.lastFunction();
-
-            u->rxMetadataMake = (RxMetadataMake) lib.getFunction (functionName = "uhd_rx_metadata_make");
-            if (u->rxMetadataMake == nullptr)
-                return loadingError.lastFunction();
-
-            u->rxMetadataFree = (RxMetadataFree) lib.getFunction (functionName = "uhd_rx_metadata_free");
-            if (u->rxMetadataFree == nullptr)
-                return loadingError.lastFunction();
-
-            u->txStreamerMake = (TxStreamerMake) lib.getFunction (functionName = "uhd_tx_streamer_make");
-            if (u->txStreamerMake == nullptr)
-                return loadingError.lastFunction();
-
-            u->txStreamerFree = (TxStreamerFree) lib.getFunction (functionName = "uhd_tx_streamer_free");
-            if (u->txStreamerFree == nullptr)
-                return loadingError.lastFunction();
-
-            u->txMetadataMake = (TxMetadataMake) lib.getFunction (functionName = "uhd_tx_metadata_make");
-            if (u->txStreamerMake == nullptr)
-                return loadingError.lastFunction();
-
-            u->txMetadataFree = (TxMetadataFree) lib.getFunction (functionName = "uhd_tx_metadata_free");
-            if (u->txMetadataFree == nullptr)
-                return loadingError.lastFunction();
-
-            u->stringVectorMake = (StringVectorMake) lib.getFunction (functionName = "uhd_string_vector_make");
-            if (u->stringVectorMake == nullptr)
-                return loadingError.lastFunction();
-
-            u->stringVectorFree = (StringVectorFree) lib.getFunction (functionName = "uhd_string_vector_free");
-            if (u->stringVectorFree == nullptr)
-                return loadingError.lastFunction();
-
-            u->stringVectorSize = (StringVectorSize) lib.getFunction (functionName = "uhd_string_vector_size");
-            if (u->stringVectorSize == nullptr)
-                return loadingError.lastFunction();
-
-            u->stringVectorAt = (StringVectorAt) lib.getFunction (functionName = "uhd_string_vector_at");
-            if (u->stringVectorAt == nullptr)
-                return loadingError.lastFunction();
-
-            u->find = (Find) lib.getFunction (functionName = "uhd_usrp_find");
-            if (u->find == nullptr)
-                return loadingError.lastFunction();
-
-            u->getNumRxChannels = (GetNumRxChannels) lib.getFunction (functionName = "uhd_usrp_get_rx_num_channels");
-            if (u->getNumRxChannels == nullptr)
-                return loadingError.lastFunction();
-
-            u->getNumTxChannels = (GetNumTxChannels) lib.getFunction (functionName = "uhd_usrp_get_tx_num_channels");
-            if (u->getNumTxChannels == nullptr)
-                return loadingError.lastFunction();
-
-            u->setRxSampleRate = (SetSampleRate) lib.getFunction (functionName = "uhd_usrp_set_rx_rate");
-            if (u->setRxSampleRate == nullptr)
-                return loadingError.lastFunction();
-
-            u->getRxSampleRate = (GetSampleRate) lib.getFunction (functionName = "uhd_usrp_get_rx_rate");
-            if (u->getRxSampleRate == nullptr)
-                return loadingError.lastFunction();
-
-            u->setTxSampleRate = (SetSampleRate) lib.getFunction (functionName = "uhd_usrp_set_tx_rate");
-            if (u->setRxSampleRate == nullptr)
-                return loadingError.lastFunction();
-
-            u->getTxSampleRate = (GetSampleRate) lib.getFunction (functionName = "uhd_usrp_get_tx_rate");
-            if (u->getRxSampleRate == nullptr)
-                return loadingError.lastFunction();
-
-            u->setRxGain = (SetGain) lib.getFunction (functionName = "uhd_usrp_set_rx_gain");
-            if (u->setRxGain == nullptr)
-                return loadingError.lastFunction();
-
-            u->getRxGain = (GetGain) lib.getFunction (functionName = "uhd_usrp_get_rx_gain");
-            if (u->getRxGain == nullptr)
-                return loadingError.lastFunction();
-
-            u->setTxGain = (SetGain) lib.getFunction (functionName = "uhd_usrp_set_tx_gain");
-            if (u->setTxGain == nullptr)
-                return loadingError.lastFunction();
-
-            u->getTxGain = (GetGain) lib.getFunction (functionName = "uhd_usrp_get_tx_gain");
-            if (u->getTxGain == nullptr)
-                return loadingError.lastFunction();
-
-            u->setRxFrequency = (SetFrequency) lib.getFunction (functionName = "uhd_usrp_set_rx_freq");
-            if (u->setRxFrequency == nullptr)
-                return loadingError.lastFunction();
-
-            u->getRxFrequency = (GetFrequency) lib.getFunction (functionName = "uhd_usrp_get_rx_freq");
-            if (u->getRxFrequency == nullptr)
-                return loadingError.lastFunction();
-
-            u->setTxFrequency = (SetFrequency) lib.getFunction (functionName = "uhd_usrp_set_tx_freq");
-            if (u->setTxFrequency == nullptr)
-                return loadingError.lastFunction();
-
-            u->getTxFrequency = (GetFrequency) lib.getFunction (functionName = "uhd_usrp_get_tx_freq");
-            if (u->getTxFrequency == nullptr)
-                return loadingError.lastFunction();
-
-            u->setRxBandwidth = (SetBandwidth) lib.getFunction (functionName = "uhd_usrp_set_rx_bandwidth");
-            if (u->setRxBandwidth == nullptr)
-                return loadingError.lastFunction();
-
-            u->getRxBandwidth = (GetBandwidth) lib.getFunction (functionName = "uhd_usrp_get_rx_bandwidth");
-            if (u->getRxBandwidth == nullptr)
-                return loadingError.lastFunction();
-
-            u->setTxBandwidth = (SetBandwidth) lib.getFunction (functionName = "uhd_usrp_set_tx_bandwidth");
-            if (u->setTxBandwidth == nullptr)
-                return loadingError.lastFunction();
-
-            u->getTxBandwidth = (GetBandwidth) lib.getFunction (functionName = "uhd_usrp_get_tx_bandwidth");
-            if (u->getTxBandwidth == nullptr)
-                return loadingError.lastFunction();
-
-            u->setRxAntenna = (SetAntenna) lib.getFunction (functionName = "uhd_usrp_set_rx_antenna");
-            if (u->setRxAntenna == nullptr)
-                return loadingError.lastFunction();
-
-            u->getRxAntenna = (GetAntenna) lib.getFunction (functionName = "uhd_usrp_get_rx_antenna");
-            if (u->getRxAntenna == nullptr)
-                return loadingError.lastFunction();
-
-            u->getRxAntennas = (GetAntennas) lib.getFunction (functionName = "uhd_usrp_get_rx_antennas");
-            if (u->getRxAntennas == nullptr)
-                return loadingError.lastFunction();
-
-            u->setTxAntenna = (SetAntenna) lib.getFunction (functionName = "uhd_usrp_set_tx_antenna");
-            if (u->setTxAntenna == nullptr)
-                return loadingError.lastFunction();
-
-            u->getTxAntenna = (GetAntenna) lib.getFunction (functionName = "uhd_usrp_get_tx_antenna");
-            if (u->getTxAntenna == nullptr)
-                return loadingError.lastFunction();
-
-            u->getTxAntennas = (GetAntennas) lib.getFunction (functionName = "uhd_usrp_get_tx_antennas");
-            if (u->getTxAntennas == nullptr)
-                return loadingError.lastFunction();
-
-            u->setClockSource = (SetSource) lib.getFunction (functionName = "uhd_usrp_set_clock_source");
-            if (u->setClockSource == nullptr)
-                return loadingError.lastFunction();
-
-            u->setTimeSource = (SetSource) lib.getFunction (functionName = "uhd_usrp_set_time_source");
-            if (u->setTimeSource == nullptr)
-                return loadingError.lastFunction();
-
-            u->setTimeUnknownPPS = (SetTimeUnknownPPS) lib.getFunction (functionName = "uhd_usrp_set_time_unknown_pps");
-            if (u->setTimeUnknownPPS == nullptr)
-                return loadingError.lastFunction();
-
-            u->setTimeNow = (SetTimeNow) lib.getFunction (functionName = "uhd_usrp_set_time_now");
-            if (u->setTimeNow == nullptr)
-                return loadingError.lastFunction();
-
-            u->getRxStream = (GetRxStream) lib.getFunction (functionName = "uhd_usrp_get_rx_stream");
-            if (u->getRxStream == nullptr)
-                return loadingError.lastFunction();
-
-            u->getTxStream = (GetTxStream) lib.getFunction (functionName = "uhd_usrp_get_tx_stream");
-            if (u->getTxStream == nullptr)
-                return loadingError.lastFunction();
-
-            u->getRxStreamMaxNumSamples = (GetRxStreamMaxNumSamples) lib.getFunction (functionName = "uhd_rx_streamer_max_num_samps");
-            if (u->getRxStreamMaxNumSamples == nullptr)
-                return loadingError.lastFunction();
-
-            u->getTxStreamMaxNumSamples = (GetTxStreamMaxNumSamples) lib.getFunction (functionName = "uhd_tx_streamer_max_num_samps");
-            if (u->getTxStreamMaxNumSamples == nullptr)
-                return loadingError.lastFunction();
-
-            u->rxStreamerIssueStreamCmd = (RxStreamerIssueStreamCmd) lib.getFunction (functionName = "uhd_rx_streamer_issue_stream_cmd");
-            if (u->getRxStreamMaxNumSamples == nullptr)
-                return loadingError.lastFunction();
-
-            u->rxStreamerReceive = (RxStreamerReceive) lib.getFunction (functionName = "uhd_rx_streamer_recv");
-            if (u->rxStreamerReceive == nullptr)
-                return loadingError.lastFunction();
-
-            u->txStreamerSend = (TxStreamerSend) lib.getFunction (functionName = "uhd_tx_streamer_send");
-            if (u->txStreamerSend == nullptr)
-                return loadingError.lastFunction();
-
-            u->getRxMetadataErrorCode = (GetRxMetadataErrorCode) lib.getFunction (functionName = "uhd_rx_metadata_error_code");
-            if (u->getRxMetadataErrorCode == nullptr)
-                return loadingError.lastFunction();
+#undef NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS
 
             // if the code reached this point, all functions were successully loaded. The object may now be safely constructed
             result = "Successfully loaded library " + library;
@@ -1314,4 +1169,34 @@ namespace ntlab
 
         return usrp;
     }
+
+#ifdef NTLAB_SOFTWARE_DEFINED_RADIO_UNIT_TESTS
+
+    class UHDReplacementTest : public juce::UnitTest
+    {
+    public:
+        UHDReplacementTest () : juce::UnitTest ("UHDReplacement test") {};
+
+        void runTest () override
+        {
+#if JUCE_MAC
+            juce::String uhdLibName = "libuhd.dylib";
+#endif
+            juce::DynamicLibrary uhdLib;
+            if (uhdLib.open (uhdLibName))
+            {
+                uhdLib.close();
+
+                beginTest ("Dynamically loading of UHD functions");
+                juce::String error;
+                expect (UHDr::load (uhdLibName, error) != nullptr, error);
+            }
+            else
+                logMessage ("Skipping Dynamically loading of UHD functions, UHD library not present on this system");
+        }
+    };
+
+    static UHDReplacementTest uhdReplacementTest;
+
+#endif // NTLAB_SOFTWARE_DEFINED_RADIO_UNIT_TESTS
 }
