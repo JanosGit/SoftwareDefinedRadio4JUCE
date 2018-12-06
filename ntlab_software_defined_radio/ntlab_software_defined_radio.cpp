@@ -18,3 +18,5 @@ along with SoftwareDefinedRadio4JUCE. If not, see <http://www.gnu.org/licenses/>
 #include "HardwareDevices/EttusSpecific/UHDReplacement.cpp"
 
 #include "SampleBuffers/VectorOperations.cpp"
+
+#include "UnitTestHelpers/UnitTestHelpers.cpp"
