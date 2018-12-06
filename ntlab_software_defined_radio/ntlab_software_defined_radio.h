@@ -54,6 +54,10 @@ along with SoftwareDefinedRadio4JUCE. If not, see <http://www.gnu.org/licenses/>
 #include "HardwareDevices/EttusSpecific/UHDReplacement.h"
 #include "HardwareDevices/EttusSpecific/UHDUSRPProbeParser.h"
 
+#include "MCVFileFormat/MCVHeader.h"
+#include "MCVFileFormat/MCVWriter.h"
+#include "MCVFileFormat/MCVReader.h"
+
 #include "SampleBuffers/VectorOperations.h"
 #include "SampleBuffers/SampleBuffers.h"
 

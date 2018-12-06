@@ -17,6 +17,10 @@ along with SoftwareDefinedRadio4JUCE. If not, see <http://www.gnu.org/licenses/>
 
 #include "HardwareDevices/EttusSpecific/UHDReplacement.cpp"
 
+#include "MCVFileFormat/MCVWriter.cpp"
+#include "MCVFileFormat/MCVReader.cpp"
+#include "MCVFileFormat/MCVUnitTests.cpp"
+
 #include "SampleBuffers/VectorOperations.cpp"
 
 #include "UnitTestHelpers/UnitTestHelpers.cpp"
