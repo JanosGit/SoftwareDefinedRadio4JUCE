@@ -99,6 +99,37 @@ namespace ntlab
             jassert (numSamples >= 0);
         }
 
+        /** Move constructor */
+        SampleBufferReal (SampleBufferReal&& other)
+               : ownsBuffer (other.ownsBuffer),
+                 numChannelsAllocated (other.numChannelsAllocated),
+                 numSamplesAllocated (other.numSamplesAllocated),
+                 numSamplesUsed (other.numSamplesUsed),
+                 channels (other.channels)
+        {
+            other.ownsBuffer = false;
+            other.numChannelsAllocated = 0;
+            other.numSamplesAllocated = 0;
+            other.numSamplesUsed = 0;
+            other.channels = nullptr;
+        }
+
+        /** Move assignment */
+        SampleBufferReal& operator= (SampleBufferReal&& other)
+        {
+            ownsBuffer = other.ownsBuffer;
+            numChannelsAllocated = other.numChannelsAllocated;
+            numSamplesAllocated = other.numSamplesAllocated;
+            numSamplesUsed = other.numSamplesUsed;
+            channels = other.channels;
+
+            other.ownsBuffer = false;
+            other.numChannelsAllocated = 0;
+            other.numSamplesAllocated = 0;
+            other.numSamplesUsed = 0;
+            other.channels = nullptr;
+        }
+
         ~SampleBufferReal()
         {
             if (ownsBuffer)
@@ -136,6 +167,9 @@ namespace ntlab
             jassert (juce::isPositiveAndBelow (newNumSamples, numSamplesAllocated));
             numSamplesUsed = newNumSamples;
         }
+
+        /** Returns the number of channels held by this buffer */
+        int getNumChannels() {return  numChannelsAllocated; }
 
         /**
          * Returns a read-only pointer to the host memory buffer for a dedicated channel. Always use this for read-only
@@ -222,7 +256,7 @@ namespace ntlab
 
 
     private:
-        const bool ownsBuffer;
+        bool ownsBuffer;
 
         int numChannelsAllocated;
         int numSamplesAllocated;
@@ -279,6 +313,37 @@ namespace ntlab
             jassert (numSamples >= 0);
         }
 
+        /** Move constructor */
+        SampleBufferComplex (SampleBufferComplex&& other)
+                : ownsBuffer (other.ownsBuffer),
+                  numChannelsAllocated (other.numChannelsAllocated),
+                  numSamplesAllocated (other.numSamplesAllocated),
+                  numSamplesUsed (other.numSamplesUsed),
+                  channels (other.channels)
+        {
+            other.ownsBuffer = false;
+            other.numChannelsAllocated = 0;
+            other.numSamplesAllocated = 0;
+            other.numSamplesUsed = 0;
+            other.channels = nullptr;
+        }
+
+        /** Move assignment */
+        SampleBufferComplex& operator= (SampleBufferComplex&& other)
+        {
+            ownsBuffer = other.ownsBuffer;
+            numChannelsAllocated = other.numChannelsAllocated;
+            numSamplesAllocated = other.numSamplesAllocated;
+            numSamplesUsed = other.numSamplesUsed;
+            channels = other.channels;
+
+            other.ownsBuffer = false;
+            other.numChannelsAllocated = 0;
+            other.numSamplesAllocated = 0;
+            other.numSamplesUsed = 0;
+            other.channels = nullptr;
+        }
+
         ~SampleBufferComplex()
         {
             if (ownsBuffer)
@@ -316,6 +381,9 @@ namespace ntlab
             jassert (juce::isPositiveAndBelow (newNumSamples, numSamplesAllocated));
             numSamplesUsed = newNumSamples;
         }
+
+        /** Returns the number of channels held by this buffer */
+        int getNumChannels() {return  numChannelsAllocated; }
 
         /**
          * Returns a read-only pointer to the host memory buffer for a dedicated channel. Always use this for read-only
@@ -654,7 +722,7 @@ namespace ntlab
         }
 
     private:
-        const bool ownsBuffer;
+        bool ownsBuffer;
 
         int numChannelsAllocated;
         int numSamplesAllocated;
@@ -700,6 +768,9 @@ namespace ntlab
             jassert (juce::isPositiveAndBelow (newNumSamples, numSamplesAllocated));
             numSamplesUsed = newNumSamples;
         }
+
+        /** Returns the number of channels held by this buffer */
+        int getNumChannels() {return  numChannelsAllocated; }
 
         /**
          * Returns a read-only pointer to the host memory buffer for a dedicated channel. Always use this for read-only
@@ -862,6 +933,9 @@ namespace ntlab
             jassert (juce::isPositiveAndBelow (newNumSamples, numSamplesAllocated));
             numSamplesUsed = newNumSamples;
         }
+
+        /** Returns the number of channels held by this buffer */
+        int getNumChannels() {return  numChannelsAllocated; }
 
         /**
          * Returns a read-only pointer to the host memory buffer for a dedicated channel. Always use this for read-only
