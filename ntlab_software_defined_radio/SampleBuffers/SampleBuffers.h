@@ -205,6 +205,16 @@ namespace ntlab
          */
         SampleType** getArrayOfWritePointers() {return channels; }
 
+        /** Sets all samples in the region to zero. Passing -1 to endOfRegion leads to fill the buffer until its end */
+        void clearBufferRegion (int startOfRegion = 0, int endOfRegion = -1)
+        {
+            if (endOfRegion == -1)
+                endOfRegion = numSamplesAllocated;
+
+            for (int c = 0; c < numChannelsAllocated; ++c)
+                std::fill (channels[c] + startOfRegion, channels[c] + endOfRegion, SampleType (0));
+        }
+
         /**
          * Copies the content of this buffer to another CLSampleBufferReal via the host CPU. For speed reasons it
          * does neither check if the parameters passed are in the valid range, nor if host device access is enabled for
@@ -418,6 +428,16 @@ namespace ntlab
          * the buffer, otherwise use getReadPointer.
          */
         std::complex<SampleType>** getArrayOfWritePointers() {return channels; }
+
+        /** Sets all samples in the region to zero. Passing -1 to endOfRegion leads to fill the buffer until its end */
+        void clearBufferRegion (int startOfRegion = 0, int endOfRegion = -1)
+        {
+            if (endOfRegion == -1)
+                endOfRegion = numSamplesAllocated;
+
+            for (int c = 0; c < numChannelsAllocated; ++c)
+                std::fill (channels[c] + startOfRegion, channels[c] + endOfRegion, SampleType (0));
+        }
 
         /**
          * Copies the content of this buffer to another CLSampleBufferComplex via the host CPU. For speed reasons it
@@ -798,13 +818,23 @@ namespace ntlab
          * Returns a read-only array of pointers to the host memory buffers for all channels. Always use this for
          * read-only operations.
          */
-        const SampleType** getArrayOfReadPointers() {return const_cast<const SampleType**> (channels); }
+        const SampleType** getArrayOfReadPointers() {return const_cast<const SampleType**> (channels.data()); }
 
         /**
          * Returns an array of pointers to the host memory buffers for all channels. Use this if you want to write to
          * the buffer, otherwise use getReadPointer.
          */
-        SampleType** getArrayOfWritePointers() {return channels; }
+        SampleType** getArrayOfWritePointers() {return channels.data(); }
+
+        /** Sets all samples in the region to zero. Passing -1 to endOfRegion leads to fill the buffer until its end */
+        void clearBufferRegion (int startOfRegion = 0, int endOfRegion = -1)
+        {
+            if (endOfRegion == -1)
+                endOfRegion = numSamplesAllocated;
+
+            for (int c = 0; c < numChannelsAllocated; ++c)
+                std::fill (channels[c] + startOfRegion, channels[c] + endOfRegion, SampleType (0));
+        }
 
         /**
          * Copies the content of this buffer to another CLSampleBufferReal via the host CPU. For speed reasons it
@@ -975,6 +1005,16 @@ namespace ntlab
         std::complex<SampleType>** getArrayOfWritePointers()
         {
 
+        }
+
+        /** Sets all samples in the region to zero. Passing -1 to endOfRegion leads to fill the buffer until its end */
+        void clearBufferRegion (int startOfRegion = 0, int endOfRegion = -1)
+        {
+            if (endOfRegion == -1)
+                endOfRegion = numSamplesAllocated;
+
+            for (int c = 0; c < numChannelsAllocated; ++c)
+                std::fill (channels[c] + startOfRegion, channels[c] + endOfRegion, SampleType (0));
         }
 
         /**
