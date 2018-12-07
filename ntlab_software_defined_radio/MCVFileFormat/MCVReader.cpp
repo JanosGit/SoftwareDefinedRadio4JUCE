@@ -19,7 +19,9 @@ along with SoftwareDefinedRadio4JUCE. If not, see <http://www.gnu.org/licenses/>
 
 namespace ntlab
 {
-    MCVReader::MCVReader (const juce::File& mcvFile) : file (mcvFile, juce::MemoryMappedFile::readOnly)
+    MCVReader::MCVReader (const juce::File& mcvFile, EndOfFileBehaviour endOfFileBehaviour)
+      : file (mcvFile, juce::MemoryMappedFile::readOnly, true),
+        behaviour (endOfFileBehaviour)
     {
         jassert (mcvFile.hasFileExtension ("mcv"));
 
@@ -35,8 +37,9 @@ namespace ntlab
             return;
 
         valid = true;
-
-        beginOfSamples = static_cast<void*> (static_cast<char*> (file.getData()) + MCVHeader::sizeOfHeaderInBytes);
+        beginOfSamples = juce::addBytesToPointer (file.getData(), MCVHeader::sizeOfHeaderInBytes);
+        readPtr = beginOfSamples;
+        numRowsOrSamplesRemaining = metadata->getNumRowsOrSamples();
     }
 
     bool MCVReader::isValid () {return valid; }
@@ -55,7 +58,7 @@ namespace ntlab
             return SampleBufferReal<float> (0, 0);
 
         SampleBufferReal<float> buf (static_cast<int> (getNumColsOrChannels()), static_cast<int> (getNumRowsOrSamples()));
-        fillRealFloatBuffer (buf.getArrayOfWritePointers());
+        fillBuffer (buf.getArrayOfWritePointers(), beginOfSamples, getNumRowsOrSamples ());
         return buf;
     }
 
@@ -65,7 +68,7 @@ namespace ntlab
             return SampleBufferReal<double> (0, 0);
 
         SampleBufferReal<double> buf (static_cast<int> (getNumColsOrChannels()), static_cast<int> (getNumRowsOrSamples()));
-        fillRealDoubleBuffer (buf.getArrayOfWritePointers());
+        fillBuffer (buf.getArrayOfWritePointers(), beginOfSamples, getNumRowsOrSamples());
         return buf;
     }
 
@@ -75,7 +78,7 @@ namespace ntlab
             return SampleBufferComplex<float> (0, 0);
 
         SampleBufferComplex<float> buf (static_cast<int> (getNumColsOrChannels()), static_cast<int> (getNumRowsOrSamples()));
-        fillComplexFloatBuffer (buf.getArrayOfWritePointers());
+        fillBuffer (buf.getArrayOfWritePointers(), beginOfSamples, getNumRowsOrSamples());
         return buf;
     }
 
@@ -85,22 +88,24 @@ namespace ntlab
             return SampleBufferComplex<double> (0, 0);
 
         SampleBufferComplex<double> buf (static_cast<int> (getNumColsOrChannels()), static_cast<int> (getNumRowsOrSamples()));
-        fillComplexDoubleBuffer (buf.getArrayOfWritePointers());
+        fillBuffer (buf.getArrayOfWritePointers(), beginOfSamples, getNumRowsOrSamples());
         return buf;
     }
 
-    // Helper macro to fill a buffer with source data that handles all casting if necessary
-#define NTLAB_FILL_DESTINATION_BUFFER(sourceDataType, destinationDataType) sourceDataType* sourceBuffer = static_cast<sourceDataType*> (beginOfSamples); \
-                                                                           for (int row = 0; row < getNumRowsOrSamples(); ++row)                         \
-                                                                           {                                                                             \
-                                                                               for (int col = 0; col < getNumColsOrChannels(); ++col)                    \
-                                                                               {                                                                         \
-                                                                                   destinationBuffer[col][row] = destinationDataType (*sourceBuffer);    \
-                                                                                   ++sourceBuffer;                                                       \
-                                                                               }                                                                         \
-                                                                           }                                                                             \
+    int64_t MCVReader::getReadPosition() {return metadata->getNumRowsOrSamples() - numRowsOrSamplesRemaining; }
 
-    void MCVReader::fillRealFloatBuffer (float** destinationBuffer)
+    // Helper macro to fill a buffer with source data that handles all casting if necessary
+#define NTLAB_FILL_DESTINATION_BUFFER(sourceDataType, destinationDataType) sourceDataType* sourceBuffer = static_cast<sourceDataType*> (sourceStart);     \
+                                                                           for (int64_t row = destinationStartRowOrSample; row < numRowsOrSamples; ++row) \
+                                                                           {                                                                              \
+                                                                               for (int64_t col = 0; col < getNumColsOrChannels(); ++col)                 \
+                                                                               {                                                                          \
+                                                                                   destinationBuffer[col][row] = destinationDataType (*sourceBuffer);     \
+                                                                                   ++sourceBuffer;                                                        \
+                                                                               }                                                                          \
+                                                                           }                                                                              \
+
+    void MCVReader::fillBuffer (float** destinationBuffer, void* sourceStart, int64_t numRowsOrSamples, int64_t destinationStartRowOrSample)
     {
         if (hasDoublePrecision())
         {
@@ -112,7 +117,7 @@ namespace ntlab
         }
     }
 
-    void MCVReader::fillRealDoubleBuffer (double** destinationBuffer)
+    void MCVReader::fillBuffer (double** destinationBuffer, void* sourceStart, int64_t numRowsOrSamples, int64_t destinationStartRowOrSample)
     {
         if (hasDoublePrecision())
         {
@@ -124,7 +129,7 @@ namespace ntlab
         }
     }
 
-    void MCVReader::fillComplexFloatBuffer (std::complex<float>** destinationBuffer)
+    void MCVReader::fillBuffer (std::complex<float>** destinationBuffer, void* sourceStart, int64_t numRowsOrSamples, int64_t destinationStartRowOrSample)
     {
         if (isComplex())
         {
@@ -151,7 +156,7 @@ namespace ntlab
         }
     }
 
-    void MCVReader::fillComplexDoubleBuffer (std::complex<double>** destinationBuffer)
+    void MCVReader::fillBuffer (std::complex<double>** destinationBuffer, void* sourceStart, int64_t numRowsOrSamples, int64_t destinationStartRowOrSample)
     {
         if (isComplex())
         {
@@ -176,5 +181,10 @@ namespace ntlab
             }
 
         }
+    }
+
+    void* MCVReader::readPositionPtrForSample (int64_t sampleIdx)
+    {
+        return juce::addBytesToPointer (beginOfSamples, metadata->sizeOfOneValue() * sampleIdx * getNumColsOrChannels());
     }
 }

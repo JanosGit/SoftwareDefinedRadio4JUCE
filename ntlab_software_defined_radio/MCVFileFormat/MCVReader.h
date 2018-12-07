@@ -32,10 +32,41 @@ namespace ntlab
     public:
 
         /**
+         * Describes the behaviour the reader shows when the end of the File is reached when interacting with
+         * sample buffers
+         */
+        enum EndOfFileBehaviour
+        {
+            /**
+             * If a buffer is handed to the reader that has a bigger capacity than the number of samples the reader can
+             * supply left, this buffer is filled with the remaining samples the reader can supply. The rest of the
+             * buffer will be filled with zeros. The readers read position will stop at the end of the file. Successive
+             * buffers will be filled with zeros only.
+             */
+            stopAndFillWithZeros,
+
+            /**
+             * If a buffer is handed to the reader that has a bigger capacity than the number of samples the reader can
+             * supply left, this buffer is filled with the remaining samples the reader can supply. The buffers number
+             * of samples will be set to the number of samples filled into the buffer. The readers read position will
+             * stop at the end of the file. Successive buffers will be resized to a size of zero samples.
+             */
+            stopAndResize,
+
+            /**
+             * The reader will just wrap over to the beginning of the file when reaching the end. This means if a buffer
+             * is handed to the reader that has a bigger capacity than the number of samples the reader can supply left,
+             * this buffer is first filled with the remaining samples the reader can supply and then filled with samples
+             * from the beginning of the file.
+             */
+            loop
+        };
+
+        /**
          * Creates an MCVReader object from an mcv file. Always call isValid after creation to check if opening the
          * file was successful.
          */
-        MCVReader (const juce::File& mcvFile);
+        MCVReader (const juce::File& mcvFile, EndOfFileBehaviour endOfFileBehaviour = stopAndFillWithZeros);
 
         /** Returns true if opening the file was successful */
         bool isValid();
@@ -80,21 +111,69 @@ namespace ntlab
          */
         SampleBufferComplex<double> createSampleBufferComplexDouble();
 
+        /**
+         * Fills a buffer with the next samples from the file. You have to make sure that the buffer passed matches in
+         * channel count as well as in the data type. This means: If the file content is complexed valued and the buffer
+         * passed is real valued behaviour is undefined. After having filled the buffer, the files read position will
+         * be advanced to the next sample after the block just read. The behaviour in case the end of file is reached
+         * before the whole buffer could be filled is determined by the endOfFileBehaviour flag passed to the
+         * MCVReader constructor
+         */
+        template <typename BufferType>
+        void fillNextSamplesIntoBuffer (BufferType& bufferToFill, int64_t startSampleInBuffer = 0)
+        {
+            // Always make sure the buffer you want to fill matches the channel count
+            jassert (bufferToFill.getNumChannels() == metadata->getNumColsOrChannels());
+
+            int64_t bufferSampleCapacity = bufferToFill.getNumSamples() - startSampleInBuffer;
+            int64_t numSamplesToCopy = std::min (bufferSampleCapacity, numRowsOrSamplesRemaining);
+
+            bufferToFill.setNumSamples (numSamplesToCopy);
+            fillBuffer (bufferToFill.getArrayOfWritePointers(), readPtr, numSamplesToCopy, startSampleInBuffer);
+            numRowsOrSamplesRemaining -= numSamplesToCopy;
+            readPtr = readPositionPtrForSample (getReadPosition());
+
+            if (numSamplesToCopy < bufferSampleCapacity)
+            {
+                switch (behaviour)
+                {
+                    case stopAndResize:
+                        break;
+                    case stopAndFillWithZeros:
+                        bufferToFill.setNumSamples (bufferSampleCapacity);
+                        bufferToFill.clearBufferRegion (numSamplesToCopy);
+                        break;
+                    case loop:
+                        readPtr = beginOfSamples;
+                        numRowsOrSamplesRemaining = metadata->getNumRowsOrSamples();
+                        fillNextSamplesIntoBuffer (bufferToFill, numSamplesToCopy);
+                        break;
+                }
+            }
+        }
+
+        /** Returns the row or sample that gets read with the next call of fillNextSamplesIntoBuffer */
+        int64_t getReadPosition();
+
     private:
         juce::MemoryMappedFile file;
         std::unique_ptr<MCVHeader> metadata;
 
         void* beginOfSamples;
-        int readPosition = 0;
+        void* readPtr;
+        int64_t numRowsOrSamplesRemaining;
+        EndOfFileBehaviour behaviour;
 
         bool valid = false;
 
-        void fillRealFloatBuffer (float** destinationBuffer);
+        void fillBuffer (float** destinationBuffer, void* sourceStart, int64_t numRowsOrSamples, int64_t destinationStartRowOrSample = 0);
 
-        void fillRealDoubleBuffer (double** destinationBuffer);
+        void fillBuffer (double** destinationBuffer, void* sourceStart, int64_t numRowsOrSamples, int64_t destinationStartRowOrSample = 0);
 
-        void fillComplexFloatBuffer (std::complex<float>** destinationBuffer);
+        void fillBuffer (std::complex<float>** destinationBuffer, void* sourceStart, int64_t numRowsOrSamples, int64_t destinationStartRowOrSample = 0);
 
-        void fillComplexDoubleBuffer (std::complex<double>** destinationBuffer);
+        void fillBuffer (std::complex<double>** destinationBuffer, void* sourceStart, int64_t numRowsOrSamples, int64_t destinationStartRowOrSample = 0);
+
+        void* readPositionPtrForSample (int64_t sampleIdx);
     };
 }
