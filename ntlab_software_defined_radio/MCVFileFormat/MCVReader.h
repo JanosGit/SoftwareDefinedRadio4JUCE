@@ -18,6 +18,7 @@ along with SoftwareDefinedRadio4JUCE. If not, see <http://www.gnu.org/licenses/>
 #pragma once
 
 #include "../SampleBuffers/SampleBuffers.h"
+#include "MCVHeader.h"
 
 
 namespace ntlab
@@ -117,10 +118,10 @@ namespace ntlab
          * passed is real valued behaviour is undefined. After having filled the buffer, the files read position will
          * be advanced to the next sample after the block just read. The behaviour in case the end of file is reached
          * before the whole buffer could be filled is determined by the endOfFileBehaviour flag passed to the
-         * MCVReader constructor
+         * MCVReader constructor. In case the end has been reached false will be returned, true otherwise.
          */
         template <typename BufferType>
-        void fillNextSamplesIntoBuffer (BufferType& bufferToFill, int64_t startSampleInBuffer = 0)
+        bool fillNextSamplesIntoBuffer (BufferType& bufferToFill, int64_t startSampleInBuffer = 0)
         {
             // Always make sure the buffer you want to fill matches the channel count
             jassert (bufferToFill.getNumChannels() == metadata->getNumColsOrChannels());
@@ -128,7 +129,7 @@ namespace ntlab
             int64_t bufferSampleCapacity = bufferToFill.getNumSamples() - startSampleInBuffer;
             int64_t numSamplesToCopy = std::min (bufferSampleCapacity, numRowsOrSamplesRemaining);
 
-            bufferToFill.setNumSamples (numSamplesToCopy);
+            bufferToFill.setNumSamples (static_cast<int> (numSamplesToCopy));
             fillBuffer (bufferToFill.getArrayOfWritePointers(), readPtr, numSamplesToCopy, startSampleInBuffer);
             numRowsOrSamplesRemaining -= numSamplesToCopy;
             readPtr = readPositionPtrForSample (getReadPosition());
@@ -140,8 +141,8 @@ namespace ntlab
                     case stopAndResize:
                         break;
                     case stopAndFillWithZeros:
-                        bufferToFill.setNumSamples (bufferSampleCapacity);
-                        bufferToFill.clearBufferRegion (numSamplesToCopy);
+                        bufferToFill.setNumSamples (static_cast<int> (bufferSampleCapacity));
+                        bufferToFill.clearBufferRegion (static_cast<int> (numSamplesToCopy));
                         break;
                     case loop:
                         readPtr = beginOfSamples;
@@ -149,7 +150,10 @@ namespace ntlab
                         fillNextSamplesIntoBuffer (bufferToFill, numSamplesToCopy);
                         break;
                 }
+                return false;
             }
+
+            return true;
         }
 
         /** Returns the row or sample that gets read with the next call of fillNextSamplesIntoBuffer */
