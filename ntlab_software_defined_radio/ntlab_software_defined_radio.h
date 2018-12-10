@@ -51,8 +51,12 @@ along with SoftwareDefinedRadio4JUCE. If not, see <http://www.gnu.org/licenses/>
 #define NTLAB_NO_SIMD 0
 #endif
 
-#include "HardwareDevices/EttusSpecific/UHDReplacement.h"
-#include "HardwareDevices/EttusSpecific/UHDUSRPProbeParser.h"
+#include "HardwareDevices/EttusEngine/UHDReplacement.h"
+#include "HardwareDevices/EttusEngine/UHDUSRPProbeParser.h"
+#include "HardwareDevices/MCVFileEngine/MCVFileEngine.h"
+#include "HardwareDevices/SDRIODeviceCallback.h"
+#include "HardwareDevices/SDRIOEngine.h"
+#include "HardwareDevices/SDRIODeviceManger.h"
 
 #include "MCVFileFormat/MCVHeader.h"
 #include "MCVFileFormat/MCVWriter.h"
