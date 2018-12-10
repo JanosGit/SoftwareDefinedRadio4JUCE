@@ -164,7 +164,7 @@ namespace ntlab
          */
         void setNumSamples (int newNumSamples)
         {
-            jassert (juce::isPositiveAndBelow (newNumSamples, numSamplesAllocated));
+            jassert (juce::isPositiveAndNotGreaterThan (newNumSamples, numSamplesAllocated));
             numSamplesUsed = newNumSamples;
         }
 
@@ -388,7 +388,7 @@ namespace ntlab
          */
         void setNumSamples (int newNumSamples)
         {
-            jassert (juce::isPositiveAndBelow (newNumSamples, numSamplesAllocated));
+            jassert (juce::isPositiveAndNotGreaterThan (newNumSamples, numSamplesAllocated));
             numSamplesUsed = newNumSamples;
         }
 
@@ -785,7 +785,7 @@ namespace ntlab
          */
         void setNumSamples (int newNumSamples)
         {
-            jassert (juce::isPositiveAndBelow (newNumSamples, numSamplesAllocated));
+            jassert (juce::isPositiveAndNotGreaterThan (newNumSamples, numSamplesAllocated));
             numSamplesUsed = newNumSamples;
         }
 
@@ -960,7 +960,7 @@ namespace ntlab
          */
         void setNumSamples (int newNumSamples)
         {
-            jassert (juce::isPositiveAndBelow (newNumSamples, numSamplesAllocated));
+            jassert (juce::isPositiveAndNotGreaterThan (newNumSamples, numSamplesAllocated));
             numSamplesUsed = newNumSamples;
         }
 
