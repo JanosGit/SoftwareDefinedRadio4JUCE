@@ -26,7 +26,7 @@ namespace ntlab
     {
     public:
         /** Creates a valid header that can be written to a file */
-        MCVHeader (bool isComplex, bool hasDoublePrecision, int64_t numColsOrChannels, int64_t numRowsOrSamples)
+        MCVHeader (bool isComplex, bool hasDoublePrecision, int64_t numColsOrChannels, int64_t numRowsOrSamples = 0)
         {
             std::strncpy (identifier, "NTLABMC", 7);
             flags.set (0, isComplex);
@@ -126,6 +126,18 @@ namespace ntlab
             size_t size = sizeOfHeaderInBytes;
             size += sizeOfOneValue() * numColsOrChannels * numRowsOrSamples;
             return size;
+        }
+
+        void setNumColsOrChannels (int64_t newNumColsOrChannels)
+        {
+            jassert (newNumColsOrChannels > 0);
+            numColsOrChannels = newNumColsOrChannels;
+        }
+
+        void setNumRowsOrSamples (int64_t newNumRowsOrSamples)
+        {
+            jassert (newNumRowsOrSamples > 0);
+            numRowsOrSamples = newNumRowsOrSamples;
         }
 
         /** Returns the number of columns or channels contained in this MCV file */
