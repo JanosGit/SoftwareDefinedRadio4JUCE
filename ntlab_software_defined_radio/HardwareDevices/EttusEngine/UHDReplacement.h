@@ -18,6 +18,7 @@ along with SoftwareDefinedRadio4JUCE. If not, see <http://www.gnu.org/licenses/>
 #pragma once
 
 #include <juce_core/juce_core.h>
+#include <complex>
 
 namespace ntlab
 {
@@ -191,7 +192,7 @@ namespace ntlab
             std::string lastError;
         };
 
-        typedef void** BuffsPtr;
+        typedef std::complex<float>** BuffsPtr;
 
         // construction and deletion of handles
         typedef USRPstruct* USRPHandle;
