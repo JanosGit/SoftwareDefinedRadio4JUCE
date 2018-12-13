@@ -18,6 +18,7 @@ along with SoftwareDefinedRadio4JUCE. If not, see <http://www.gnu.org/licenses/>
 #pragma once
 
 #include <juce_core/juce_core.h>
+#include "../../Threading/RealtimeSetterThreadWithFIFO.h"
 #include <complex>
 
 namespace ntlab
@@ -78,7 +79,10 @@ namespace ntlab
             //! A std::exception was thrown.
                     stdException        = 70,
             //! An unknown error was thrown.
-                    unknown             = 100
+                    unknown             = 100,
+            //! NTLAB specific: The call was invoked from the realtime thread and therefore pushed to the FIFO where
+            //  something failed
+                    realtimeCallFIFO    = -1
         };
 
         /**
@@ -250,6 +254,48 @@ namespace ntlab
         typedef Error (*TxStreamerSend)(TxStreamerHandle, BuffsPtr, size_t, TxMetadataHandle*, double, size_t*);
         typedef Error (*GetRxMetadataErrorCode)(RxMetadataHandle, RxMetadataError*);
 
+        struct UHDSetter
+        {
+            UHDSetter();
+            UHDSetter (SetGain      fptr, USRPHandle usrpHandle, double gain,              size_t channel, const char* gainElement);
+            UHDSetter (SetFrequency fptr, USRPHandle usrpHandle, TuneRequest* tuneRequest, size_t channel, TuneResult* tuneResult);
+            UHDSetter (SetBandwidth fptr, USRPHandle usrpHandle, double bandwidth,         size_t channel);
+            UHDSetter (SetAntenna   fptr, USRPHandle usrpHandle, const char* antennaName,  size_t channel);
+
+            int8_t numArguments;
+
+            // a string buffer used either by SetGain or SetAntenna to store the string. In those cases the unions
+            // asCharPtr representation will point to this buffer
+            static const int stringBufferSize = 7; // a 8 bit int and a 7 byte string make up a nicely packed struct
+            char stringBuffer[stringBufferSize];
+
+            void* functionPointer;
+
+            USRPHandle firstArg;
+
+            union SecondArg
+            {
+                double       asDouble;
+                TuneRequest* asTuneRequestPtr;
+                char*        asCharPtr;
+            } secondArg;
+
+            size_t thirdArg;
+
+            union FourthArg
+            {
+                TuneResult* asTuneResultPtr;
+                char*       asCharPtr;
+            } fourthArg;
+
+            typedef int (*ThreeArgFunction)(USRPHandle, SecondArg, size_t);
+            typedef int (*FourArgFunction) (USRPHandle, SecondArg, size_t, FourthArg);
+
+            int invoke() const;
+
+            void* getErrorContext();
+        };
+
         /** Automatically frees the handles if they were created during runtime */
         ~UHDr();
 
@@ -275,7 +321,7 @@ namespace ntlab
          * A class that wraps all access to the usrp functions in an object-oriented way. It can only be created through
          * UHRr::makeUSRP. Keep in mind that one USRP object might handle multiple hardware units.
          */
-        class USRP : public ReferenceCountedObject
+        class USRP : public ReferenceCountedObject, public RealtimeSetterThreadWithFIFO<UHDSetter, Error::errorNone, Error::realtimeCallFIFO>
         {
             friend class UHDr;
         public:
@@ -315,16 +361,16 @@ namespace ntlab
             juce::Array<double> getTxSampleRates (Error &error);
 
             /** Sets the gain for a specific rx channel or for all channels if -1 is passed as index*/
-            juce::Result setRxGain (double newGain, int channelIdx);
+            juce::Result setRxGain (double newGain, int channelIdx, const char* gainElement);
 
             /** Sets the sample rate for a specific tx channel or for all channels if -1 is passed as index*/
-            juce::Result setTxGain (double newGain, int channelIdx);
+            juce::Result setTxGain (double newGain, int channelIdx, const char* gainElement);
 
             /**
              * Returns the sample rate for a specific rx channel. Note that -1 for all channels obviously can not be passed
              * as an argument. In case of any error -1 will be returned. Check the error code passed for further details.
              */
-            double getRxGain (int channelIdx, Error &error);
+            double getRxGain (int channelIdx, Error &error, const char* gainElement);
 
             /**
              * Returns an array filled the sample rates for all rx channels. In case of an error, an emptry array will be
@@ -336,7 +382,7 @@ namespace ntlab
              * Returns the sample rate for a specific tx channel. Note that -1 for all channels obviously can not be passed
              * as an argument. In case of any error -1 will be returned. Check the error code passed for further details.
              */
-            double getTxGain (int channelIdx, Error &error);
+            double getTxGain (int channelIdx, Error &error, const char* gainElement);
 
             /**
              * Returns an array filled the sample rates for all tx channels. In case of an error, an emptry array will be
@@ -416,15 +462,15 @@ namespace ntlab
 
             /**
              * Sets the antenna port that is used as the physical input for this channel or for all channels if -1 is passed
-             * as index.
+             * as index. Note: Uses a lightweight char pointer for the string for faster execution from the realtime thread.
              */
-            juce::Result setRxAntenna (const juce::String antennaPort, int channelIdx);
+            juce::Result setRxAntenna (const char* antennaPort, int channelIdx);
 
             /**
              * Sets the antenna port that is used as the physical output for this channel or for all channels if -1 is passed
-             * as index.
+             * as index. Note: Uses a lightweight char pointer for the string for faster execution from the realtime thread.
              */
-            juce::Result setTxAntenna (const juce::String antennaPort, int channelIdx);
+            juce::Result setTxAntenna (const char* antennaPort, int channelIdx);
 
             /** Returns the name of the antenna port currently used for receiving with that particular channel */
             juce::String getCurrentRxAntenna (int channelIdx, Error &error);
