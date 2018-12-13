@@ -16,80 +16,83 @@ along with SoftwareDefinedRadio4JUCE. If not, see <http://www.gnu.org/licenses/>
 */
 
 #include "UHDReplacement.h"
+#include "../../ErrorHandling/ErrorHandlingMacros.h"
 
 namespace ntlab
 {
-    juce::String UHDr::errorDescription (ntlab::UHDr::Error error, juce::String functionName)
+    UHDr::UHDSetter::UHDSetter () : numArguments (0) {}
     {
         if (functionName.length () > 0)
         {
-            if (error == errorNone)
-                return "No error while calling UHDr::" + functionName;
+        secondArg.asTuneRequestPtr = tuneRequest;
+        fourthArg.asTuneResultPtr  = tuneResult;
 
-            functionName = "Error calling " + functionName + ": ";
-        }
+    UHDr::UHDSetter::UHDSetter (UHDr::SetAntenna fptr, UHDr::USRPHandle usrpHandle, const char* antennaName, size_t channel)
+    }
 
+    juce::String UHDr::errorDescription (ntlab::UHDr::Error error)
+    {
         switch (error)
         {
             case invalidDevice:
-                return functionName + "Invalid device arguments";
+                return "Invalid device arguments";
 
             case index:
-                return functionName + "UHD index error";
+                return "UHD index error";
 
             case key:
-                return functionName + "UHD key error";
+                return "UHD key error";
 
             case notImplemented:
-                return functionName + "Not implemented";
+                return "Not implemented";
 
             case usb:
-                return functionName + "UHD USB error";
+                return "UHD USB error";
 
             case io:
-                return functionName + "UHD I/O error";
+                return "UHD I/O error";
 
             case os:
-                return functionName + "UHD operating system error";
+                return "UHD operating system error";
 
             case assertion:
-                return functionName + "UHD assertion error";
+                return "UHD assertion error";
 
             case lookup:
-                return functionName + "UHD lookup error";
+                return "UHD lookup error";
 
             case type:
-                return functionName + "UHD type error";
+                return "UHD type error";
 
             case value:
-                return functionName + "UHD value error";
+                return "UHD value error";
 
             case runtime:
-                return functionName + "UHD runtime error";
+                return "UHD runtime error";
 
             case environment:
-                return functionName + "UHD environment error";
+                return "UHD environment error";
 
             case system:
-                return functionName + "UHD system error";
+                return "UHD system error";
 
             case uhdException:
-                return functionName + "UHD exception";
+                return "UHD exception";
 
             case boostException:
-                return functionName + "boost exception";
+                return "boost exception";
 
             case stdException:
-                return functionName + "std exception";
+                return "std exception";
 
             case unknown:
-                return functionName + "Unknown exception";
+                return "Unknown exception";
 
             case errorNone:
                 return "No error";
 
             default:
-                return functionName + "Unknown error code";
+                return "Unknown error code";
         }
     }
 
@@ -187,31 +190,17 @@ namespace ntlab
         // create a string vector to store the results
         StringVectorHandle stringVector;
         error = stringVectorMake (&stringVector);
-        if (error) {
-            DBG (errorDescription (error, "stringVectorMake"));
-            jassertfalse;
-            return juce::StringPairArray();
-        }
-
+        jassert (error == Error::errorNone);
 
         // try finding the devices
         error = find (args.toRawUTF8(), &stringVector);
-        if (error) {
-            DBG (errorDescription (error, "find"));
-            jassertfalse;
-            stringVectorFree (&stringVector);
-            return juce::StringPairArray();
-        }
+        NTLAB_PRINT_ERROR_TO_DBG_AND_INVOKE_ACTIONS (error, stringVectorFree (&stringVector); return juce::StringPairArray();)
+
 
         // this number should equal the number of devices found
         size_t numItemsInStringVector;
         error = stringVectorSize (stringVector, &numItemsInStringVector);
-        if (error) {
-            DBG (errorDescription (error, "stringVectorSize"));
-            jassertfalse;
-            stringVectorFree (&stringVector);
-            return juce::StringPairArray();
-        }
+        NTLAB_PRINT_ERROR_TO_DBG_AND_INVOKE_ACTIONS (error, stringVectorFree (&stringVector); return juce::StringPairArray();)
 
         // iterate over the whole result and put the key-value-pairs into a StringPairArray per device
         juce::Array<juce::StringPairArray> allDevices;
@@ -220,12 +209,7 @@ namespace ntlab
         for (size_t i = 0; i < numItemsInStringVector; ++i) {
             // load content of string vector into the temporary buffer
             error = stringVectorAt (stringVector, i, tempStringBuffer, tempStringBufferLength);
-            if (error) {
-                DBG (errorDescription (error, "stringVectorAt"));
-                jassertfalse;
-                stringVectorFree (&stringVector);
-                return juce::StringPairArray();
-            }
+            NTLAB_PRINT_ERROR_TO_DBG_AND_INVOKE_ACTIONS (error, stringVectorFree (&stringVector); return juce::StringPairArray();)
 
             // tokenize the temporary buffer to extract all key-value-pairs
             juce::StringPairArray pairs;
@@ -257,8 +241,7 @@ namespace ntlab
             for (int i = 0; i < numInputChannels; i++)
             {
                 error = uhd->setRxSampleRate (usrpHandle, newSampleRate, static_cast<size_t >(i));
-                if (error)
-                    return juce::Result::fail (errorDescription (error, "USRP::setRxSampleRate"));
+                NTLAB_RETURN_FAIL_WITH_ERROR_CODE_DESCRIPTION_IN_CASE_OF_ERROR (error);
             }
         }
         else
@@ -266,8 +249,7 @@ namespace ntlab
             if (juce::isPositiveAndNotGreaterThan (channelIdx, numInputChannels))
             {
                 error = uhd->setRxSampleRate (usrpHandle, newSampleRate, static_cast<size_t >(channelIdx));
-                if (error)
-                    return juce::Result::fail (errorDescription (error, "USRP::setRxSampleRate"));
+                NTLAB_RETURN_FAIL_WITH_ERROR_CODE_DESCRIPTION_IN_CASE_OF_ERROR (error);
             }
             else {
                 return juce::Result::fail ("channelIdx passed out of range");
@@ -283,8 +265,7 @@ namespace ntlab
             for (int i = 0; i < numOutputChannels; i++)
             {
                 error = uhd->setTxSampleRate (usrpHandle, newSampleRate, static_cast<size_t >(i));
-                if (error)
-                    return juce::Result::fail (errorDescription (error, "USRP::setTxSampleRate"));
+                NTLAB_RETURN_FAIL_WITH_ERROR_CODE_DESCRIPTION_IN_CASE_OF_ERROR (error);
             }
         }
         else
@@ -292,8 +273,7 @@ namespace ntlab
             if (juce::isPositiveAndNotGreaterThan (channelIdx, numOutputChannels))
             {
                 error = uhd->setTxSampleRate (usrpHandle, newSampleRate, static_cast<size_t >(channelIdx));
-                if (error)
-                    return juce::Result::fail (errorDescription (error, "USRP::setTxSampleRate"));
+                NTLAB_RETURN_FAIL_WITH_ERROR_CODE_DESCRIPTION_IN_CASE_OF_ERROR (error);
             }
             else
             {
@@ -373,8 +353,7 @@ namespace ntlab
             for (int i = 0; i < numInputChannels; i++)
             {
                 error = uhd->setRxGain (usrpHandle, newGain, static_cast<size_t >(i), "");
-                if (error)
-                    return juce::Result::fail (errorDescription (error, "USRP::setRxGain"));
+                NTLAB_RETURN_FAIL_WITH_ERROR_CODE_DESCRIPTION_IN_CASE_OF_ERROR (error);
             }
         }
         else
@@ -382,8 +361,7 @@ namespace ntlab
             if (juce::isPositiveAndNotGreaterThan (channelIdx, numInputChannels))
             {
                 error = uhd->setRxGain (usrpHandle, newGain, static_cast<size_t >(channelIdx), "");
-                if (error)
-                    return juce::Result::fail (errorDescription (error, "USRP::setRxGain"));
+                NTLAB_RETURN_FAIL_WITH_ERROR_CODE_DESCRIPTION_IN_CASE_OF_ERROR (error);
             }
             else
                 return juce::Result::fail ("channelIdx passed out of range");
@@ -399,8 +377,7 @@ namespace ntlab
             for (int i = 0; i < numOutputChannels; i++)
             {
                 error = uhd->setTxGain (usrpHandle, newGain, static_cast<size_t >(i), "");
-                if (error)
-                    return juce::Result::fail (errorDescription (error, "USRP::setTxGain"));
+                NTLAB_RETURN_FAIL_WITH_ERROR_CODE_DESCRIPTION_IN_CASE_OF_ERROR (error);
             }
         }
         else
@@ -408,8 +385,7 @@ namespace ntlab
             if (juce::isPositiveAndNotGreaterThan (channelIdx, numOutputChannels))
             {
                 error = uhd->setTxGain (usrpHandle, newGain, static_cast<size_t >(channelIdx), "");
-                if (error)
-                    return juce::Result::fail (errorDescription (error, "USRP::setTxGain"));
+                NTLAB_RETURN_FAIL_WITH_ERROR_CODE_DESCRIPTION_IN_CASE_OF_ERROR (error);
             }
             else
                 return juce::Result::fail ("channelIdx passed out of range");
@@ -487,8 +463,7 @@ namespace ntlab
             {
                 TuneResult tuneResult;
                 error = uhd->setRxFrequency (usrpHandle, &tuneRequest, static_cast<size_t >(i), &tuneResult);
-                if (error)
-                    return juce::Result::fail (errorDescription (error, "USRP::setRxFrequency"));
+                NTLAB_RETURN_FAIL_WITH_ERROR_CODE_DESCRIPTION_IN_CASE_OF_ERROR (error);
                 tuneResults.add (tuneResult);
             }
         }
@@ -498,8 +473,7 @@ namespace ntlab
             {
                 TuneResult tuneResult;
                 error = uhd->setRxFrequency (usrpHandle, &tuneRequest, static_cast<size_t >(channelIdx), &tuneResult);
-                if (error)
-                    return juce::Result::fail (errorDescription (error, "USRP::setRxFrequency"));
+                NTLAB_RETURN_FAIL_WITH_ERROR_CODE_DESCRIPTION_IN_CASE_OF_ERROR (error);
                 tuneResults.add (tuneResult);
             }
             else
@@ -518,8 +492,7 @@ namespace ntlab
             {
                 TuneResult tuneResult;
                 error = uhd->setTxFrequency (usrpHandle, &tuneRequest, static_cast<size_t >(i), &tuneResult);
-                if (error)
-                    return juce::Result::fail (errorDescription (error, "USRP::setTxFrequency"));
+                NTLAB_RETURN_FAIL_WITH_ERROR_CODE_DESCRIPTION_IN_CASE_OF_ERROR (error);
                 tuneResults.add (tuneResult);
             }
         }
@@ -529,8 +502,7 @@ namespace ntlab
             {
                 TuneResult tuneResult;
                 error = uhd->setTxFrequency (usrpHandle, &tuneRequest, static_cast<size_t >(channelIdx), &tuneResult);
-                if (error)
-                    return juce::Result::fail (errorDescription (error, "USRP::setTxFrequency"));
+                NTLAB_RETURN_FAIL_WITH_ERROR_CODE_DESCRIPTION_IN_CASE_OF_ERROR (error);
                 tuneResults.add (tuneResult);
             }
             else
@@ -606,8 +578,7 @@ namespace ntlab
             for (int i = 0; i < numInputChannels; i++)
             {
                 error = uhd->setRxBandwidth (usrpHandle, newBandwidth, static_cast<size_t > (i));
-                if (error)
-                    return juce::Result::fail (errorDescription (error, "USRP::setRxBandwidth"));
+                NTLAB_RETURN_FAIL_WITH_ERROR_CODE_DESCRIPTION_IN_CASE_OF_ERROR (error);
             }
         }
         else
@@ -615,8 +586,7 @@ namespace ntlab
             if (juce::isPositiveAndNotGreaterThan (channelIdx, numInputChannels))
             {
                 error = uhd->setRxBandwidth (usrpHandle, newBandwidth, static_cast<size_t >(channelIdx));
-                if (error)
-                    return juce::Result::fail (errorDescription (error, "USRP::setRxBandwidth"));
+                NTLAB_RETURN_FAIL_WITH_ERROR_CODE_DESCRIPTION_IN_CASE_OF_ERROR (error);
             }
             else
                 return juce::Result::fail ("channelIdx passed out of range");
@@ -632,8 +602,7 @@ namespace ntlab
             for (int i = 0; i < numOutputChannels; i++)
             {
                 error = uhd->setTxBandwidth (usrpHandle, newBandwidth, static_cast<size_t >(i));
-                if (error)
-                    return juce::Result::fail (errorDescription (error, "USRP::setTxBandwidth"));
+                NTLAB_RETURN_FAIL_WITH_ERROR_CODE_DESCRIPTION_IN_CASE_OF_ERROR (error);
             }
         }
         else
@@ -641,8 +610,7 @@ namespace ntlab
             if (juce::isPositiveAndNotGreaterThan (channelIdx, numOutputChannels))
             {
                 error = uhd->setTxBandwidth (usrpHandle, newBandwidth, static_cast<size_t >(channelIdx));
-                if (error)
-                    return juce::Result::fail (errorDescription (error, "USRP::setTxBandwidth"));
+                NTLAB_RETURN_FAIL_WITH_ERROR_CODE_DESCRIPTION_IN_CASE_OF_ERROR (error);
             }
             else
                 return juce::Result::fail ("channelIdx passed out of range");
@@ -718,8 +686,7 @@ namespace ntlab
             for (int i = 0; i < numInputChannels; i++)
             {
                 error = uhd->setRxAntenna (usrpHandle, antennaPort.toRawUTF8(), static_cast<size_t> (i));
-                if (error)
-                    return juce::Result::fail (errorDescription (error, "USRP::setRxAntenna"));
+                NTLAB_RETURN_FAIL_WITH_ERROR_CODE_DESCRIPTION_IN_CASE_OF_ERROR (error);
             }
         }
         else
@@ -727,8 +694,7 @@ namespace ntlab
             if (juce::isPositiveAndNotGreaterThan (channelIdx, numInputChannels))
             {
                 error = uhd->setRxAntenna (usrpHandle, antennaPort.toRawUTF8(), static_cast<size_t> (channelIdx));
-                if (error)
-                    return juce::Result::fail (errorDescription (error, "USRP::setRxAntenna"));
+                NTLAB_RETURN_FAIL_WITH_ERROR_CODE_DESCRIPTION_IN_CASE_OF_ERROR (error);
             }
             else
                 return juce::Result::fail ("channelIdx passed out of range");
@@ -744,8 +710,7 @@ namespace ntlab
             for (int i = 0; i < numOutputChannels; i++)
             {
                 error = uhd->setTxAntenna (usrpHandle, antennaPort.toRawUTF8(), static_cast<size_t> (i));
-                if (error)
-                    return juce::Result::fail (errorDescription (error, "USRP::setTxAntenna"));
+                NTLAB_RETURN_FAIL_WITH_ERROR_CODE_DESCRIPTION_IN_CASE_OF_ERROR (error);
             }
         }
         else
@@ -753,8 +718,7 @@ namespace ntlab
             if (juce::isPositiveAndNotGreaterThan (channelIdx, numOutputChannels))
             {
                 error = uhd->setTxAntenna (usrpHandle, antennaPort.toRawUTF8(), static_cast<size_t> (channelIdx));
-                if (error)
-                    return juce::Result::fail (errorDescription (error, "USRP::setTxAntenna"));
+                NTLAB_RETURN_FAIL_WITH_ERROR_CODE_DESCRIPTION_IN_CASE_OF_ERROR (error);
             }
             else
                 return juce::Result::fail ("channelIdx passed out of range");
@@ -788,8 +752,7 @@ namespace ntlab
         for (int i = 0; i < numInputChannels; i++)
         {
             error = uhd->getRxAntenna (usrpHandle, static_cast<size_t> (i), strBuf, strBufLen);
-            if (error)
-                return juce::StringArray();
+            NTLAB_PRINT_ERROR_TO_DBG_AND_INVOKE_ACTIONS (error, return juce::StringArray();)
             currentAntennas.add (juce::String (strBuf));
         }
         return currentAntennas;
@@ -802,23 +765,14 @@ namespace ntlab
             // create a string vector to store the results
             StringVectorHandle stringVector;
             error = uhd->stringVectorMake (&stringVector);
-            if (error)
-                return juce::StringArray();
+            NTLAB_PRINT_ERROR_TO_DBG_AND_INVOKE_ACTIONS (error, return juce::StringArray();)
 
             error = uhd->getRxAntennas (usrpHandle, static_cast<size_t> (channelIdx), &stringVector);
-            if (error)
-            {
-                uhd->stringVectorFree (&stringVector);
-                return juce::StringArray();
-            }
+            NTLAB_PRINT_ERROR_TO_DBG_AND_INVOKE_ACTIONS (error, uhd->stringVectorFree (&stringVector); return juce::StringArray();)
 
             size_t numItemsInVector;
             error = uhd->stringVectorSize (stringVector, &numItemsInVector);
-            if (error)
-            {
-                uhd->stringVectorFree (&stringVector);
-                return juce::StringArray();
-            }
+            NTLAB_PRINT_ERROR_TO_DBG_AND_INVOKE_ACTIONS (error, uhd->stringVectorFree (&stringVector); return juce::StringArray();)
 
             juce::StringArray possibleAntennas;
             const size_t strBufLen = 32;
@@ -826,11 +780,7 @@ namespace ntlab
             for (size_t i = 0; i < numItemsInVector; i++)
             {
                 error = uhd->stringVectorAt (stringVector, i, strBuf, strBufLen);
-                if (error)
-                {
-                    uhd->stringVectorFree (&stringVector);
-                    return juce::StringArray();
-                }
+                NTLAB_PRINT_ERROR_TO_DBG_AND_INVOKE_ACTIONS (error, uhd->stringVectorFree (&stringVector); return juce::StringArray();)
                 possibleAntennas.add (juce::String (strBuf));
             }
 
@@ -851,8 +801,7 @@ namespace ntlab
             char strBuf[strBufLen];
 
             error = uhd->getTxAntenna (usrpHandle, static_cast<size_t> (channelIdx), strBuf, strBufLen);
-            if (error)
-                return "";
+            NTLAB_PRINT_ERROR_TO_DBG_AND_INVOKE_ACTIONS (error, return "";)
             return strBuf;
         }
         // This assert will fire if you passed an invalid channelIdx. Dont pass -1
@@ -869,8 +818,7 @@ namespace ntlab
         for (int i = 0; i < numOutputChannels; i++)
         {
             error = uhd->getTxAntenna (usrpHandle, static_cast<size_t> (i), strBuf, strBufLen);
-            if (error)
-                return juce::StringArray();
+            NTLAB_PRINT_ERROR_TO_DBG_AND_INVOKE_ACTIONS (error, return juce::StringArray();)
             currentAntennas.add (juce::String (strBuf));
         }
         return currentAntennas;
@@ -883,23 +831,14 @@ namespace ntlab
             // create a string vector to store the results
             StringVectorHandle stringVector;
             error = uhd->stringVectorMake (&stringVector);
-            if (error)
-                return juce::StringArray();
+            NTLAB_PRINT_ERROR_TO_DBG_AND_INVOKE_ACTIONS (error, return juce::StringArray();)
 
             error = uhd->getTxAntennas (usrpHandle, static_cast<size_t> (channelIdx), &stringVector);
-            if (error)
-            {
-                uhd->stringVectorFree (&stringVector);
-                return juce::StringArray();
-            }
+            NTLAB_PRINT_ERROR_TO_DBG_AND_INVOKE_ACTIONS (error, uhd->stringVectorFree (&stringVector); return juce::StringArray();)
 
             size_t numItemsInVector;
             error = uhd->stringVectorSize (stringVector, &numItemsInVector);
-            if (error)
-            {
-                uhd->stringVectorFree (&stringVector);
-                return juce::StringArray();
-            }
+            NTLAB_PRINT_ERROR_TO_DBG_AND_INVOKE_ACTIONS (error, uhd->stringVectorFree (&stringVector); return juce::StringArray();)
 
             juce::StringArray possibleAntennas;
             const size_t strBufLen = 32;
@@ -907,15 +846,11 @@ namespace ntlab
             for (size_t i = 0; i < numItemsInVector; i++)
             {
                 error = uhd->stringVectorAt (stringVector, i, strBuf, strBufLen);
-                if (error)
-                {
-                    uhd->stringVectorFree (&stringVector);
-                    return juce::StringArray();
-                }
+                NTLAB_PRINT_ERROR_TO_DBG_AND_INVOKE_ACTIONS (error, uhd->stringVectorFree (&stringVector); return juce::StringArray();)
                 possibleAntennas.add (juce::String (strBuf));
             }
 
-            error = uhd->stringVectorFree (&stringVector);
+            uhd->stringVectorFree (&stringVector);
             return possibleAntennas;
         }
         // This assert will fire if you passed an invalid channelIdx. Dont pass -1
@@ -932,8 +867,7 @@ namespace ntlab
             for (int i = 0; i < numMboards; i++)
             {
                 error = uhd->setClockSource (usrpHandle, clockSource.toRawUTF8(), static_cast<size_t> (i));
-                if (error)
-                    return juce::Result::fail (errorDescription (error, "USRP::setClockSource"));
+                NTLAB_RETURN_FAIL_WITH_ERROR_CODE_DESCRIPTION_IN_CASE_OF_ERROR (error);
             }
         }
         else
@@ -941,8 +875,7 @@ namespace ntlab
             if (juce::isPositiveAndNotGreaterThan (numMboards, numOutputChannels))
             {
                 error = uhd->setClockSource (usrpHandle, clockSource.toRawUTF8(), static_cast<size_t> (mboardIdx));
-                if (error)
-                    return juce::Result::fail (errorDescription (error, "USRP::setClockSource"));
+                NTLAB_RETURN_FAIL_WITH_ERROR_CODE_DESCRIPTION_IN_CASE_OF_ERROR (error);
             }
             else
                 return juce::Result::fail ("channelIdx passed out of range");
@@ -958,8 +891,7 @@ namespace ntlab
             for (int i = 0; i < numMboards; i++)
             {
                 error = uhd->setTimeSource (usrpHandle, timeSource.toRawUTF8(), static_cast<size_t> (i));
-                if (error)
-                    return juce::Result::fail (errorDescription (error, "USRP::setTimeSource"));
+                NTLAB_RETURN_FAIL_WITH_ERROR_CODE_DESCRIPTION_IN_CASE_OF_ERROR (error);
             }
         }
         else
@@ -967,8 +899,7 @@ namespace ntlab
             if (juce::isPositiveAndNotGreaterThan (numMboards, numOutputChannels))
             {
                 error = uhd->setTimeSource (usrpHandle, timeSource.toRawUTF8(), static_cast<size_t> (mboardIdx));
-                if (error)
-                    return juce::Result::fail (errorDescription (error, "USRP::setTimeSource"));
+                NTLAB_RETURN_FAIL_WITH_ERROR_CODE_DESCRIPTION_IN_CASE_OF_ERROR (error);
             }
             else
                 return juce::Result::fail ("channelIdx passed out of range");
@@ -979,8 +910,7 @@ namespace ntlab
     juce::Result UHDr::USRP::setTimeUnknownPPS (time_t fullSecs, double fracSecs)
     {
         Error error = uhd->setTimeUnknownPPS (usrpHandle, fullSecs, fracSecs);
-        if (error)
-            return juce::Result::fail (errorDescription (error, "USRP::setTimeUnknownPPS"));
+        NTLAB_RETURN_FAIL_WITH_ERROR_CODE_DESCRIPTION_IN_CASE_OF_ERROR (error);
         return juce::Result::ok();
     }
 
@@ -989,8 +919,7 @@ namespace ntlab
         if (juce::isPositiveAndNotGreaterThan (mboardIdx, numMboards))
         {
             Error error = uhd->setTimeNow (usrpHandle, fullSecs, fracSecs, static_cast<size_t> (mboardIdx));
-            if (error)
-                return juce::Result::fail (errorDescription (error, "USRP::setTimeNow"));
+            NTLAB_RETURN_FAIL_WITH_ERROR_CODE_DESCRIPTION_IN_CASE_OF_ERROR (error);
             return juce::Result::ok();
         }
         // don't use this to configure all mboards!
@@ -1030,8 +959,7 @@ namespace ntlab
     juce::Result UHDr::USRP::RxStream::issueStreamCmd (ntlab::UHDr::StreamCmd& streamCmd)
     {
         Error error = uhd->rxStreamerIssueStreamCmd (rxStreamerHandle, &streamCmd);
-        if (error)
-            return juce::Result::fail (errorDescription (error, "USRP::RxStream::issueStreamCmd"));
+        NTLAB_RETURN_FAIL_WITH_ERROR_CODE_DESCRIPTION_IN_CASE_OF_ERROR (error);
         return juce::Result::ok();
     }
 
@@ -1052,23 +980,17 @@ namespace ntlab
     UHDr::USRP::RxStream::RxStream (ntlab::UHDr::Ptr uhdr, ntlab::UHDr::USRPHandle& usrpHandle, ntlab::UHDr::StreamArgs& streamArgs, ntlab::UHDr::Error& error) : uhd (uhdr)
     {
         error = uhd->rxStreamerMake (&rxStreamerHandle);
-        if (error) {
-            rxStreamerHandle = nullptr;
-            return;
-        }
+        NTLAB_PRINT_ERROR_TO_DBG_AND_INVOKE_ACTIONS (error, rxStreamerHandle = nullptr; return;)
 
         error = uhd->getRxStream (usrpHandle, &streamArgs, rxStreamerHandle);
-        if (error)
-            return;
+        NTLAB_PRINT_ERROR_TO_DBG_AND_INVOKE_ACTIONS (error, uhd->rxStreamerFree (&rxStreamerHandle); return;)
 
         error = uhd->rxMetadataMake (&rxMetadataHandle);
-        if (error) {
-            rxMetadataHandle = nullptr;
-            return;
-        }
+        NTLAB_PRINT_ERROR_TO_DBG_AND_INVOKE_ACTIONS (error, rxMetadataHandle = nullptr; uhd->rxStreamerFree (&rxStreamerHandle); return;)
 
         numActiveChannels = streamArgs.numChannels;
         error = uhd->getRxStreamMaxNumSamples (rxStreamerHandle, &maxNumSamples);
+        NTLAB_PRINT_ERROR_TO_DBG_AND_INVOKE_ACTIONS (error, uhd->rxMetadataFree (&rxMetadataHandle); uhd->rxStreamerFree (&rxStreamerHandle); return;)
     }
 
     UHDr::USRP::RxStream * UHDr::USRP::makeRxStream (ntlab::UHDr::StreamArgs& streamArgs, ntlab::UHDr::Error& error)
@@ -1100,59 +1022,52 @@ namespace ntlab
         return static_cast<int> (maxNumSamples);
     }
 
-    juce::Result UHDr::USRP::TxStream::issueStreamCmd (ntlab::UHDr::StreamCmd& streamCmd)
+    juce::Result UHDr::USRP::TxStream::issueStreamCmd (UHDr::StreamCmd& streamCmd)
     {
         Error error = uhd->txStreamerIssueStreamCmd (txStreamerHandle, &streamCmd);
-        if (error)
-            return juce::Result::fail (errorDescription (error, "USRP::TxStream::issueStreamCmd"));
+        NTLAB_RETURN_FAIL_WITH_ERROR_CODE_DESCRIPTION_IN_CASE_OF_ERROR (error);
+
         return juce::Result::ok();
     }
 
-    int UHDr::USRP::TxStream::send (ntlab::UHDr::BuffsPtr buffsPtr, int numSamples, ntlab::UHDr::Error& error, double timeoutInSeconds)
+    int UHDr::USRP::TxStream::send (UHDr::BuffsPtr buffsPtr, int numSamples, UHDr::Error& error, double timeoutInSeconds)
     {
         size_t numSamplesSent;
         error = uhd->txStreamerSend (txStreamerHandle, buffsPtr, static_cast<size_t> (numSamples), &txMetadataHandle, timeoutInSeconds, &numSamplesSent);
+        NTLAB_PRINT_ERROR_TO_DBG_AND_INVOKE_ACTIONS (error, );
         return static_cast<int> (numSamplesSent);
     }
 
     UHDr::USRP::TxStream::TxStream (ntlab::UHDr::Ptr uhdr, ntlab::UHDr::USRPHandle& usrpHandle, ntlab::UHDr::StreamArgs& streamArgs, ntlab::UHDr::Error& error) : uhd (uhdr)
     {
         error = uhd->txStreamerMake (&txStreamerHandle);
-        if (error) {
-            txStreamerHandle = nullptr;
-            return;
-        }
+        NTLAB_PRINT_ERROR_TO_DBG_AND_INVOKE_ACTIONS (error, txStreamerHandle = nullptr; return;)
 
         error = uhd->getTxStream (usrpHandle, &streamArgs, txStreamerHandle);
-        if (error)
-            return;
+        NTLAB_PRINT_ERROR_TO_DBG_AND_INVOKE_ACTIONS (error, uhd->txStreamerFree (&txStreamerHandle); return;)
 
         error = uhd->txMetadataMake (&txMetadataHandle, false, 0, 0.1, true, false); // taken from the ettus tx_samples_c.c example
-        if (error) {
-            txMetadataHandle = nullptr;
-            return;
-        }
+        NTLAB_PRINT_ERROR_TO_DBG_AND_INVOKE_ACTIONS (error, txMetadataHandle = nullptr; uhd->txStreamerFree (&txStreamerHandle); return;)
 
         numActiveChannels = streamArgs.numChannels;
         error = uhd->getTxStreamMaxNumSamples (txStreamerHandle, &maxNumSamples);
+        NTLAB_PRINT_ERROR_TO_DBG_AND_INVOKE_ACTIONS (error, uhd->txStreamerFree (&txStreamerHandle); return;)
     }
 
     UHDr::USRP::USRP (ntlab::UHDr* uhdr, const char* args, ntlab::UHDr::Error& error) : uhd (uhdr)
     {
         error = uhd->usrpMake (&usrpHandle, args);
-        if (error == Error::errorNone)
-        {
-            size_t n;
-            error = uhd->getNumRxChannels (usrpHandle, &n);
-            if (error == Error::errorNone)
-            {
-                numInputChannels = static_cast<int>(n);
-                error = uhd->getNumTxChannels (usrpHandle, &n);
-                numOutputChannels = static_cast<int>(n);
-            }
-        }
-        else
-            usrpHandle = nullptr;
+        NTLAB_PRINT_ERROR_TO_DBG_AND_INVOKE_ACTIONS (error, usrpHandle = nullptr; return;)
+
+        size_t n;
+        error = uhd->getNumRxChannels (usrpHandle, &n);
+        NTLAB_PRINT_ERROR_TO_DBG_AND_INVOKE_ACTIONS (error, uhd->usrpFree (&usrpHandle); return;)
+
+        numInputChannels = static_cast<int>(n);
+        error = uhd->getNumTxChannels (usrpHandle, &n);
+        NTLAB_PRINT_ERROR_TO_DBG_AND_INVOKE_ACTIONS (error, uhd->usrpFree (&usrpHandle); return;)
+
+        numOutputChannels = static_cast<int>(n);
     }
 
     UHDr::USRP::Ptr UHDr::makeUSRP (juce::StringPairArray args, ntlab::UHDr::Error& error)

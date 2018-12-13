@@ -39,7 +39,7 @@ namespace ntlab
 
         typedef juce::ReferenceCountedObjectPtr<UHDr> Ptr;
 
-        enum Error
+        enum Error : int
         {
             //! No error thrown.
                     errorNone           = 0,
@@ -86,7 +86,7 @@ namespace ntlab
          * pass a function name that was called before so that the error description mentions the function where the
          * error occured.
          */
-        static juce::String errorDescription (Error error, juce::String functionName = "");
+        static juce::String errorDescription (Error error);
 
         enum RxMetadataError
         {
@@ -221,7 +221,6 @@ namespace ntlab
         typedef Error (*StringVectorFree)(StringVectorHandle*);
         typedef Error (*StringVectorSize)(StringVectorHandle, size_t*);
         typedef Error (*StringVectorAt)(StringVectorHandle, size_t, char*, size_t);
-
         typedef Error (*Find)(const char*, StringVectorHandle*);
 
         // getting and setting parameters, should work for rx and tx if not specified different
