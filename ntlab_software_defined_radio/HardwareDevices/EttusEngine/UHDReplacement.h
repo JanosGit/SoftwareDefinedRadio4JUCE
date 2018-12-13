@@ -219,39 +219,56 @@ namespace ntlab
         typedef Error (*TxMetadataMake)(TxMetadataHandle*, bool, time_t, double, bool, bool);
         typedef Error (*TxMetadataFree)(TxMetadataHandle*);
 
-        // string vectors are needed when finding devices
+        typedef void* SubdevSpecHandle;
+        typedef Error (*SubdevSpecMake)(SubdevSpecHandle*, const char*);
+        typedef Error (*SubdevSpecFree)(SubdevSpecHandle*);
+
         typedef void* StringVectorHandle;
         typedef Error (*StringVectorMake)(StringVectorHandle*);
         typedef Error (*StringVectorFree)(StringVectorHandle*);
         typedef Error (*StringVectorSize)(StringVectorHandle, size_t*);
-        typedef Error (*StringVectorAt)(StringVectorHandle, size_t, char*, size_t);
-        typedef Error (*Find)(const char*, StringVectorHandle*);
+        typedef Error (*StringVectorAt)  (StringVectorHandle, size_t, char*, size_t);
+        typedef Error (*Find)            (const char*, StringVectorHandle*);
 
         // getting and setting parameters, should work for rx and tx if not specified different
         typedef Error (*GetNumRxChannels)(USRPHandle, size_t*);
         typedef Error (*GetNumTxChannels)(USRPHandle, size_t*);
+
         typedef Error (*SetSampleRate)(USRPHandle, double, size_t);
         typedef Error (*GetSampleRate)(USRPHandle, size_t, double*);
+
         typedef Error (*SetGain)(USRPHandle, double, size_t, const char*);
         typedef Error (*GetGain)(USRPHandle, size_t, const char*, double*);
+
         typedef Error (*SetFrequency)(USRPHandle, TuneRequest*, size_t, TuneResult*);
         typedef Error (*GetFrequency)(USRPHandle, size_t, double*);
+
         typedef Error (*SetBandwidth)(USRPHandle, double, size_t);
         typedef Error (*GetBandwidth)(USRPHandle, size_t, double*);
-        typedef Error (*SetAntenna)(USRPHandle, const char*, size_t);
-        typedef Error (*GetAntenna)(USRPHandle, size_t, char*, size_t);
+
+        typedef Error (*SetAntenna) (USRPHandle, const char*, size_t);
+        typedef Error (*GetAntenna) (USRPHandle, size_t, char*, size_t);
         typedef Error (*GetAntennas)(USRPHandle, size_t, StringVectorHandle*);
+
+        typedef Error (*SetSubdevSpec)(USRPHandle, SubdevSpecHandle, size_t);
+
         typedef Error (*SetSource)(USRPHandle, const char*, size_t);
+
         typedef Error (*SetTimeUnknownPPS)(USRPHandle, time_t, double);
-        typedef Error (*SetTimeNow)(USRPHandle, time_t, double, size_t);
+        typedef Error (*SetTimeNow)       (USRPHandle, time_t, double, size_t);
+
         typedef Error (*GetRxStream)(USRPHandle, StreamArgs*, RxStreamerHandle);
         typedef Error (*GetTxStream)(USRPHandle, StreamArgs*, TxStreamerHandle);
+
         typedef Error (*GetRxStreamMaxNumSamples)(RxStreamerHandle, size_t*);
         typedef Error (*GetTxStreamMaxNumSamples)(TxStreamerHandle, size_t*);
+
         typedef Error (*RxStreamerIssueStreamCmd)(RxStreamerHandle, StreamCmd*);
         typedef Error (*TxStreamerIssueStreamCmd)(TxStreamerHandle, StreamCmd*);
+
         typedef Error (*RxStreamerReceive)(RxStreamerHandle, BuffsPtr, size_t, RxMetadataHandle*, double, bool, size_t*);
-        typedef Error (*TxStreamerSend)(TxStreamerHandle, BuffsPtr, size_t, TxMetadataHandle*, double, size_t*);
+        typedef Error (*TxStreamerSend)   (TxStreamerHandle, BuffsPtr, size_t, TxMetadataHandle*, double, size_t*);
+
         typedef Error (*GetRxMetadataErrorCode)(RxMetadataHandle, RxMetadataError*);
 
         struct UHDSetter
@@ -472,6 +489,10 @@ namespace ntlab
              */
             juce::Result setTxAntenna (const char* antennaPort, int channelIdx);
 
+            juce::Result setRxSubdevSpec (const juce::String& subdevSpec, int mboardIdx);
+
+            juce::Result setTxSubdevSpec (const juce::String& subdevSpec, int mboardIdx);
+
             /** Returns the name of the antenna port currently used for receiving with that particular channel */
             juce::String getCurrentRxAntenna (int channelIdx, Error &error);
 
@@ -511,6 +532,9 @@ namespace ntlab
 
             /** Returns the number of output channels currently available for this USRP */
             const int getNumOutputChannels();
+
+            /** Returns the number of physical motherboards managed by this USRP instance */
+            const int getNumMboards();
 
             /**
              * This class wraps the rxStreamer and will be used for actual Rx work. It can only be created through
@@ -657,58 +681,62 @@ namespace ntlab
         };
 
         // all loaded function pointers
-        USRPMake usrpMake;
-        USRPFree usrpFree;
-        RxStreamerMake rxStreamerMake;
-        RxStreamerFree rxStreamerFree;
-        RxMetadataMake rxMetadataMake;
-        RxMetadataFree rxMetadataFree;
-        TxStreamerMake txStreamerMake;
-        TxStreamerFree txStreamerFree;
-        TxMetadataMake txMetadataMake;
-        TxMetadataFree txMetadataFree;
-        StringVectorMake stringVectorMake;
-        StringVectorFree stringVectorFree;
-        StringVectorSize stringVectorSize;
-        Find find;
-        StringVectorAt stringVectorAt;
-        GetNumRxChannels getNumRxChannels;
-        GetNumTxChannels getNumTxChannels;
-        SetSampleRate setRxSampleRate;
-        GetSampleRate getRxSampleRate;
-        SetSampleRate setTxSampleRate;
-        GetSampleRate getTxSampleRate;
-        SetGain setRxGain;
-        GetGain getRxGain;
-        SetGain setTxGain;
-        GetGain getTxGain;
-        SetFrequency setRxFrequency;
-        GetFrequency getRxFrequency;
-        SetFrequency setTxFrequency;
-        GetFrequency getTxFrequency;
-        SetBandwidth setRxBandwidth;
-        GetBandwidth getRxBandwidth;
-        SetBandwidth setTxBandwidth;
-        GetBandwidth getTxBandwidth;
-        SetAntenna setRxAntenna;
-        GetAntenna getRxAntenna;
-        GetAntennas getRxAntennas;
-        SetAntenna setTxAntenna;
-        GetAntenna getTxAntenna;
-        GetAntennas getTxAntennas;
-        SetSource setClockSource;
-        SetSource setTimeSource;
-        SetTimeUnknownPPS setTimeUnknownPPS;
-        SetTimeNow setTimeNow;
-        GetRxStream getRxStream;
-        GetTxStream getTxStream;
+        USRPMake                 usrpMake;
+        USRPFree                 usrpFree;
+        RxStreamerMake           rxStreamerMake;
+        RxStreamerFree           rxStreamerFree;
+        RxMetadataMake           rxMetadataMake;
+        RxMetadataFree           rxMetadataFree;
+        TxStreamerMake           txStreamerMake;
+        TxStreamerFree           txStreamerFree;
+        TxMetadataMake           txMetadataMake;
+        TxMetadataFree           txMetadataFree;
+        SubdevSpecMake           subdevSpecMake;
+        SubdevSpecFree           subdevSpecFree;
+        StringVectorMake         stringVectorMake;
+        StringVectorFree         stringVectorFree;
+        StringVectorSize         stringVectorSize;
+        Find                     find;
+        StringVectorAt           stringVectorAt;
+        GetNumRxChannels         getNumRxChannels;
+        GetNumTxChannels         getNumTxChannels;
+        SetSampleRate            setRxSampleRate;
+        GetSampleRate            getRxSampleRate;
+        SetSampleRate            setTxSampleRate;
+        GetSampleRate            getTxSampleRate;
+        SetGain                  setRxGain;
+        GetGain                  getRxGain;
+        SetGain                  setTxGain;
+        GetGain                  getTxGain;
+        SetFrequency             setRxFrequency;
+        GetFrequency             getRxFrequency;
+        SetFrequency             setTxFrequency;
+        GetFrequency             getTxFrequency;
+        SetBandwidth             setRxBandwidth;
+        GetBandwidth             getRxBandwidth;
+        SetBandwidth             setTxBandwidth;
+        GetBandwidth             getTxBandwidth;
+        SetAntenna               setRxAntenna;
+        GetAntenna               getRxAntenna;
+        GetAntennas              getRxAntennas;
+        SetAntenna               setTxAntenna;
+        GetAntenna               getTxAntenna;
+        GetAntennas              getTxAntennas;
+        SetSubdevSpec            setRxSubdevSpec;
+        SetSubdevSpec            setTxSubdevSpec;
+        SetSource                setClockSource;
+        SetSource                setTimeSource;
+        SetTimeUnknownPPS        setTimeUnknownPPS;
+        SetTimeNow               setTimeNow;
+        GetRxStream              getRxStream;
+        GetTxStream              getTxStream;
         GetRxStreamMaxNumSamples getRxStreamMaxNumSamples;
         GetTxStreamMaxNumSamples getTxStreamMaxNumSamples;
         RxStreamerIssueStreamCmd rxStreamerIssueStreamCmd;
         TxStreamerIssueStreamCmd txStreamerIssueStreamCmd;
-        RxStreamerReceive rxStreamerReceive;
-        TxStreamerSend txStreamerSend;
-        GetRxMetadataErrorCode getRxMetadataErrorCode;
+        RxStreamerReceive        rxStreamerReceive;
+        TxStreamerSend           txStreamerSend;
+        GetRxMetadataErrorCode   getRxMetadataErrorCode;
 
         juce::DynamicLibrary uhdLib;
 

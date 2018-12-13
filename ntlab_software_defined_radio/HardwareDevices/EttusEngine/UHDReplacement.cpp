@@ -189,6 +189,8 @@ namespace ntlab
             NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (txStreamerFree,           TxStreamerFree,           "uhd_tx_streamer_free")
             NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (txMetadataMake,           TxMetadataMake,           "uhd_tx_metadata_make")
             NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (txMetadataFree,           TxMetadataFree,           "uhd_tx_metadata_free")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (subdevSpecMake,           SubdevSpecMake,           "uhd_subdev_spec_make")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (subdevSpecFree,           SubdevSpecFree,           "uhd_subdev_spec_free")
             NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (stringVectorMake,         StringVectorMake,         "uhd_string_vector_make")
             NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (stringVectorFree,         StringVectorFree,         "uhd_string_vector_free")
             NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (stringVectorSize,         StringVectorSize,         "uhd_string_vector_size")
@@ -218,6 +220,8 @@ namespace ntlab
             NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (setTxAntenna,             SetAntenna,               "uhd_usrp_set_tx_antenna")
             NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (getTxAntenna,             GetAntenna,               "uhd_usrp_get_tx_antenna")
             NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (getTxAntennas,            GetAntennas,              "uhd_usrp_get_tx_antennas")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (setRxSubdevSpec,          SetSubdevSpec,            "uhd_usrp_set_rx_subdev_spec")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (setTxSubdevSpec,          SetSubdevSpec,            "uhd_usrp_set_tx_subdev_spec")
             NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (setClockSource,           SetSource,                "uhd_usrp_set_clock_source")
             NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (setTimeSource,            SetSource,                "uhd_usrp_set_time_source")
             NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (setTimeUnknownPPS,        SetTimeUnknownPPS,        "uhd_usrp_set_time_unknown_pps")
@@ -921,6 +925,40 @@ namespace ntlab
         return juce::StringArray();
     }
 
+    juce::Result UHDr::USRP::setRxSubdevSpec (const juce::String& subdevSpec, int mboardIdx)
+    {
+        jassert (juce::isPositiveAndBelow (mboardIdx, numMboards));
+
+        Error error;
+        SubdevSpecHandle subdevSpecHandle;
+        error = uhd->subdevSpecMake (&subdevSpecHandle, subdevSpec.toRawUTF8());
+        NTLAB_RETURN_FAIL_WITH_ERROR_CODE_DESCRIPTION_IN_CASE_OF_ERROR (error);
+
+        uhd->setRxSubdevSpec (usrpHandle, subdevSpecHandle, static_cast<size_t> (mboardIdx));
+        NTLAB_RETURN_FAIL_WITH_ERROR_CODE_DESCRIPTION_IN_CASE_OF_ERROR_AND_INVOKE_ACTIONS_BEFORE (error, uhd->subdevSpecFree (&subdevSpecHandle); )
+
+        uhd->subdevSpecFree (&subdevSpecHandle);
+
+        return juce::Result::ok();
+    }
+
+    juce::Result UHDr::USRP::setTxSubdevSpec (const juce::String& subdevSpec, int mboardIdx)
+    {
+        jassert (juce::isPositiveAndBelow (mboardIdx, numMboards));
+
+        Error error;
+        SubdevSpecHandle subdevSpecHandle;
+        error = uhd->subdevSpecMake (&subdevSpecHandle, subdevSpec.toRawUTF8());
+        NTLAB_RETURN_FAIL_WITH_ERROR_CODE_DESCRIPTION_IN_CASE_OF_ERROR (error);
+
+        uhd->setTxSubdevSpec (usrpHandle, subdevSpecHandle, static_cast<size_t> (mboardIdx));
+        NTLAB_RETURN_FAIL_WITH_ERROR_CODE_DESCRIPTION_IN_CASE_OF_ERROR_AND_INVOKE_ACTIONS_BEFORE (error, uhd->subdevSpecFree (&subdevSpecHandle); )
+
+        uhd->subdevSpecFree (&subdevSpecHandle);
+
+        return juce::Result::ok();
+    }
+
     juce::Result UHDr::USRP::setClockSource (const juce::String clockSource, int mboardIdx)
     {
         Error error;
@@ -997,6 +1035,11 @@ namespace ntlab
     const int UHDr::USRP::getNumOutputChannels ()
     {
         return numOutputChannels;
+    }
+
+    const int UHDr::USRP::getNumMboards ()
+    {
+        return numMboards;
     }
 
     UHDr::USRP::RxStream::~RxStream ()
