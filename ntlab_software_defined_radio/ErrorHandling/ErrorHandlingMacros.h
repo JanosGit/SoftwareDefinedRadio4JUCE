@@ -18,9 +18,9 @@ along with SoftwareDefinedRadio4JUCE. If not, see <http://www.gnu.org/licenses/>
 
 /*
  A collection of macros useful for error handling in functions, mainly to avoid a lot
- of boilerplate code. As macros should be avoided in modern C++ at all cost this header
- is not included per default but only in a per source-file level in the needed compile
- units where they are invoked
+ of boilerplate code. As macros should be avoided in modern C++ at all cost, this header
+ is not included per default but only in a per source-file level in compile units where
+ they are needed
 */
 
 #pragma once
@@ -36,6 +36,15 @@ along with SoftwareDefinedRadio4JUCE. If not, see <http://www.gnu.org/licenses/>
 #define NTLAB_RETURN_FAIL_WITH_ERROR_CODE_DESCRIPTION_IN_CASE_OF_ERROR(error) \
     if (error) \
         return juce::Result::fail ("Error executing " + juce::String (BOOST_CURRENT_FUNCTION) + ": " + errorDescription (error))
+
+/** Does the same as NTLAB_RETURN_FAIL_WITH_ERROR_CODE_DESCRIPTION_IN_CASE_OF_ERROR but invokes some action before returning */
+#define NTLAB_RETURN_FAIL_WITH_ERROR_CODE_DESCRIPTION_IN_CASE_OF_ERROR_AND_INVOKE_ACTIONS_BEFORE(error, actionsToInvoke) \
+    if (error) \
+    { \
+        actionsToInvoke\
+        return juce::Result::fail ("Error executing " + juce::String (BOOST_CURRENT_FUNCTION) + ": " + errorDescription (error)); \
+    } \
+
 
 /** Prints an error in debug builds and invokes some user supplied actions afterwards */
 #define NTLAB_PRINT_ERROR_TO_DBG_AND_INVOKE_ACTIONS(error, actionsToInvoke) \
