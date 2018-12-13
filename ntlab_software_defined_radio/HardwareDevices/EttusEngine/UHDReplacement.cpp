@@ -351,18 +351,11 @@ namespace ntlab
 
     double UHDr::USRP::getRxSampleRate (int channelIdx, ntlab::UHDr::Error& error)
     {
-        if (juce::isPositiveAndNotGreaterThan (channelIdx, numInputChannels))
-        {
-            double sampleRate;
-            error = uhd->getRxSampleRate (usrpHandle, static_cast<size_t>(channelIdx), &sampleRate);
-            if (error)
-                return -1.0;
-            return sampleRate;
-        }
-        // This assert will fire if you passed an invalid channelIdx. Dont pass -1
-        jassertfalse;
-        error = Error::unknown;
-        return -1.0;
+        jassert (juce::isPositiveAndNotGreaterThan (channelIdx, numInputChannels));
+
+        double sampleRate;
+        error = uhd->getRxSampleRate (usrpHandle, static_cast<size_t>(channelIdx), &sampleRate);
+        NTLAB_RETURN_MINUS_ONE_AND_PRINT_ERROR_DBG_IF_FAILED_RETURN_VALUE_OTHERWISE (error, sampleRate);
     }
 
     juce::Array<double> UHDr::USRP::getRxSampleRates (ntlab::UHDr::Error& error)
@@ -382,18 +375,11 @@ namespace ntlab
 
     double UHDr::USRP::getTxSampleRate (int channelIdx, ntlab::UHDr::Error& error)
     {
-        if (juce::isPositiveAndNotGreaterThan (channelIdx, numOutputChannels))
-        {
-            double sampleRate;
-            error = uhd->getTxSampleRate (usrpHandle, static_cast<size_t>(channelIdx), &sampleRate);
-            if (error)
-                return -1.0;
-            return sampleRate;
-        }
-        // This assert will fire if you passed an invalid channelIdx. Dont pass -1
-        jassertfalse;
-        error = Error::unknown;
-        return -1.0;
+        jassert (juce::isPositiveAndNotGreaterThan (channelIdx, numOutputChannels));
+
+        double sampleRate;
+        error = uhd->getTxSampleRate (usrpHandle, static_cast<size_t>(channelIdx), &sampleRate);
+        NTLAB_RETURN_MINUS_ONE_AND_PRINT_ERROR_DBG_IF_FAILED_RETURN_VALUE_OTHERWISE (error, sampleRate);
     }
 
     juce::Array<double> UHDr::USRP::getTxSampleRates (ntlab::UHDr::Error& error)
@@ -461,18 +447,11 @@ namespace ntlab
 
     double UHDr::USRP::getRxGain (int channelIdx, ntlab::UHDr::Error& error, const char* gainElement)
     {
-        if (juce::isPositiveAndNotGreaterThan (channelIdx, numInputChannels))
-        {
-            double gain;
-            error = uhd->getRxGain (usrpHandle, static_cast<size_t>(channelIdx), gainElement, &gain);
-            if (error)
-                return -1.0;
-            return gain;
-        }
-        // This assert will fire if you passed an invalid channelIdx. Dont pass -1
-        jassertfalse;
-        error = Error::unknown;
-        return -1.0;
+        jassert (juce::isPositiveAndNotGreaterThan (channelIdx, numInputChannels));
+
+        double gain;
+        error = uhd->getRxGain (usrpHandle, static_cast<size_t>(channelIdx), gainElement, &gain);
+        NTLAB_RETURN_MINUS_ONE_AND_PRINT_ERROR_DBG_IF_FAILED_RETURN_VALUE_OTHERWISE (error, gain);
     }
 
     juce::Array<double> UHDr::USRP::getRxGains (ntlab::UHDr::Error& error)
@@ -491,18 +470,11 @@ namespace ntlab
 
     double UHDr::USRP::getTxGain (int channelIdx, ntlab::UHDr::Error& error, const char* gainElement)
     {
-        if (juce::isPositiveAndNotGreaterThan (channelIdx, numOutputChannels))
-        {
-            double gain;
-            error = uhd->getTxGain (usrpHandle, static_cast<size_t>(channelIdx), gainElement, &gain);
-            if (error)
-                return -1.0;
-            return gain;
-        }
-        // This assert will fire if you passed an invalid channelIdx. Dont pass -1
-        jassertfalse;
-        error = Error::unknown;
-        return -1.0;
+        jassert (juce::isPositiveAndNotGreaterThan (channelIdx, numOutputChannels));
+
+        double gain;
+        error = uhd->getTxGain (usrpHandle, static_cast<size_t>(channelIdx), gainElement, &gain);
+        NTLAB_RETURN_MINUS_ONE_AND_PRINT_ERROR_DBG_IF_FAILED_RETURN_VALUE_OTHERWISE (error, gain);
     }
 
     juce::Array<double> UHDr::USRP::getTxGains (ntlab::UHDr::Error& error)
@@ -579,18 +551,11 @@ namespace ntlab
 
     double UHDr::USRP::getRxFrequency (int channelIdx, ntlab::UHDr::Error& error)
     {
-        if (juce::isPositiveAndNotGreaterThan (channelIdx, numInputChannels))
-        {
-            double freq;
-            error = uhd->getRxFrequency (usrpHandle, static_cast<size_t>(channelIdx), &freq);
-            if (error)
-                return -1.0;
-            return freq;
-        }
-        // This assert will fire if you passed an invalid channelIdx. Dont pass -1
-        jassertfalse;
-        error = Error::unknown;
-        return -1.0;
+        jassert (juce::isPositiveAndNotGreaterThan (channelIdx, numInputChannels));
+
+        double freq;
+        error = uhd->getRxFrequency (usrpHandle, static_cast<size_t>(channelIdx), &freq);
+        NTLAB_RETURN_MINUS_ONE_AND_PRINT_ERROR_DBG_IF_FAILED_RETURN_VALUE_OTHERWISE (error, freq);
     }
 
     juce::Array<double> UHDr::USRP::getRxFrequencies (ntlab::UHDr::Error& error)
@@ -609,18 +574,11 @@ namespace ntlab
 
     double UHDr::USRP::getTxFrequency (int channelIdx, ntlab::UHDr::Error& error)
     {
-        if (juce::isPositiveAndNotGreaterThan (channelIdx, numOutputChannels))
-        {
-            double freq;
-            error = uhd->getTxFrequency (usrpHandle, static_cast<size_t>(channelIdx), &freq);
-            if (error)
-                return -1.0;
-            return freq;
-        }
-        // This assert will fire if you passed an invalid channelIdx. Dont pass -1
-        jassertfalse;
-        error = Error::unknown;
-        return -1.0;
+        jassert (juce::isPositiveAndNotGreaterThan (channelIdx, numOutputChannels));
+
+        double freq;
+        error = uhd->getTxFrequency (usrpHandle, static_cast<size_t>(channelIdx), &freq);
+        NTLAB_RETURN_MINUS_ONE_AND_PRINT_ERROR_DBG_IF_FAILED_RETURN_VALUE_OTHERWISE (error, freq);
     }
 
     juce::Array<double> UHDr::USRP::getTxFrequencies (ntlab::UHDr::Error& error)
@@ -686,18 +644,11 @@ namespace ntlab
 
     double UHDr::USRP::getRxBandwidth (int channelIdx, ntlab::UHDr::Error& error)
     {
-        if (juce::isPositiveAndNotGreaterThan (channelIdx, numInputChannels))
-        {
-            double bandwidth;
-            error = uhd->getRxBandwidth (usrpHandle, static_cast<size_t>(channelIdx), &bandwidth);
-            if (error)
-                return -1.0;
-            return bandwidth;
-        }
-        // This assert will fire if you passed an invalid channelIdx. Dont pass -1
-        jassertfalse;
-        error = Error::unknown;
-        return -1.0;
+        jassert (juce::isPositiveAndNotGreaterThan (channelIdx, numInputChannels));
+
+        double bandwidth;
+        error = uhd->getRxBandwidth (usrpHandle, static_cast<size_t>(channelIdx), &bandwidth);
+        NTLAB_RETURN_MINUS_ONE_AND_PRINT_ERROR_DBG_IF_FAILED_RETURN_VALUE_OTHERWISE (error, bandwidth);
     }
 
     juce::Array<double> UHDr::USRP::getRxBandwidths (ntlab::UHDr::Error& error)
@@ -716,18 +667,11 @@ namespace ntlab
 
     double UHDr::USRP::getTxBandwidth (int channelIdx, ntlab::UHDr::Error& error)
     {
-        if (juce::isPositiveAndNotGreaterThan (channelIdx, numOutputChannels))
-        {
-            double bandwidth;
-            error = uhd->getTxBandwidth (usrpHandle, static_cast<size_t>(channelIdx), &bandwidth);
-            if (error)
-                return -1.0;
-            return bandwidth;
-        }
-        // This assert will fire if you passed an invalid channelIdx. Dont pass -1
-        jassertfalse;
-        error = Error::unknown;
-        return -1.0;
+        jassert (juce::isPositiveAndNotGreaterThan (channelIdx, numOutputChannels));
+
+        double bandwidth;
+        error = uhd->getTxBandwidth (usrpHandle, static_cast<size_t>(channelIdx), &bandwidth);
+        NTLAB_RETURN_MINUS_ONE_AND_PRINT_ERROR_DBG_IF_FAILED_RETURN_VALUE_OTHERWISE (error, bandwidth);
     }
 
     juce::Array<double> UHDr::USRP::getTxBandwidths (ntlab::UHDr::Error& error)
@@ -794,20 +738,14 @@ namespace ntlab
 
     juce::String UHDr::USRP::getCurrentRxAntenna (int channelIdx, ntlab::UHDr::Error& error)
     {
-        if (juce::isPositiveAndNotGreaterThan (channelIdx, numInputChannels))
-        {
-            const size_t strBufLen = 32;
-            char strBuf[strBufLen];
+        jassert (juce::isPositiveAndNotGreaterThan (channelIdx, numInputChannels));
+        const size_t strBufLen = 32;
+        char strBuf[strBufLen];
 
-            error = uhd->getRxAntenna (usrpHandle, static_cast<size_t> (channelIdx), strBuf, strBufLen);
-            if (error)
-                return "";
-            return strBuf;
-        }
-        // This assert will fire if you passed an invalid channelIdx. Dont pass -1
-        jassertfalse;
-        error = Error::unknown;
-        return "";
+        error = uhd->getRxAntenna (usrpHandle, static_cast<size_t> (channelIdx), strBuf, strBufLen);
+        NTLAB_PRINT_ERROR_TO_DBG_AND_INVOKE_ACTIONS (error, return "";)
+
+        return strBuf;
     }
 
     juce::StringArray UHDr::USRP::getCurrentRxAntennas (ntlab::UHDr::Error& error)
@@ -826,54 +764,44 @@ namespace ntlab
 
     juce::StringArray UHDr::USRP::getPossibleRxAntennas (int channelIdx, ntlab::UHDr::Error& error)
     {
-        if (juce::isPositiveAndNotGreaterThan (channelIdx, numInputChannels))
+        jassert (juce::isPositiveAndNotGreaterThan (channelIdx, numInputChannels));
+
+        // create a string vector to store the results
+        StringVectorHandle stringVector;
+        error = uhd->stringVectorMake (&stringVector);
+        NTLAB_PRINT_ERROR_TO_DBG_AND_INVOKE_ACTIONS (error, return juce::StringArray();)
+
+        error = uhd->getRxAntennas (usrpHandle, static_cast<size_t> (channelIdx), &stringVector);
+        NTLAB_PRINT_ERROR_TO_DBG_AND_INVOKE_ACTIONS (error, uhd->stringVectorFree (&stringVector); return juce::StringArray();)
+
+        size_t numItemsInVector;
+        error = uhd->stringVectorSize (stringVector, &numItemsInVector);
+        NTLAB_PRINT_ERROR_TO_DBG_AND_INVOKE_ACTIONS (error, uhd->stringVectorFree (&stringVector); return juce::StringArray();)
+
+        juce::StringArray possibleAntennas;
+        const size_t strBufLen = 32;
+        char strBuf[strBufLen];
+        for (size_t i = 0; i < numItemsInVector; i++)
         {
-            // create a string vector to store the results
-            StringVectorHandle stringVector;
-            error = uhd->stringVectorMake (&stringVector);
-            NTLAB_PRINT_ERROR_TO_DBG_AND_INVOKE_ACTIONS (error, return juce::StringArray();)
-
-            error = uhd->getRxAntennas (usrpHandle, static_cast<size_t> (channelIdx), &stringVector);
+            error = uhd->stringVectorAt (stringVector, i, strBuf, strBufLen);
             NTLAB_PRINT_ERROR_TO_DBG_AND_INVOKE_ACTIONS (error, uhd->stringVectorFree (&stringVector); return juce::StringArray();)
-
-            size_t numItemsInVector;
-            error = uhd->stringVectorSize (stringVector, &numItemsInVector);
-            NTLAB_PRINT_ERROR_TO_DBG_AND_INVOKE_ACTIONS (error, uhd->stringVectorFree (&stringVector); return juce::StringArray();)
-
-            juce::StringArray possibleAntennas;
-            const size_t strBufLen = 32;
-            char strBuf[strBufLen];
-            for (size_t i = 0; i < numItemsInVector; i++)
-            {
-                error = uhd->stringVectorAt (stringVector, i, strBuf, strBufLen);
-                NTLAB_PRINT_ERROR_TO_DBG_AND_INVOKE_ACTIONS (error, uhd->stringVectorFree (&stringVector); return juce::StringArray();)
-                possibleAntennas.add (juce::String (strBuf));
-            }
-
-            error = uhd->stringVectorFree (&stringVector);
-            return possibleAntennas;
+            possibleAntennas.add (juce::String (strBuf));
         }
-        // This assert will fire if you passed an invalid channelIdx. Dont pass -1
-        jassertfalse;
-        error = Error::unknown;
-        return juce::StringArray();
+
+        error = uhd->stringVectorFree (&stringVector);
+        return possibleAntennas;
     }
 
     juce::String UHDr::USRP::getCurrentTxAntenna (int channelIdx, ntlab::UHDr::Error& error)
     {
-        if (juce::isPositiveAndNotGreaterThan (channelIdx, numOutputChannels))
-        {
-            const size_t strBufLen = 32;
-            char strBuf[strBufLen];
+        jassert (juce::isPositiveAndNotGreaterThan (channelIdx, numOutputChannels));
 
-            error = uhd->getTxAntenna (usrpHandle, static_cast<size_t> (channelIdx), strBuf, strBufLen);
-            NTLAB_PRINT_ERROR_TO_DBG_AND_INVOKE_ACTIONS (error, return "";)
-            return strBuf;
-        }
-        // This assert will fire if you passed an invalid channelIdx. Dont pass -1
-        jassertfalse;
-        error = Error::unknown;
-        return "";
+        const size_t strBufLen = 32;
+        char strBuf[strBufLen];
+
+        error = uhd->getTxAntenna (usrpHandle, static_cast<size_t> (channelIdx), strBuf, strBufLen);
+        NTLAB_PRINT_ERROR_TO_DBG_AND_INVOKE_ACTIONS (error, return "";)
+        return strBuf;
     }
 
     juce::StringArray UHDr::USRP::getCurrentTxAntennas (ntlab::UHDr::Error& error)
@@ -892,37 +820,32 @@ namespace ntlab
 
     juce::StringArray UHDr::USRP::getPossibleTxAntennas (int channelIdx, ntlab::UHDr::Error& error)
     {
-        if (juce::isPositiveAndNotGreaterThan (channelIdx, numOutputChannels))
+        jassert (juce::isPositiveAndNotGreaterThan (channelIdx, numOutputChannels));
+
+        // create a string vector to store the results
+        StringVectorHandle stringVector;
+        error = uhd->stringVectorMake (&stringVector);
+        NTLAB_PRINT_ERROR_TO_DBG_AND_INVOKE_ACTIONS (error, return juce::StringArray();)
+
+        error = uhd->getTxAntennas (usrpHandle, static_cast<size_t> (channelIdx), &stringVector);
+        NTLAB_PRINT_ERROR_TO_DBG_AND_INVOKE_ACTIONS (error, uhd->stringVectorFree (&stringVector); return juce::StringArray();)
+
+        size_t numItemsInVector;
+        error = uhd->stringVectorSize (stringVector, &numItemsInVector);
+        NTLAB_PRINT_ERROR_TO_DBG_AND_INVOKE_ACTIONS (error, uhd->stringVectorFree (&stringVector); return juce::StringArray();)
+
+        juce::StringArray possibleAntennas;
+        const size_t strBufLen = 32;
+        char strBuf[strBufLen];
+        for (size_t i = 0; i < numItemsInVector; i++)
         {
-            // create a string vector to store the results
-            StringVectorHandle stringVector;
-            error = uhd->stringVectorMake (&stringVector);
-            NTLAB_PRINT_ERROR_TO_DBG_AND_INVOKE_ACTIONS (error, return juce::StringArray();)
-
-            error = uhd->getTxAntennas (usrpHandle, static_cast<size_t> (channelIdx), &stringVector);
+            error = uhd->stringVectorAt (stringVector, i, strBuf, strBufLen);
             NTLAB_PRINT_ERROR_TO_DBG_AND_INVOKE_ACTIONS (error, uhd->stringVectorFree (&stringVector); return juce::StringArray();)
-
-            size_t numItemsInVector;
-            error = uhd->stringVectorSize (stringVector, &numItemsInVector);
-            NTLAB_PRINT_ERROR_TO_DBG_AND_INVOKE_ACTIONS (error, uhd->stringVectorFree (&stringVector); return juce::StringArray();)
-
-            juce::StringArray possibleAntennas;
-            const size_t strBufLen = 32;
-            char strBuf[strBufLen];
-            for (size_t i = 0; i < numItemsInVector; i++)
-            {
-                error = uhd->stringVectorAt (stringVector, i, strBuf, strBufLen);
-                NTLAB_PRINT_ERROR_TO_DBG_AND_INVOKE_ACTIONS (error, uhd->stringVectorFree (&stringVector); return juce::StringArray();)
-                possibleAntennas.add (juce::String (strBuf));
-            }
-
-            uhd->stringVectorFree (&stringVector);
-            return possibleAntennas;
+            possibleAntennas.add (juce::String (strBuf));
         }
-        // This assert will fire if you passed an invalid channelIdx. Dont pass -1
-        jassertfalse;
-        error = Error::unknown;
-        return juce::StringArray();
+
+        uhd->stringVectorFree (&stringVector);
+        return possibleAntennas;
     }
 
     juce::Result UHDr::USRP::setRxSubdevSpec (const juce::String& subdevSpec, int mboardIdx)
@@ -1016,15 +939,11 @@ namespace ntlab
 
     juce::Result UHDr::USRP::setTimeNow (time_t fullSecs, double fracSecs, int mboardIdx)
     {
-        if (juce::isPositiveAndNotGreaterThan (mboardIdx, numMboards))
-        {
-            Error error = uhd->setTimeNow (usrpHandle, fullSecs, fracSecs, static_cast<size_t> (mboardIdx));
-            NTLAB_RETURN_FAIL_WITH_ERROR_CODE_DESCRIPTION_IN_CASE_OF_ERROR (error);
-            return juce::Result::ok();
-        }
-        // don't use this to configure all mboards!
-        jassertfalse;
-        return juce::Result::fail ("channelIdx passed out of range");
+        jassert (juce::isPositiveAndNotGreaterThan (mboardIdx, numMboards));
+
+        Error error = uhd->setTimeNow (usrpHandle, fullSecs, fracSecs, static_cast<size_t> (mboardIdx));
+        NTLAB_RETURN_FAIL_WITH_ERROR_CODE_DESCRIPTION_IN_CASE_OF_ERROR (error);
+        return juce::Result::ok();
     }
 
     const int UHDr::USRP::getNumInputChannels ()
