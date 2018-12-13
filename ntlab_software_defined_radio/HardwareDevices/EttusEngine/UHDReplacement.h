@@ -137,11 +137,11 @@ namespace ntlab
             //! Target frequency for RF chain in Hz
             double targetFreq;
             //! RF frequency policy
-            TuneRequestPolicy rfFreqPolicy;
+            TuneRequestPolicy rfFreqPolicy = TuneRequestPolicy::automatic;
             //! RF frequency in Hz
             double rf_freq;
             //! DSP frequency policy
-            TuneRequestPolicy dspFreqPolicy;
+            TuneRequestPolicy dspFreqPolicy = TuneRequestPolicy::automatic;
             //! DSP frequency in Hz
             double dspFreq;
             //! Key-value pairs delimited by commas
