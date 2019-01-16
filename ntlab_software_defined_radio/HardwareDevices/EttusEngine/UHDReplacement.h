@@ -264,7 +264,6 @@ namespace ntlab
         typedef Error (*GetTxStreamMaxNumSamples)(TxStreamerHandle, size_t*);
 
         typedef Error (*RxStreamerIssueStreamCmd)(RxStreamerHandle, StreamCmd*);
-        typedef Error (*TxStreamerIssueStreamCmd)(TxStreamerHandle, StreamCmd*);
 
         typedef Error (*RxStreamerReceive)(RxStreamerHandle, BuffsPtr, size_t, RxMetadataHandle*, double, bool, size_t*);
         typedef Error (*TxStreamerSend)   (TxStreamerHandle, BuffsPtr, size_t, TxMetadataHandle*, double, size_t*);
@@ -739,7 +738,6 @@ namespace ntlab
         GetRxStreamMaxNumSamples getRxStreamMaxNumSamples;
         GetTxStreamMaxNumSamples getTxStreamMaxNumSamples;
         RxStreamerIssueStreamCmd rxStreamerIssueStreamCmd;
-        TxStreamerIssueStreamCmd txStreamerIssueStreamCmd;
         RxStreamerReceive        rxStreamerReceive;
         TxStreamerSend           txStreamerSend;
         GetRxMetadataErrorCode   getRxMetadataErrorCode;
