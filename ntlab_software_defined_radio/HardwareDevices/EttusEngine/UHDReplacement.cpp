@@ -1047,6 +1047,16 @@ namespace ntlab
         return nullptr;
     }
 
+    UHDr::USRP::TxStream * UHDr::USRP::makeTxStream (ntlab::UHDr::StreamArgs& streamArgs, ntlab::UHDr::Error& error)
+    {
+        std::unique_ptr<TxStream> txStream (new TxStream (uhd, usrpHandle, streamArgs, error));
+
+        if (error == Error::errorNone)
+            return txStream.release();
+
+        return nullptr;
+    }
+
     UHDr::USRP::TxStream::~TxStream ()
     {
         if (txMetadataHandle != nullptr)

@@ -640,9 +640,10 @@ namespace ntlab
                 size_t maxNumSamples;
             };
 
+            TxStream* makeTxStream (StreamArgs& streamArgs, Error& error);
+
 
         private:
-
             // Constructs a USRP instance. Check the error flags to determine if it's valid.
             USRP (UHDr* uhdr, const char* args, Error &error);
 
