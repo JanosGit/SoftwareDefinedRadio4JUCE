@@ -22,7 +22,7 @@ namespace ntlab
 {
     MCVFileEngine::MCVFileEngine () : streamingControlThread (1) {}
 
-    bool MCVFileEngine::setInFile (juce::File& newInFile, ntlab::MCVReader::EndOfFileBehaviour endOfFileBehaviour)
+    bool MCVFileEngine::setInFile (juce::File& newInFile, ntlab::MCVReader::EndOfFileBehaviour endOfFileBehaviour, bool enableRx)
     {
         if (streamingIsRunning)
             return false;
@@ -35,6 +35,7 @@ namespace ntlab
         if (!mcvReader->isValid())
         {
             mcvReader.reset (nullptr);
+            rxEnabled = false;
             return false;
         }
 
@@ -42,10 +43,12 @@ namespace ntlab
 
         reallocateBuffers (true, false);
 
+        rxEnabled = enableRx;
+
         return true;
     }
 
-    bool MCVFileEngine::setOutFile (juce::File& newOutFile, int newNumOutChannels)
+    bool MCVFileEngine::setOutFile (juce::File& newOutFile, int newNumOutChannels, bool enableTx)
     {
         if (streamingIsRunning)
             return false;
@@ -58,16 +61,19 @@ namespace ntlab
         if (!mcvWriter->isValid())
         {
             mcvWriter.reset (nullptr);
+            txEnabled = false;
             return false;
         }
 
         numOutChannels = newNumOutChannels;
         reallocateBuffers (false, true);
 
+        txEnabled = enableTx;
+
         return true;
     }
 
-    bool MCVFileEngine::setBlockSize (int newBlockSize)
+    bool MCVFileEngine::setDesiredBlockSize (int newBlockSize)
     {
         if (streamingIsRunning)
             return false;
@@ -87,11 +93,14 @@ namespace ntlab
         return true;
     }
 
-    juce::String MCVFileEngine::getName() {return "MCV File Engine"; }
-
-    juce::var MCVFileEngine::getDeviceTree()
+    double MCVFileEngine::getSampleRate ()
     {
-        return juce::var();
+        return sampleRate;
+    }
+
+    juce::var& MCVFileEngine::getDeviceTree()
+    {
+        return dummyDeviceTree;
     }
 
     juce::var MCVFileEngine::getActiveConfig()
@@ -106,7 +115,7 @@ namespace ntlab
 
     bool MCVFileEngine::isReadyToStream()
     {
-        return (inSampleBuffer!= nullptr) || (outSampleBuffer != nullptr);
+        return rxEnabled || txEnabled;
     }
 
     bool MCVFileEngine::startStreaming (ntlab::SDRIODeviceCallback* callback)
@@ -130,7 +139,7 @@ namespace ntlab
             if (mcvReader != nullptr)
                 numInChannels = static_cast<int> (mcvReader->getNumColsOrChannels());
 
-            activeCallback->prepareForStreaming (sampleRate, numInChannels, numOutChannels);
+            activeCallback->prepareForStreaming (sampleRate, numInChannels, numOutChannels, blockSize);
 
             double timerIntervalInSeconds = blockSize / sampleRate;
 
@@ -144,24 +153,50 @@ namespace ntlab
 
     void MCVFileEngine::stopStreaming()
     {
+
         if (!streamingIsRunning)
             return;
 
-        streamingControlThread.addJob ([this]() {endStreaming(); });
+        if (timerThreadID == juce::Thread::getCurrentThreadId())
+            timerShouldStopAfterThisCallback = true;
+        else
+            streamingControlThread.addJob ([this]() {endStreaming(); });
     }
 
     bool MCVFileEngine::isStreaming() {return streamingIsRunning; }
 
+    bool MCVFileEngine::enableRxTx (bool enableRx, bool enableTx)
+    {
+        if ((enableRx == false) && (enableTx == false))
+            return false;
+
+        rxEnabled = enableRx;
+        txEnabled = enableTx;
+
+        return true;
+    }
+
     void MCVFileEngine::hiResTimerCallback ()
     {
-        bool shouldStopAfterThisCallback = false;
+        if (!timerThreadIDisValid)
+            timerThreadID = juce::Thread::getCurrentThreadId();
 
-        if (mcvReader != nullptr)
+        timerShouldStopAfterThisCallback = false;
+
+        outSampleBuffer->setNumSamples (0);
+        inSampleBuffer->setNumSamples  (0);
+
+        if ((mcvReader != nullptr) && rxEnabled)
         {
-            shouldStopAfterThisCallback = (!mcvReader->fillNextSamplesIntoBuffer (*inSampleBuffer)) && shouldStopAtEndOfFile;
+            inSampleBuffer->setNumSamples (blockSize);
+            timerShouldStopAfterThisCallback = (!mcvReader->fillNextSamplesIntoBuffer (*inSampleBuffer)) && shouldStopAtEndOfFile;
 
-            if (mcvWriter != nullptr)
+            if ((mcvWriter != nullptr) && txEnabled)
                 outSampleBuffer->setNumSamples (inSampleBuffer->getNumSamples());
+        }
+        else if ((mcvWriter != nullptr) && txEnabled)
+        {
+            outSampleBuffer->setNumSamples (blockSize);
         }
 
         activeCallback->processRFSampleBlock (*inSampleBuffer, *outSampleBuffer);
@@ -171,10 +206,7 @@ namespace ntlab
             mcvWriter->appendSampleBuffer (*outSampleBuffer);
         }
 
-        outSampleBuffer->setNumSamples (outSampleBuffer->getMaxNumSamples());
-        inSampleBuffer ->setNumSamples (inSampleBuffer ->getMaxNumSamples());
-
-        if (shouldStopAfterThisCallback)
+        if (timerShouldStopAfterThisCallback)
             endStreaming();
     }
 
@@ -202,13 +234,32 @@ namespace ntlab
     void MCVFileEngine::endStreaming()
     {
         stopTimer();
+        timerThreadIDisValid = false;
+
         mcvWriter->waitForEmptyFIFO();
         mcvWriter->updateMetadataHeader();
+
+        // close files
+        mcvWriter.reset (nullptr);
+        mcvReader.reset (nullptr);
+
+        rxEnabled = false;
+        txEnabled = false;
+
         streamingIsRunning = false;
 
         activeCallback->streamingHasStopped();
 
         activeCallback = nullptr;
+    }
+
+    juce::String MCVFileEngineManager::getEngineName() {return "MCV File Engine"; }
+
+    juce::Result MCVFileEngineManager::isEngineAvailable () {return juce::Result::ok(); }
+
+    SDRIOEngine* MCVFileEngineManager::createEngine ()
+    {
+        return new MCVFileEngine;
     }
 
 #ifdef NTLAB_SOFTWARE_DEFINED_RADIO_UNIT_TESTS
@@ -232,12 +283,16 @@ namespace ntlab
 
             beginTest ("Create MCVFileEngine instance");
 
-            MCVFileEngine mcvFileEngine;
-            expect (mcvFileEngine.setInFile (inFile));
-            expect (mcvFileEngine.setOutFile (outFile, numChannels));
-            expect (mcvFileEngine.setSampleRate (sampleRate));
+            // Normally the SDRIOEngineManager is not used directly but called be the SDRIODeviceManager
+            SDRIOEngineManager::registerSDREngine (new MCVFileEngineManager);
+            auto engine = SDRIOEngineManager::createEngine ("MCV File Engine");
 
-            mcvFileEngine.startStreaming (this);
+            auto mcvFileEngine = dynamic_cast<MCVFileEngine*> (engine.get());
+            expect (mcvFileEngine->setInFile (inFile));
+            expect (mcvFileEngine->setOutFile (outFile, numChannels));
+            expect (mcvFileEngine->setSampleRate (sampleRate));
+
+            mcvFileEngine->startStreaming (this);
 
             waitForEngineToFinish.wait (-1);
 

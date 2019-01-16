@@ -26,20 +26,32 @@ namespace ntlab
 
     class MCVFileEngine : public SDRIOEngine, private juce::HighResolutionTimer
     {
+        friend class MCVFileEngineManager;
     public:
-        MCVFileEngine();
 
-        bool setInFile (juce::File& newInFile, MCVReader::EndOfFileBehaviour endOfFileBehaviour = MCVReader::EndOfFileBehaviour::stopAndResize);
+        /**
+         * Sets the file to read from. Note that the file will be closed when streaming has stopped, so if you want to
+         * start streaming again you need to reopen it. Depending on the endOfFileBehaviour chosen, stopStreaming will
+         * be called automatically when the input file has reached its end. If enbableRx is set to true reading from
+         * this file will start as soon as the streaming has been started, otherwise you need to enable it via
+         * enableRxTx manually.
+         */
+        bool setInFile (juce::File& newInFile, MCVReader::EndOfFileBehaviour endOfFileBehaviour = MCVReader::EndOfFileBehaviour::stopAndResize, bool enableRx = true);
 
-        bool setOutFile (juce::File& newOutFile, int newNumOutChannels);
+        /**
+         * Sets the file to write to. Note that if the file already exists, it will be overwritten. If enbableTx is set
+         * to true writing to this file will start as soon as the streaming has been started, otherwise you need to
+         * enable it via enableRxTx manually.
+         */
+        bool setOutFile (juce::File& newOutFile, int newNumOutChannels, bool enableTx = true);
 
-        bool setBlockSize (int newBlockSize);
+        bool setDesiredBlockSize (int newBlockSize) override ;
 
-        bool setSampleRate (double newSampleRate);
+        bool setSampleRate (double newSampleRate) override;
 
-        juce::String getName() override;
+        double getSampleRate() override;
 
-        juce::var getDeviceTree() override;
+        juce::var& getDeviceTree() override;
 
         juce::var getActiveConfig() override;
 
@@ -47,13 +59,20 @@ namespace ntlab
 
         bool isReadyToStream() override;
 
-        bool startStreaming (SDRIODeviceCallback* callback) override ;
+        bool startStreaming (SDRIODeviceCallback* callback) override;
 
-        void stopStreaming() override ;
+        void stopStreaming() override;
 
-        bool isStreaming() override ;
+        bool isStreaming() override;
+
+        bool enableRxTx (bool enableRx, bool enableTx) override;
 
     private:
+
+        MCVFileEngine();
+
+        juce::var dummyDeviceTree;
+
         int blockSize = 512;
         int numOutChannels = 0;
         double sampleRate = 1e6;
@@ -64,11 +83,18 @@ namespace ntlab
         std::unique_ptr<OptionalCLSampleBufferComplexFloat> inSampleBuffer;
         std::unique_ptr<OptionalCLSampleBufferComplexFloat> outSampleBuffer;
 
+        bool rxEnabled = false;
+        bool txEnabled = false;
+
         juce::ThreadPool streamingControlThread;
         SDRIODeviceCallback* activeCallback = nullptr;
         bool streamingIsRunning = false;
         bool shouldStopAtEndOfFile = true;
 
+        bool timerThreadIDisValid = false;
+        juce::Thread::ThreadID timerThreadID = nullptr;
+
+        bool timerShouldStopAfterThisCallback = true;
         void hiResTimerCallback() override;
 
         void reallocateBuffers (bool reallocateInBuffer = true, bool reallocateOutBuffer = true);
@@ -76,5 +102,15 @@ namespace ntlab
         void endStreaming();
     };
 
+    class MCVFileEngineManager : public SDRIOEngineManager
+    {
+    public:
+        juce::String getEngineName() override;
+
+        juce::Result isEngineAvailable() override;
+
+    protected:
+        SDRIOEngine* createEngine() override;
+    };
 
 }
