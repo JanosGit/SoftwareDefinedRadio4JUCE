@@ -1023,6 +1023,8 @@ namespace ntlab
 
     UHDr::USRP::RxStream::RxStream (ntlab::UHDr::Ptr uhdr, ntlab::UHDr::USRPHandle& usrpHandle, ntlab::UHDr::StreamArgs& streamArgs, ntlab::UHDr::Error& error) : uhd (uhdr)
     {
+        errorDescription = [usrpHandle](Error error) {return UHDr::errorDescription (error) + " (" + usrpHandle->lastError + ")"; };
+
         error = uhd->rxStreamerMake (&rxStreamerHandle);
         NTLAB_PRINT_ERROR_TO_DBG_AND_INVOKE_ACTIONS (error, rxStreamerHandle = nullptr; return;)
 
@@ -1094,6 +1096,8 @@ namespace ntlab
 
     UHDr::USRP::TxStream::TxStream (ntlab::UHDr::Ptr uhdr, ntlab::UHDr::USRPHandle& usrpHandle, ntlab::UHDr::StreamArgs& streamArgs, ntlab::UHDr::Error& error) : uhd (uhdr)
     {
+        errorDescription = [usrpHandle](Error error) {return UHDr::errorDescription (error) + " (" + usrpHandle->lastError + ")"; };
+
         error = uhd->txStreamerMake (&txStreamerHandle);
         NTLAB_PRINT_ERROR_TO_DBG_AND_INVOKE_ACTIONS (error, txStreamerHandle = nullptr; return;)
 
@@ -1110,16 +1114,20 @@ namespace ntlab
 
     UHDr::USRP::USRP (ntlab::UHDr* uhdr, const char* args, ntlab::UHDr::Error& error) : uhd (uhdr)
     {
+        errorDescription = [](Error error) {return UHDr::errorDescription (error); };
+
         error = uhd->usrpMake (&usrpHandle, args);
         NTLAB_PRINT_ERROR_TO_DBG_AND_INVOKE_ACTIONS (error, usrpHandle = nullptr; return;)
 
+        errorDescription = [this](Error error) {return UHDr::errorDescription (error) + " (" + usrpHandle->lastError + ")"; };
+
         size_t n;
         error = uhd->getNumRxChannels (usrpHandle, &n);
-        NTLAB_PRINT_ERROR_TO_DBG_AND_INVOKE_ACTIONS (error, uhd->usrpFree (&usrpHandle); return;)
+        NTLAB_PRINT_ERROR_TO_DBG_AND_INVOKE_ACTIONS (error, errorDescription = [](Error error) {return UHDr::errorDescription (error); }; uhd->usrpFree (&usrpHandle); return;)
 
         numInputChannels = static_cast<int>(n);
         error = uhd->getNumTxChannels (usrpHandle, &n);
-        NTLAB_PRINT_ERROR_TO_DBG_AND_INVOKE_ACTIONS (error, uhd->usrpFree (&usrpHandle); return;)
+        NTLAB_PRINT_ERROR_TO_DBG_AND_INVOKE_ACTIONS (error, errorDescription = [](Error error) {return UHDr::errorDescription (error); }; uhd->usrpFree (&usrpHandle); return;)
 
         numOutputChannels = static_cast<int>(n);
     }

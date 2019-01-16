@@ -591,6 +591,9 @@ namespace ntlab
                 RxMetadataHandle rxMetadataHandle;
                 int numActiveChannels;
                 size_t maxNumSamples;
+
+                // Masking the UHDr::errorDescription to be able to add the usrpHandle's lastError string to the error description
+                std::function<juce::String(Error)> errorDescription;
             };
 
 
@@ -602,7 +605,6 @@ namespace ntlab
             public:
 
                 ~TxStream();
-
 
                 /**
                  * Returns the number of channels that are used by this streamer (This determines the buffer size
@@ -637,6 +639,9 @@ namespace ntlab
                 TxMetadataHandle txMetadataHandle;
                 int numActiveChannels;
                 size_t maxNumSamples;
+
+                // Masking the UHDr::errorDescription to be able to add the usrpHandle's lastError string to the error description
+                std::function<juce::String(Error)> errorDescription;
             };
 
             TxStream* makeTxStream (StreamArgs& streamArgs, Error& error);
@@ -652,6 +657,9 @@ namespace ntlab
             int numInputChannels;
             int numOutputChannels;
             int numMboards;
+
+            // Masking the UHDr::errorDescription to be able to add the usrpHandle's lastError string to the error description
+            std::function<juce::String(Error)> errorDescription;
         };
 
         /**
