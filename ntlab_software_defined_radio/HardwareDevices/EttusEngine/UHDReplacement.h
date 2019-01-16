@@ -280,10 +280,11 @@ namespace ntlab
             UHDSetter (SetAntenna   fptr, USRPHandle usrpHandle, const char* antennaName,  size_t channel);
 
             int8_t numArguments;
+            bool containsDouble;
 
             // a string buffer used either by SetGain or SetAntenna to store the string. In those cases the unions
             // asCharPtr representation will point to this buffer
-            static const int stringBufferSize = 7; // a 8 bit int and a 7 byte string make up a nicely packed struct
+            static const int stringBufferSize = 6; // an 8 bit int a bool and a 6 byte string make up a nicely packed struct
             char stringBuffer[stringBufferSize];
 
             void* functionPointer;
@@ -305,8 +306,12 @@ namespace ntlab
                 char*       asCharPtr;
             } fourthArg;
 
-            typedef int (*ThreeArgFunction)(USRPHandle, SecondArg, size_t);
-            typedef int (*FourArgFunction) (USRPHandle, SecondArg, size_t, FourthArg);
+            // The C ABI calling conventions for X86 place a floating point value on a different stack (st0)
+            // This is why a function with a double in its signature needs different handling
+            typedef int (*ThreeArgFunctionSecondArgIsPtr)   (USRPHandle, SecondArg, size_t);
+            typedef int (*ThreeArgFunctionSecondArgIsDouble)(USRPHandle, double,    size_t);
+            typedef int (*FourArgFunctionSecondArgIsPtr)    (USRPHandle, SecondArg, size_t, FourthArg);
+            typedef int (*FourArgFunctionSecondArgIsDouble) (USRPHandle, double,    size_t, FourthArg);
 
             int invoke() const;
 

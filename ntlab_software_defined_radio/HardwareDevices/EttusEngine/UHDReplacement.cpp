@@ -24,6 +24,7 @@ namespace ntlab
 
     UHDr::UHDSetter::UHDSetter (UHDr::SetGain fptr, UHDr::USRPHandle usrpHandle, double gain, size_t channel, const char* gainElement)
       : numArguments (4),
+        containsDouble (true),
         functionPointer ((void*)fptr),
         firstArg (usrpHandle),
         thirdArg (channel)
@@ -38,6 +39,7 @@ namespace ntlab
 
     UHDr::UHDSetter::UHDSetter (UHDr::SetFrequency fptr, UHDr::USRPHandle usrpHandle, UHDr::TuneRequest* tuneRequest, size_t channel, UHDr::TuneResult* tuneResult)
       :  numArguments (4),
+         containsDouble (false),
          functionPointer ((void*)fptr),
          firstArg (usrpHandle),
          thirdArg (channel)
@@ -48,6 +50,7 @@ namespace ntlab
 
     UHDr::UHDSetter::UHDSetter (UHDr::SetAntenna fptr, UHDr::USRPHandle usrpHandle, const char* antennaName, size_t channel)
       :  numArguments (3),
+         containsDouble (false),
          functionPointer ((void*)fptr),
          firstArg (usrpHandle),
          thirdArg (channel)
@@ -61,6 +64,7 @@ namespace ntlab
 
     UHDr::UHDSetter::UHDSetter (ntlab::UHDr::SetBandwidth fptr, ntlab::UHDr::USRPHandle usrpHandle, double bandwidth, size_t channel)
       :  numArguments (3),
+         containsDouble (true),
          functionPointer ((void*)fptr),
          firstArg (usrpHandle),
          thirdArg (channel)
@@ -74,13 +78,29 @@ namespace ntlab
         {
             case 3:
             {
-                auto threeArgFunction = (ThreeArgFunction)functionPointer;
-                return threeArgFunction (firstArg, secondArg, thirdArg);
+                if (containsDouble)
+                {
+                    auto threeArgFunction = (ThreeArgFunctionSecondArgIsDouble)functionPointer;
+                    return threeArgFunction (firstArg, secondArg.asDouble, thirdArg);
+                }
+                else
+                {
+                    auto threeArgFunction = (ThreeArgFunctionSecondArgIsPtr)functionPointer;
+                    return threeArgFunction (firstArg, secondArg, thirdArg);
+                }
             }
             case 4:
             {
-                auto fourArgFunction = (FourArgFunction)functionPointer;
-                return fourArgFunction (firstArg, secondArg, thirdArg, fourthArg);
+                if (containsDouble)
+                {
+                    auto fourArgFunction = (FourArgFunctionSecondArgIsDouble) functionPointer;
+                    return fourArgFunction (firstArg, secondArg.asDouble, thirdArg, fourthArg);
+                }
+                else
+                {
+                    auto fourArgFunction = (FourArgFunctionSecondArgIsPtr) functionPointer;
+                    return fourArgFunction (firstArg, secondArg, thirdArg, fourthArg);
+                }
             }
             default:
                 return Error::unknown;
