@@ -20,9 +20,14 @@ along with SoftwareDefinedRadio4JUCE. If not, see <http://www.gnu.org/licenses/>
 #include <juce_core/juce_core.h>
 #include "UHDReplacement.h"
 
-/**
+namespace ntlab
+{
+    /**
  * Calls uhd_usrp_probe as a child process and tries to parse the output to a var structure that
  * can be stored and sent as a json structure. In case of an error, an empty var will be returned.
  */
-juce::var parseUHDUSRPProbe (ntlab::UHDr::Ptr uhd);
+    juce::var parseUHDUSRPProbe (ntlab::UHDr::Ptr uhd, juce::StringArray* originalOutput = nullptr);
+}
+
+
 
