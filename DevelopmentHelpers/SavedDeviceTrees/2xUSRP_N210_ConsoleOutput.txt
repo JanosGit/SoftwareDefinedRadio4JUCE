@@ -1,0 +1,170 @@
+JUCE v5.4.1
+[INFO] [UHD] Mac OS; Clang version 10.0.0 (clang-1000.11.45.5); Boost_106800; UHD_3.13.0.2-0-unknown
+Original command line output:
+====================================================================
+[INFO] [UHD] Mac OS; Clang version 10.0.0 (clang-1000.11.45.5); Boost_106800; UHD_3.13.0.2-0-unknown
+[INFO] [USRP2] Opening a USRP2/N-Series device...
+[INFO] [USRP2] Current recv frame size: 1472 bytes
+[INFO] [USRP2] Current send frame size: 1472 bytes
+  _____________________________________________________
+ /
+|       Device: USRP2 / N-Series Device
+|     _____________________________________________________
+|    /
+|   |       Mboard: N210r4
+|   |   hardware: 2577
+|   |   mac-addr: 00:80:2f:21:0b:a7
+|   |   ip-addr: 192.168.20.3
+|   |   subnet: 255.255.255.255
+|   |   gateway: 255.255.255.255
+|   |   gpsdo: none
+|   |   serial: 3089166
+|   |   FW Version: 12.4
+|   |   FPGA Version: 11.1
+|   |   
+|   |   Time sources:  none, external, _external_, mimo
+|   |   Clock sources: internal, external, mimo
+|   |   Sensors: mimo_locked, ref_locked
+|   |     _____________________________________________________
+|   |    /
+|   |   |       RX DSP: 0
+|   |   |   
+|   |   |   Freq range: -50.000 to 50.000 MHz
+|   |     _____________________________________________________
+|   |    /
+|   |   |       RX DSP: 1
+|   |   |   
+|   |   |   Freq range: -50.000 to 50.000 MHz
+|   |     _____________________________________________________
+|   |    /
+|   |   |       RX Dboard: A
+|   |   |   ID: UBX-40 v1 (0x0078)
+|   |   |   Serial: 30C0DA8
+|   |   |     _____________________________________________________
+|   |   |    /
+|   |   |   |       RX Frontend: 0
+|   |   |   |   Name: UBX RX
+|   |   |   |   Antennas: TX/RX, RX2, CAL
+|   |   |   |   Sensors: lo_locked
+|   |   |   |   Freq range: 10.000 to 6000.000 MHz
+|   |   |   |   Gain range PGA0: 0.0 to 31.5 step 0.5 dB
+|   |   |   |   Bandwidth range: 40000000.0 to 40000000.0 step 0.0 Hz
+|   |   |   |   Connection Type: IQ
+|   |   |   |   Uses LO offset: No
+|   |   |     _____________________________________________________
+|   |   |    /
+|   |   |   |       RX Codec: A
+|   |   |   |   Name: ads62p44
+|   |   |   |   Gain range digital: 0.0 to 6.0 step 0.5 dB
+|   |   |   |   Gain range fine: 0.0 to 0.5 step 0.1 dB
+|   |     _____________________________________________________
+|   |    /
+|   |   |       TX DSP: 0
+|   |   |   
+|   |   |   Freq range: -200.000 to 200.000 MHz
+|   |     _____________________________________________________
+|   |    /
+|   |   |       TX Dboard: A
+|   |   |   ID: UBX-40 v1 (0x0077)
+|   |   |   Serial: 30C0DA8
+|   |   |     _____________________________________________________
+|   |   |    /
+|   |   |   |       TX Frontend: 0
+|   |   |   |   Name: UBX TX
+|   |   |   |   Antennas: TX/RX, CAL
+|   |   |   |   Sensors: lo_locked
+|   |   |   |   Freq range: 10.000 to 6000.000 MHz
+|   |   |   |   Gain range PGA0: 0.0 to 31.5 step 0.5 dB
+|   |   |   |   Bandwidth range: 40000000.0 to 40000000.0 step 0.0 Hz
+|   |   |   |   Connection Type: QI
+|   |   |   |   Uses LO offset: No
+|   |   |     _____________________________________________________
+|   |   |    /
+|   |   |   |       TX Codec: A
+|   |   |   |   Name: ad9777
+|   |   |   |   Gain Elements: None
+
+
+[INFO] [UHD] Mac OS; Clang version 10.0.0 (clang-1000.11.45.5); Boost_106800; UHD_3.13.0.2-0-unknown
+[INFO] [USRP2] Opening a USRP2/N-Series device...
+[INFO] [USRP2] Current recv frame size: 1472 bytes
+[INFO] [USRP2] Current send frame size: 1472 bytes
+[INFO] [USRP2] Detecting internal GPSDO.... 
+[INFO] [GPS] No GPSDO found
+  _____________________________________________________
+ /
+|       Device: USRP2 / N-Series Device
+|     _____________________________________________________
+|    /
+|   |       Mboard: N210r4
+|   |   hardware: 2577
+|   |   mac-addr: 00:80:2f:0a:e5:f5
+|   |   ip-addr: 192.168.20.1
+|   |   subnet: 255.255.255.255
+|   |   gateway: 255.255.255.255
+|   |   gpsdo: none
+|   |   serial: F4A07C
+|   |   FW Version: 12.4
+|   |   FPGA Version: 11.1
+|   |   
+|   |   Time sources:  none, external, _external_, mimo
+|   |   Clock sources: internal, external, mimo
+|   |   Sensors: mimo_locked, ref_locked
+|   |     _____________________________________________________
+|   |    /
+|   |   |       RX DSP: 0
+|   |   |   
+|   |   |   Freq range: -50.000 to 50.000 MHz
+|   |     _____________________________________________________
+|   |    /
+|   |   |       RX DSP: 1
+|   |   |   
+|   |   |   Freq range: -50.000 to 50.000 MHz
+|   |     _____________________________________________________
+|   |    /
+|   |   |       RX Dboard: A
+|   |   |   ID: UBX-40 v1 (0x0078)
+|   |   |   Serial: 30C0DAF
+|   |   |     _____________________________________________________
+|   |   |    /
+|   |   |   |       RX Frontend: 0
+|   |   |   |   Name: UBX RX
+|   |   |   |   Antennas: TX/RX, RX2, CAL
+|   |   |   |   Sensors: lo_locked
+|   |   |   |   Freq range: 10.000 to 6000.000 MHz
+|   |   |   |   Gain range PGA0: 0.0 to 31.5 step 0.5 dB
+|   |   |   |   Bandwidth range: 40000000.0 to 40000000.0 step 0.0 Hz
+|   |   |   |   Connection Type: IQ
+|   |   |   |   Uses LO offset: No
+|   |   |     _____________________________________________________
+|   |   |    /
+|   |   |   |       RX Codec: A
+|   |   |   |   Name: ads62p44
+|   |   |   |   Gain range digital: 0.0 to 6.0 step 0.5 dB
+|   |   |   |   Gain range fine: 0.0 to 0.5 step 0.1 dB
+|   |     _____________________________________________________
+|   |    /
+|   |   |       TX DSP: 0
+|   |   |   
+|   |   |   Freq range: -200.000 to 200.000 MHz
+|   |     _____________________________________________________
+|   |    /
+|   |   |       TX Dboard: A
+|   |   |   ID: UBX-40 v1 (0x0077)
+|   |   |   Serial: 30C0DAF
+|   |   |     _____________________________________________________
+|   |   |    /
+|   |   |   |       TX Frontend: 0
+|   |   |   |   Name: UBX TX
+|   |   |   |   Antennas: TX/RX, CAL
+|   |   |   |   Sensors: lo_locked
+|   |   |   |   Freq range: 10.000 to 6000.000 MHz
+|   |   |   |   Gain range PGA0: 0.0 to 31.5 step 0.5 dB
+|   |   |   |   Bandwidth range: 40000000.0 to 40000000.0 step 0.0 Hz
+|   |   |   |   Connection Type: QI
+|   |   |   |   Uses LO offset: No
+|   |   |     _____________________________________________________
+|   |   |    /
+|   |   |   |       TX Codec: A
+|   |   |   |   Name: ad9777
+|   |   |   |   Gain Elements: None
