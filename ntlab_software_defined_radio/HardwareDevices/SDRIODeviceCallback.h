@@ -47,14 +47,15 @@ namespace ntlab
          * This is the place to set up all your ressources (buffers, DSP blocks, etc.) to get them ready for
          * continously streaming samples.
          */
-        virtual void prepareForStreaming (double sampleRate, int numActiveChannelsIn, int numActiveChannelsOut) = 0;
+        virtual void prepareForStreaming (double sampleRate, int numActiveChannelsIn, int numActiveChannelsOut, int maxNumSamplesPerBlock) = 0;
 
         /**
          * This callback will be called repeatedly on a high-priority thread to process the next block of samples. Keep
          * in mind that depending on your setup either the channel count of the input buffer as well as the channel
-         * count of the output buffer could be zero.
+         * count of the output buffer could be zero. If either the rx or tx path is currently disabled the sample count
+         * of the corresponding buffer is guaranteed to be zero.
          */
-        virtual void processRFSampleBlock (OptionalCLSampleBufferComplexFloat& inSamples, OptionalCLSampleBufferComplexFloat& outSamples) = 0;
+        virtual void processRFSampleBlock (OptionalCLSampleBufferComplexFloat& rxSamples, OptionalCLSampleBufferComplexFloat& txSamples) = 0;
 
         /**
          * This callback will be called after the last call to processRFSampleBlock. It is the place to do all your
