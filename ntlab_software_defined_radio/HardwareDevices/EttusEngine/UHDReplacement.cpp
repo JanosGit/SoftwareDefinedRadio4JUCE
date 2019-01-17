@@ -316,8 +316,10 @@ namespace ntlab
 
     UHDr::USRP::~USRP ()
     {
+        // todo: investigate why usrpFree fails but delete works as expected
         if (usrpHandle != nullptr)
-            uhd->usrpFree (&usrpHandle);
+            delete usrpHandle;
+            //uhd->usrpFree (&usrpHandle);
     }
 
     juce::Result UHDr::USRP::setRxSampleRate (double newSampleRate, int channelIdx)
