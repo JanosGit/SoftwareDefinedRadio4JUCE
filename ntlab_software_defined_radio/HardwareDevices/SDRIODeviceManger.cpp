@@ -22,51 +22,24 @@ namespace ntlab
 {
     void SDRIODeviceManager::addDefaultEngines ()
     {
-        addEngine (new MCVFileEngine);
+        SDRIOEngineManager::registerDefaultEngines();
     }
 
-    bool SDRIODeviceManager::addEngine (ntlab::SDRIOEngine* engineToAddAndOwn)
-    {
-        if (engineToAddAndOwn == nullptr)
-            return false;
-
-        if (enginesAvailable.contains (engineToAddAndOwn))
-            return false;
-
-        enginesAvailable.add (engineToAddAndOwn);
-        engineNamesAvailable.add (engineToAddAndOwn->getName());
-
-        return true;
-    }
-
-
-    std::vector<std::reference_wrapper<SDRIOEngine>> SDRIODeviceManager::getEngines()
-    {
-        std::vector<std::reference_wrapper<SDRIOEngine>> engines;
-
-        for (auto engine : enginesAvailable)
-            engines.push_back (*engine);
-
-        return engines;
-    }
-
-    juce::StringArray SDRIODeviceManager::getEngineNames () {return engineNamesAvailable; }
+    juce::StringArray SDRIODeviceManager::getEngineNames () {return SDRIOEngineManager::getAvailableEngines(); }
 
     bool SDRIODeviceManager::selectEngine (juce::String& engineName)
     {
-        if (!engineNamesAvailable.contains (engineName))
+        auto newEngine = SDRIOEngineManager::createEngine (engineName);
+        if (newEngine == nullptr)
             return false;
 
-        int idx = engineNamesAvailable.indexOf (engineName);
-
-        selectedEngine = enginesAvailable[idx];
-
+        selectedEngine = std::move (newEngine);
         return true;
     }
 
     SDRIOEngine& SDRIODeviceManager::getSelectedEngine () {return *selectedEngine; }
 
-    juce::String SDRIODeviceManager::getSelectedEngineName () {return selectedEngine->getName(); }
+    juce::String SDRIODeviceManager::getSelectedEngineName () {return selectedEngineName; }
 
     void SDRIODeviceManager::setCallback (ntlab::SDRIODeviceCallback* callback) {callbackToUse = callback; }
 

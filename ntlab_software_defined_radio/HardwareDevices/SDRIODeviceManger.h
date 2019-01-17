@@ -30,12 +30,6 @@ namespace ntlab
         /** Adds all engines that come with this module */
         void addDefaultEngines();
 
-        /** Adds an engine and manages its lifetime */
-        bool addEngine (SDRIOEngine* engineToAddAndOwn);
-
-        /** Returns a vector with references to all engines currently managed by this instance */
-        std::vector<std::reference_wrapper<SDRIOEngine>> getEngines();
-
         /** Retuns an array of the name of all engines currently managed by this instance */
         juce::StringArray getEngineNames();
 
@@ -45,7 +39,6 @@ namespace ntlab
          * start streaming with a call to startStreaming();
          */
         bool selectEngine (juce::String& engineName);
-
 
         SDRIOEngine& getSelectedEngine();
 
@@ -63,10 +56,8 @@ namespace ntlab
         void stopStreaming();
 
     private:
-        juce::OwnedArray<SDRIOEngine> enginesAvailable;
-        juce::StringArray engineNamesAvailable;
-
-        SDRIOEngine* selectedEngine = nullptr;
+        std::unique_ptr<SDRIOEngine> selectedEngine;
+        juce::String selectedEngineName;
         SDRIODeviceCallback* callbackToUse = nullptr;
     };
 }
