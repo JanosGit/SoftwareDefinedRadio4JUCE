@@ -46,7 +46,7 @@ public:
 
     ~RealtimeSetterThreadWithFIFO()
     {
-        waitForThreadToExit (2000);
+        stopThread (2000);
     }
 
     /**
