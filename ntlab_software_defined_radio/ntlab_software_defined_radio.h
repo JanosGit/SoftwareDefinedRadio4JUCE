@@ -53,6 +53,7 @@ along with SoftwareDefinedRadio4JUCE. If not, see <http://www.gnu.org/licenses/>
 
 #include "HardwareDevices/EttusEngine/UHDReplacement.h"
 #include "HardwareDevices/EttusEngine/UHDUSRPProbeParser.h"
+#include "HardwareDevices/EttusEngine/UHDEngine.h"
 #include "HardwareDevices/MCVFileEngine/MCVFileEngine.h"
 #include "HardwareDevices/SDRIODeviceCallback.h"
 #include "HardwareDevices/SDRIOEngine.h"
@@ -64,5 +65,7 @@ along with SoftwareDefinedRadio4JUCE. If not, see <http://www.gnu.org/licenses/>
 
 #include "SampleBuffers/VectorOperations.h"
 #include "SampleBuffers/SampleBuffers.h"
+
+#include "Threading/RealtimeSetterThreadWithFIFO.h"
 
 #include "UnitTestHelpers/UnitTestHelpers.h"

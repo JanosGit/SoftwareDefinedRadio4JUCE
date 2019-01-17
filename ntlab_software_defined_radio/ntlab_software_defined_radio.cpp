@@ -15,9 +15,15 @@ You should have received a copy of the GNU General Public License
 along with SoftwareDefinedRadio4JUCE. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "HardwareDevices/EttusEngine/UHDReplacement.cpp"
-#include "HardwareDevices/MCVFileEngine/MCVFileEngine.cpp"
+
+
 #include "HardwareDevices/SDRIODeviceManger.cpp"
+#include "HardwareDevices/SDRIOEngine.cpp"
+
+#include "HardwareDevices/EttusEngine/UHDReplacement.cpp"
+#include "HardwareDevices/EttusEngine/UHDEngine.cpp"
+#include "HardwareDevices/EttusEngine/UHDUSRPProbeParser.cpp"
+#include "HardwareDevices/MCVFileEngine/MCVFileEngine.cpp"
 
 #include "MCVFileFormat/MCVWriter.cpp"
 #include "MCVFileFormat/MCVReader.cpp"
