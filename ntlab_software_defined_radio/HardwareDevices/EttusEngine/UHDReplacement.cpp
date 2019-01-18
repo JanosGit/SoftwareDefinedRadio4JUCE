@@ -1080,14 +1080,6 @@ namespace ntlab
         return static_cast<int> (maxNumSamples);
     }
 
-    juce::Result UHDr::USRP::TxStream::issueStreamCmd (UHDr::StreamCmd& streamCmd)
-    {
-        Error error = uhd->txStreamerIssueStreamCmd (txStreamerHandle, &streamCmd);
-        NTLAB_RETURN_FAIL_WITH_ERROR_CODE_DESCRIPTION_IN_CASE_OF_ERROR (error);
-
-        return juce::Result::ok();
-    }
-
     int UHDr::USRP::TxStream::send (UHDr::BuffsPtr buffsPtr, int numSamples, UHDr::Error& error, double timeoutInSeconds)
     {
         size_t numSamplesSent;

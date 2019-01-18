@@ -615,9 +615,6 @@ namespace ntlab
                 /** Returns the maximum number of samples that might be requested per receive call. */
                 const int getMaxNumSamplesPerBlock();
 
-                /** Call this to get the hardware started for streaming! */
-                juce::Result issueStreamCmd (StreamCmd &streamCmd);
-
                 /**
                  * This will be called for each sample block to be sent. It will block until a block was sent or
                  * some error occured. Check the txMetadataError for information on success. Note that the number of samples
