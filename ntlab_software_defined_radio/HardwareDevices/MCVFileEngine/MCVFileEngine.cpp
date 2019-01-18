@@ -314,7 +314,7 @@ namespace ntlab
 
         juce::WaitableEvent waitForEngineToFinish;
 
-        void prepareForStreaming (double sampleRate, int numActiveChannelsIn, int numActiveChannelsOut) override
+        void prepareForStreaming (double sampleRate, int numActiveChannelsIn, int numActiveChannelsOut, int maxNumSamplesPerBlock) override
         {
             beginTest ("prepareForStreaming callback");
 
