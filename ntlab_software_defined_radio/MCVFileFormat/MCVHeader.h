@@ -84,6 +84,12 @@ namespace ntlab
             }
         }
 
+        /** Creates an invalid MCV header object */
+        static MCVHeader invalid()
+        {
+            return MCVHeader();
+        }
+
         /** Writes the header to the beginning of a file */
         bool writeToFile (juce::FileOutputStream& fileOutputStream)
         {
@@ -155,5 +161,8 @@ namespace ntlab
         std::bitset<8> flags;
         int64_t numColsOrChannels;
         int64_t numRowsOrSamples;
+
+        // invalid header
+        MCVHeader() {identifier[0] = 0; }
     };
 }

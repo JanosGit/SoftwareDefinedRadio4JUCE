@@ -17,6 +17,10 @@ along with SoftwareDefinedRadio4JUCE. If not, see <http://www.gnu.org/licenses/>
 
 #pragma once
 
+#if NTLAB_INCLUDE_EIGEN
+#include "../Matrix/Eigen/Eigen/Dense"
+#endif
+
 #include <juce_core/juce_core.h>
 #include "MCVHeader.h"
 #include "../SampleBuffers/SampleBuffers.h"
@@ -93,6 +97,50 @@ namespace ntlab
 
         /** Writes the content of the raw array to the desired output file */
         static bool writeRawArray (const std::complex<double>** rawArray, int64_t numColsOrChannels, int64_t numRowsOrSamples, juce::File& outputFile);
+
+#if NTLAB_INCLUDE_EIGEN
+        /** Writes the content of an Eigen::Matrix to the output file. Only available if NTLAB_INCLUDE_EIGEN is enabled */
+        template <typename T, int Rows, int Cols>
+        static bool writeEigenMatrix (Eigen::Matrix<T, Rows, Cols>& matrixToWrite, juce::File& outputFile)
+        {
+            static_assert ((std::is_same<T, float>::value ||
+                           std::is_same<T, double>::value ||
+                           std::is_same<T, std::complex<float>>::value ||
+                           std::is_same<T, std::complex<double>>::value),
+                           "Only real and complex float and double matrices are supported by ntlab::MCVWriter::writeEigenMatrix");
+
+            jassert (outputFile.hasFileExtension ("mcv"));
+
+            const auto numCols = matrixToWrite.cols();
+            const auto numRows = matrixToWrite.rows();
+
+            if (numCols == 0)
+                return false;
+
+            auto header = MCVHeader::invalid();
+
+            if (std::is_same<T, float>::value)
+                header = MCVHeader (false, false, numCols, numRows);
+            else if (std::is_same<T, double>::value)
+                header = MCVHeader (false, true, numCols, numRows);
+            else if (std::is_same<T, std::complex<float>>::value)
+                header = MCVHeader (true, false, numCols, numRows);
+            else if (std::is_same<T, std::complex<double>>::value)
+                header = MCVHeader (true, true, numCols, numRows);
+
+            juce::FileOutputStream outputStream (outputFile);
+            if (!outputStream.openedOk())
+                return false;
+
+            outputStream.setPosition (0);
+            outputStream.truncate();
+
+            if (!header.writeToFile (outputStream))
+                return false;
+
+            return outputStream.write (matrixToWrite.data(), numRows * numCols * header.sizeOfOneValue());
+        }
+#endif
 
     private:
 

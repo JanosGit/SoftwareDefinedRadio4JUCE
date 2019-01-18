@@ -17,7 +17,7 @@
    </BuildAction>
    <LaunchAction
       useCustomWorkingDirectory = "NO"
-      buildConfiguration = "Release"
+      buildConfiguration = "Debug"
       allowLocationSimulation = "YES">
       <BuildableProductRunnable>
          <BuildableReference

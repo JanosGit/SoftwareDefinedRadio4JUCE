@@ -34,6 +34,13 @@ public:
         auto cplxFloatFile  = tempFolder.getChildFile ("cplxFloat.mcv");
         auto cplxDoubleFile = tempFolder.getChildFile ("cplxDouble.mcv");
 
+#if NTLAB_INCLUDE_EIGEN
+        auto realFloatMatrixFile  = tempFolder.getChildFile ("realFloatMatrix.mcv");
+        auto realDoubleMatrixFile = tempFolder.getChildFile ("realDoubleMatrix.mcv");
+        auto cplxFloatMatrixFile  = tempFolder.getChildFile ("cplxFloatMatrix.mcv");
+        auto cplxDoubleMatrixFile = tempFolder.getChildFile ("cplxDoubleMatrix.mcv");
+#endif
+
         const int numChannels = 3;
         const int numSamples = 57;
 
@@ -41,6 +48,20 @@ public:
         ntlab::SampleBufferReal<double>    realDoubleSrcBuffer (numChannels, numSamples);
         ntlab::SampleBufferComplex<float>  cplxFloatSrcBuffer  (numChannels, numSamples);
         ntlab::SampleBufferComplex<double> cplxDoubleSrcBuffer (numChannels, numSamples);
+
+#if NTLAB_INCLUDE_EIGEN
+        const int numRows = 4;
+        const int numCols = 5;
+        Eigen::MatrixXf realFloatMatSrc   (numRows, numCols);
+        Eigen::MatrixXd realDoubleMatSrc  (numRows, numCols);
+        Eigen::MatrixXcf cplxFloatMatSrc  (numRows, numCols);
+        Eigen::MatrixXcd cplxDoubleMatSrc (numRows, numCols);
+
+        realFloatMatSrc .setRandom();
+        realDoubleMatSrc.setRandom();
+        cplxFloatMatSrc .setRandom();
+        cplxDoubleMatSrc.setRandom();
+#endif
 
         auto random = getRandom();
 
@@ -55,6 +76,13 @@ public:
         ntlab::MCVWriter::writeSampleBuffer (realDoubleSrcBuffer, realDoubleFile);
         ntlab::MCVWriter::writeSampleBuffer (cplxFloatSrcBuffer,  cplxFloatFile);
         ntlab::MCVWriter::writeSampleBuffer (cplxDoubleSrcBuffer, cplxDoubleFile);
+
+#if NTLAB_INCLUDE_EIGEN
+        ntlab::MCVWriter::writeEigenMatrix (realFloatMatSrc,  realFloatMatrixFile);
+        ntlab::MCVWriter::writeEigenMatrix (realDoubleMatSrc, realDoubleMatrixFile);
+        ntlab::MCVWriter::writeEigenMatrix (cplxFloatMatSrc,  cplxFloatMatrixFile);
+        ntlab::MCVWriter::writeEigenMatrix (cplxDoubleMatSrc, cplxDoubleMatrixFile);
+#endif
 
         beginTest ("Read MCV Files with matching precision");
 
@@ -82,10 +110,43 @@ public:
         auto cplxDoubleBufferRead = cplxDoubleReader.createSampleBufferComplexDouble();
         expect (ntlab::UnitTestHelpers::areEqualSampleBuffers (cplxDoubleSrcBuffer, cplxDoubleBufferRead));
 
-        realFloatFile.deleteFile();
+#if NTLAB_INCLUDE_EIGEN
+        ntlab::MCVReader realFloatMatrixReader (realFloatMatrixFile);
+        expect (realFloatMatrixReader.isValid());
+
+        auto realFloatMatrixRead = realFloatMatrixReader.createMatrixRealFloat();
+        expect (realFloatMatrixRead.isApprox (realFloatMatSrc));
+
+        ntlab::MCVReader realDoubleMatrixReader (realDoubleMatrixFile);
+        expect (realDoubleMatrixReader.isValid());
+
+        auto realDoubleMatrixRead = realDoubleMatrixReader.createMatrixRealDouble();
+        expect (realDoubleMatrixRead.isApprox (realDoubleMatSrc));
+
+        ntlab::MCVReader cplxFloatMatrixReader (cplxFloatMatrixFile);
+        expect (cplxFloatMatrixReader.isValid());
+
+        auto cplxFloatMatrixRead = cplxFloatMatrixReader.createMatrixComplexFloat();
+        expect (cplxFloatMatrixRead.isApprox (cplxFloatMatSrc));
+
+        ntlab::MCVReader cplxDoubleMatrixReader (cplxDoubleMatrixFile);
+        expect (cplxDoubleMatrixReader.isValid());
+
+        auto cplxDoubleMatrixRead = cplxDoubleMatrixReader.createMatrixComplexDouble();
+        expect (cplxDoubleMatrixRead.isApprox (cplxDoubleMatSrc));
+#endif
+
+        realFloatFile .deleteFile();
         realDoubleFile.deleteFile();
-        cplxFloatFile.deleteFile();
+        cplxFloatFile .deleteFile();
         cplxDoubleFile.deleteFile();
+
+#if NTLAB_INCLUDE_EIGEN
+        realFloatMatrixFile .deleteFile();
+        realDoubleMatrixFile.deleteFile();
+        cplxFloatMatrixFile .deleteFile();
+        cplxDoubleMatrixFile.deleteFile();
+#endif
     }
 };
 

@@ -17,6 +17,10 @@ along with SoftwareDefinedRadio4JUCE. If not, see <http://www.gnu.org/licenses/>
 
 #pragma once
 
+#if NTLAB_INCLUDE_EIGEN
+#include "../Matrix/Eigen/Eigen/Dense"
+#endif
+
 #include "../SampleBuffers/SampleBuffers.h"
 #include "MCVHeader.h"
 
@@ -111,6 +115,36 @@ namespace ntlab
          * successful it will return an empty buffer.
          */
         SampleBufferComplex<double> createSampleBufferComplexDouble();
+
+#if NTLAB_INCLUDE_EIGEN
+        /**
+         * Tries to create an Eigen::MatrixXf from the whole mcv file content. This will succeed if the file
+         * contains real values, if the file contains complex values or if the file has not been opened successful
+         * it will return an empty matrix. Only available if NTLAB_INCLUDE_EIGEN is enabled.
+         */
+        Eigen::MatrixXf createMatrixRealFloat();
+
+        /**
+         * Tries to create an Eigen::MatrixXd from the whole mcv file content. This will succeed if the file
+         * contains real values, if the file contains complex values or if the file has not been opened successful
+         * it will return an empty matrix. Only available if NTLAB_INCLUDE_EIGEN is enabled.
+         */
+        Eigen::MatrixXd createMatrixRealDouble();
+
+        /**
+         * Tries to create an Eigen::MatrixXcf from the whole mcv file content. If the file contains real values
+         * all imaginary values in the resulting file will be set to 0.  if the file has not been opened successful
+         * it will return an empty matrix. Only available if NTLAB_INCLUDE_EIGEN is enabled.
+         */
+        Eigen::MatrixXcf createMatrixComplexFloat();
+
+        /**
+         * Tries to create an Eigen::MatrixXcd from the whole mcv file content. If the file contains real values
+         * all imaginary values in the resulting file will be set to 0.  if the file has not been opened successful
+         * it will return an empty matrix. Only available if NTLAB_INCLUDE_EIGEN is enabled.
+         */
+        Eigen::MatrixXcd createMatrixComplexDouble();
+#endif
 
         /**
          * Fills a buffer with the next samples from the file. You have to make sure that the buffer passed matches in

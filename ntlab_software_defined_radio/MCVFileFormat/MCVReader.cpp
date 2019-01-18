@@ -92,6 +92,68 @@ namespace ntlab
         return buf;
     }
 
+#if NTLAB_INCLUDE_EIGEN
+    Eigen::MatrixXf MCVReader::createMatrixRealFloat()
+    {
+        if (isComplex() || (!valid))
+            return Eigen::MatrixXf();
+
+        if (hasDoublePrecision())
+            return createMatrixRealDouble().cast<float>();
+
+        return Eigen::Map<Eigen::MatrixXf> (static_cast<float*> (beginOfSamples), getNumRowsOrSamples(), getNumColsOrChannels());
+    }
+
+    Eigen::MatrixXd MCVReader::createMatrixRealDouble()
+    {
+        if (isComplex() || (!valid))
+            return Eigen::MatrixXd();
+
+        if (!hasDoublePrecision())
+            return createMatrixRealFloat().cast<double>();
+
+        return Eigen::Map<Eigen::MatrixXd> (static_cast<double*> (beginOfSamples), getNumRowsOrSamples(), getNumColsOrChannels());
+    }
+
+    Eigen::MatrixXcf MCVReader::createMatrixComplexFloat()
+    {
+        if (!valid)
+            return Eigen::MatrixXcf();
+
+        if (isComplex())
+        {
+            if (hasDoublePrecision())
+                return createMatrixComplexDouble().cast<std::complex<float>>();
+
+            return Eigen::Map<Eigen::MatrixXcf> (static_cast<std::complex<float>*> (beginOfSamples), getNumRowsOrSamples(), getNumColsOrChannels());
+        }
+
+        if (hasDoublePrecision())
+            return createMatrixRealDouble().cast<std::complex<float>>();
+
+        return createMatrixRealDouble().cast<std::complex<float>>();
+    }
+
+    Eigen::MatrixXcd MCVReader::createMatrixComplexDouble ()
+    {
+        if (!valid)
+            return Eigen::MatrixXcd();
+
+        if (isComplex())
+        {
+            if (hasDoublePrecision())
+                return Eigen::Map<Eigen::MatrixXcd> (static_cast<std::complex<double>*> (beginOfSamples), getNumRowsOrSamples(), getNumColsOrChannels());
+
+            return createMatrixComplexFloat().cast<std::complex<double>>();
+        }
+
+        if (hasDoublePrecision())
+            return createMatrixRealDouble().cast<std::complex<double>>();
+
+        return createMatrixRealFloat().cast<std::complex<double>>();
+    }
+#endif
+
     int64_t MCVReader::getReadPosition() {return metadata->getNumRowsOrSamples() - numRowsOrSamplesRemaining; }
 
     // Helper macro to fill a buffer with source data that handles all casting if necessary

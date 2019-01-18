@@ -151,6 +151,10 @@
 #ifndef    NTLAB_NO_SIMD
  //#define NTLAB_NO_SIMD 0
 #endif
+
+#ifndef    NTLAB_INCLUDE_EIGEN
+ #define   NTLAB_INCLUDE_EIGEN 1
+#endif
 //==============================================================================
 #ifndef    JUCE_STANDALONE_APPLICATION
  #if defined(JucePlugin_Name) && defined(JucePlugin_Build_Standalone)

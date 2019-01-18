@@ -1,0 +1,3 @@
+[submodule "ntlab_software_defined_radio/Matrix/Eigen"]
+	path = ntlab_software_defined_radio/Matrix/Eigen
+	url = https://github.com/eigenteam/eigen-git-mirror.git

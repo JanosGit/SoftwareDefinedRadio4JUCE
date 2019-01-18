@@ -51,6 +51,17 @@ along with SoftwareDefinedRadio4JUCE. If not, see <http://www.gnu.org/licenses/>
 #define NTLAB_NO_SIMD 0
 #endif
 
+/** Config: NTLAB_INCLUDE_EIGEN
+    Some SDR DSP operations are based on heavy matrix calculations. To implement some
+    of those features the Eigen Linear Algebra library was included as a submodule. You
+    can choose to not download this submodule and therefore not enable this flag to exclude
+    all features that rely on Eigen. Make sure that the Eigen license suits to your needs
+    when including Eigen sources in your project.
+ */
+#ifndef NTLAB_INCLUDE_EIGEN
+#define NTLAB_INCLUDE_EIGEN 0
+#endif
+
 #include "HardwareDevices/EttusEngine/UHDReplacement.h"
 #include "HardwareDevices/EttusEngine/UHDUSRPProbeParser.h"
 #include "HardwareDevices/EttusEngine/UHDEngine.h"
@@ -58,6 +69,10 @@ along with SoftwareDefinedRadio4JUCE. If not, see <http://www.gnu.org/licenses/>
 #include "HardwareDevices/SDRIODeviceCallback.h"
 #include "HardwareDevices/SDRIOEngine.h"
 #include "HardwareDevices/SDRIODeviceManger.h"
+
+#if NTLAB_INCLUDE_EIGEN
+#include "Matrix/Eigen/Eigen/Dense"
+#endif
 
 #include "MCVFileFormat/MCVHeader.h"
 #include "MCVFileFormat/MCVWriter.h"

@@ -3,6 +3,9 @@
 <JUCERPROJECT id="oceN5e" name="UnitTests" projectType="consoleapp" jucerVersion="5.3.2"
               defines="NTLAB_SOFTWARE_DEFINED_RADIO_UNIT_TESTS">
   <MAINGROUP id="ZIe7xv" name="UnitTests">
+    <GROUP id="{9976FF4C-A2F5-8BA4-A333-2FFB4D34A840}" name="MATLAB">
+      <FILE id="VzvTTW" name="readMCV.m" compile="0" resource="1" file="../MCVFileFormat/MATLAB/readMCV.m"/>
+    </GROUP>
     <GROUP id="{4B03CA79-2799-1B23-5F7F-31AD5BDC9D22}" name="Source">
       <FILE id="Xc6iew" name="Main.cpp" compile="1" resource="0" file="Source/Main.cpp"/>
     </GROUP>
@@ -11,6 +14,7 @@
     <XCODE_MAC targetFolder="Builds/MacOSX" extraCompilerFlags="-mavx2">
       <CONFIGURATIONS>
         <CONFIGURATION isDebug="0" name="Release"/>
+        <CONFIGURATION isDebug="1" name="Debug" linkTimeOptimisation="0" optimisation="1"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_core" path="../../../SDKs/JUCE/modules"/>
@@ -56,5 +60,5 @@
   <LIVE_SETTINGS>
     <OSX/>
   </LIVE_SETTINGS>
-  <JUCEOPTIONS/>
+  <JUCEOPTIONS NTLAB_INCLUDE_EIGEN="1"/>
 </JUCERPROJECT>
