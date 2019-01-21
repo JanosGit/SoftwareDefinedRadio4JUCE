@@ -30,8 +30,8 @@ function [fileContent, precision] = readMCV(fileName)
     numRows = fread(fileHandle, 1, 'int64');
     
     if isComplex
-        fileContentInterleaved = fread(fileHandle, [numCols, numRows * 2], precision);
-        fileContent = fileContentInterleaved(:, 1:2:end) + 1i * fileContentInterleaved(:, 2:2:end);
+        fileContentInterleaved = fread(fileHandle, [2 * numCols, numRows], precision);
+        fileContent = fileContentInterleaved(1:2:end, :) + 1i * fileContentInterleaved(2:2:end, :);
     else
         fileContent = fread(fileHandle, [numCols, numRows], precision);
     end

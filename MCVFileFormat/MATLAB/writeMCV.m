@@ -36,9 +36,9 @@ function writeMCV(fileName, matrixToWrite, desiredPrecision)
     fwrite(fileHandle, numRows, 'int64');
     
     if isComplex
-        matrixToWriteInterleaved = zeros(numCols, 2 * numRows);
-        matrixToWriteInterleaved(:, 1:2:end) = real(matrixToWrite);
-        matrixToWriteInterleaved(:, 2:2:end) = imag(matrixToWrite);
+        matrixToWriteInterleaved = zeros(2 * numCols, numRows);
+        matrixToWriteInterleaved(1:2:end, :) = real(matrixToWrite);
+        matrixToWriteInterleaved(2:2:end, :) = imag(matrixToWrite);
         fwrite(fileHandle, matrixToWriteInterleaved, desiredPrecision);
     else
         fwrite(fileHandle, matrixToWrite, desiredPrecision);
