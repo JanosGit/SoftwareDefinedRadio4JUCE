@@ -766,6 +766,39 @@ namespace ntlab
         }
 
         /**
+         * Enables access of the buffer for the host processor. This call might block until kernel executions in
+         * progress on the CL device have been finished and might involve a memory copy from the CL device memory space
+         * back to the host processors memory space in case of a non-shared memory architecture.
+         */
+        void enableHostDeviceAccess()
+        {
+
+        }
+
+        /**
+         * Enables access of the buffer for the host processor only if it is currently not used by any CL kernel.
+         * Returns true if access could be enabled, false otherwise. This call might involve a memory copy from the CL
+         * device memory space back to the host processors memory space in case of a non-shared memory architecture.
+         */
+        bool tryEnableHostDeviceAccess()
+        {
+
+        }
+
+        /**
+         * Disables access of the buffer for the host processor to pass it to a CL kernel.
+         */
+        void enableCLDeviceAccess()
+        {
+
+        }
+
+        /**
+         * Returns true if host device access is enabled, false if CL device access is enabled.
+         */
+        bool getCurrentAccessMode() const {return isInHostAccessMode; }
+
+        /**
          * Returns the number of valid samples per channel currently used. To get the maximum possible numer of samples
          * allocated by this buffer call getMaxNumSamples();
          *
