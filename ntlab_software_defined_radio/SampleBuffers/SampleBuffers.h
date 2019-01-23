@@ -150,13 +150,13 @@ namespace ntlab
          *
          * @see getMaxNumSamples
          */
-        int getNumSamples() {return numSamplesUsed; }
+        const int getNumSamples() const {return numSamplesUsed; }
 
         /**
          * Returns the maximum number of samples per channel that can be held by this buffer. This equals the number of
          * samples passed to the buffers constructor.
          */
-        int getMaxNumSamples() {return numSamplesAllocated; }
+        const int getMaxNumSamples() const {return numSamplesAllocated; }
 
         /**
          * Sets the number of samples per channel current held by this buffer. This can be everything between 0 and
@@ -169,14 +169,14 @@ namespace ntlab
         }
 
         /** Returns the number of channels held by this buffer */
-        int getNumChannels() {return  numChannelsAllocated; }
+        const int getNumChannels() const {return  numChannelsAllocated; }
 
         /**
          * Returns a read-only pointer to the host memory buffer for a dedicated channel. Always use this for read-only
          * operations. For speed reasons it does not check if the channelNumber is inside the valid range, so be careful
          * when using it.
          */
-        const SampleType* getReadPointer (int channelNumber)
+        const SampleType* getReadPointer (int channelNumber) const
         {
             jassert (juce::isPositiveAndBelow (channelNumber, numChannelsAllocated));
             return channels[channelNumber];
@@ -197,7 +197,7 @@ namespace ntlab
          * Returns a read-only array of pointers to the host memory buffers for all channels. Always use this for
          * read-only operations.
          */
-        const SampleType** getArrayOfReadPointers() {return const_cast<const SampleType**> (channels); }
+        const SampleType** getArrayOfReadPointers() const {return const_cast<const SampleType**> (channels); }
 
         /**
          * Returns an array of pointers to the host memory buffers for all channels. Use this if you want to write to
@@ -228,13 +228,13 @@ namespace ntlab
          * @param sourceStartChannelNumber      The index of the first source channel to copy
          * @param destinationStartChannelNumber The index of the first destination channel to copy
          */
-        void copyTo (CLSampleBufferReal<SampleType>& otherBuffer,
+        void copyTo(CLSampleBufferReal<SampleType>& otherBuffer,
                 int numSamlesToCopy,
                 int numChannelsToCopy,
                 int sourceStartSample = 0,
                 int destinationStartSample = 0,
                 int sourceStartChannelNumber = 0,
-                int destinationStartChannelNumber = 0)
+                int destinationStartChannelNumber = 0) const
         {
             NTLAB_ASSERT_CHANNEL_AND_SAMPLE_COUNTS_PASSED_ARE_VALID
             NTLAB_OPERATION_ON_ALL_CHANNELS (std::memcpy (writePtr, readPtr, numSamlesToCopy * sizeof (SampleType)))
@@ -258,7 +258,7 @@ namespace ntlab
                 int sourceStartSample = 0,
                 int destinationStartSample = 0,
                 int sourceStartChannelNumber = 0,
-                int destinationStartChannelNumber = 0)
+                int destinationStartChannelNumber = 0) const
         {
             NTLAB_ASSERT_CHANNEL_AND_SAMPLE_COUNTS_PASSED_ARE_VALID
             NTLAB_OPERATION_ON_ALL_CHANNELS (std::memcpy (writePtr, readPtr, numSamlesToCopy * sizeof (SampleType)))
@@ -374,13 +374,13 @@ namespace ntlab
          *
          * @see getMaxNumSamples
          */
-        int getNumSamples() {return numSamplesUsed; }
+        const int getNumSamples() const {return numSamplesUsed; }
 
         /**
          * Returns the maximum number of samples per channel that can be held by this buffer. This equals the number of
          * samples passed to the buffers constructor.
          */
-        int getMaxNumSamples() {return numSamplesAllocated; }
+        const int getMaxNumSamples() const {return numSamplesAllocated; }
 
         /**
          * Sets the number of samples per channel current held by this buffer. This can be everything between 0 and
@@ -393,14 +393,14 @@ namespace ntlab
         }
 
         /** Returns the number of channels held by this buffer */
-        int getNumChannels() {return  numChannelsAllocated; }
+        const int getNumChannels() const {return  numChannelsAllocated; }
 
         /**
          * Returns a read-only pointer to the host memory buffer for a dedicated channel. Always use this for read-only
          * operations. For speed reasons it does not check if the channelNumber is inside the valid range, so be careful
          * when using it.
          */
-        const std::complex<SampleType>* getReadPointer (int channelNumber)
+        const std::complex<SampleType>* getReadPointer (int channelNumber) const
         {
             jassert (juce::isPositiveAndBelow (channelNumber, numChannelsAllocated));
             return channels[channelNumber];
@@ -421,7 +421,7 @@ namespace ntlab
          * Returns a read-only array of pointers to the host memory buffers for all channels. Always use this for
          * read-only operations.
          */
-        const std::complex<SampleType>** getArrayOfReadPointers() {return const_cast<const std::complex<SampleType>**> (channels); }
+        const std::complex<SampleType>** getArrayOfReadPointers() const {return const_cast<const std::complex<SampleType>**> (channels); }
 
         /**
          * Returns an array of pointers to the host memory buffers for all channels. Use this if you want to write to
@@ -458,7 +458,7 @@ namespace ntlab
                 int sourceStartSample = 0,
                 int destinationStartSample = 0,
                 int sourceStartChannelNumber = 0,
-                int destinationStartChannelNumber = 0)
+                int destinationStartChannelNumber = 0) const
         {
             NTLAB_ASSERT_CHANNEL_AND_SAMPLE_COUNTS_PASSED_ARE_VALID
             NTLAB_OPERATION_ON_ALL_CHANNELS (std::memcpy (writePtr, readPtr, numSamlesToCopy * sizeof (std::complex<SampleType>)))
@@ -482,7 +482,7 @@ namespace ntlab
                 int sourceStartSample = 0,
                 int destinationStartSample = 0,
                 int sourceStartChannelNumber = 0,
-                int destinationStartChannelNumber = 0)
+                int destinationStartChannelNumber = 0) const
         {
             NTLAB_ASSERT_CHANNEL_AND_SAMPLE_COUNTS_PASSED_ARE_VALID
             NTLAB_OPERATION_ON_ALL_CHANNELS (std::memcpy (writePtr, readPtr, numSamlesToCopy * sizeof (std::complex<SampleType>)))
@@ -510,7 +510,7 @@ namespace ntlab
                 int destinationStartSample = 0,
                 int sourceStartChannelNumber = 0,
                 int destinationStartChannelNumber = 0,
-                bool clearImaginaryPartOfDestinationBuffer = true)
+                bool clearImaginaryPartOfDestinationBuffer = true) const
         {
             NTLAB_ASSERT_CHANNEL_AND_SAMPLE_COUNTS_PASSED_ARE_VALID
         }
@@ -536,7 +536,7 @@ namespace ntlab
                 int destinationStartSample = 0,
                 int sourceStartChannelNumber = 0,
                 int destinationStartChannelNumber = 0,
-                bool clearImaginaryPartOfDestinationBuffer = true)
+                bool clearImaginaryPartOfDestinationBuffer = true) const
         {
             NTLAB_ASSERT_CHANNEL_AND_SAMPLE_COUNTS_PASSED_ARE_VALID
         }
@@ -560,7 +560,7 @@ namespace ntlab
                 int sourceStartSample = 0,
                 int destinationStartSample = 0,
                 int sourceStartChannelNumber = 0,
-                int destinationStartChannelNumber = 0)
+                int destinationStartChannelNumber = 0) const
         {
             NTLAB_ASSERT_CHANNEL_AND_SAMPLE_COUNTS_PASSED_ARE_VALID
             NTLAB_OPERATION_ON_ALL_CHANNELS (ComplexVectorOperations::extractRealPart (readPtr, writePtr, numSamlesToCopy))
@@ -584,7 +584,7 @@ namespace ntlab
                 int sourceStartSample = 0,
                 int destinationStartSample = 0,
                 int sourceStartChannelNumber = 0,
-                int destinationStartChannelNumber = 0)
+                int destinationStartChannelNumber = 0) const
         {
             NTLAB_ASSERT_CHANNEL_AND_SAMPLE_COUNTS_PASSED_ARE_VALID
             NTLAB_OPERATION_ON_ALL_CHANNELS (ComplexVectorOperations::extractRealPart (readPtr, writePtr, numSamlesToCopy))
@@ -612,7 +612,7 @@ namespace ntlab
                 int destinationStartSample = 0,
                 int sourceStartChannelNumber = 0,
                 int destinationStartChannelNumber = 0,
-                bool clearRealPartOfDestinationBuffer = true)
+                bool clearRealPartOfDestinationBuffer = true) const
         {
             NTLAB_ASSERT_CHANNEL_AND_SAMPLE_COUNTS_PASSED_ARE_VALID
         }
@@ -638,7 +638,7 @@ namespace ntlab
                 int destinationStartSample = 0,
                 int sourceStartChannelNumber = 0,
                 int destinationStartChannelNumber = 0,
-                bool clearRealPartOfDestinationBuffer = true)
+                bool clearRealPartOfDestinationBuffer = true) const
         {
             NTLAB_ASSERT_CHANNEL_AND_SAMPLE_COUNTS_PASSED_ARE_VALID
         }
@@ -662,7 +662,7 @@ namespace ntlab
                 int sourceStartSample = 0,
                 int destinationStartSample = 0,
                 int sourceStartChannelNumber = 0,
-                int destinationStartChannelNumber = 0)
+                int destinationStartChannelNumber = 0) const
         {
             NTLAB_ASSERT_CHANNEL_AND_SAMPLE_COUNTS_PASSED_ARE_VALID
             NTLAB_OPERATION_ON_ALL_CHANNELS (ComplexVectorOperations::extractImagPart (readPtr, writePtr, numSamlesToCopy))
@@ -686,7 +686,7 @@ namespace ntlab
                 int sourceStartSample = 0,
                 int destinationStartSample = 0,
                 int sourceStartChannelNumber = 0,
-                int destinationStartChannelNumber = 0)
+                int destinationStartChannelNumber = 0) const
         {
             NTLAB_ASSERT_CHANNEL_AND_SAMPLE_COUNTS_PASSED_ARE_VALID
             NTLAB_OPERATION_ON_ALL_CHANNELS (ComplexVectorOperations::extractImagPart (readPtr, writePtr, numSamlesToCopy))
@@ -711,7 +711,7 @@ namespace ntlab
                 int sourceStartSample = 0,
                 int destinationStartSample = 0,
                 int sourceStartChannelNumber = 0,
-                int destinationStartChannelNumber = 0)
+                int destinationStartChannelNumber = 0) const
         {
             NTLAB_ASSERT_CHANNEL_AND_SAMPLE_COUNTS_PASSED_ARE_VALID
             NTLAB_OPERATION_ON_ALL_CHANNELS (ComplexVectorOperations::abs (readPtr, writePtr, numSamlesToCopy))
@@ -735,7 +735,7 @@ namespace ntlab
                 int sourceStartSample = 0,
                 int destinationStartSample = 0,
                 int sourceStartChannelNumber = 0,
-                int destinationStartChannelNumber = 0)
+                int destinationStartChannelNumber = 0) const
         {
             NTLAB_ASSERT_CHANNEL_AND_SAMPLE_COUNTS_PASSED_ARE_VALID
             NTLAB_OPERATION_ON_ALL_CHANNELS (ComplexVectorOperations::abs (readPtr, writePtr, numSamlesToCopy))
@@ -771,13 +771,13 @@ namespace ntlab
          *
          * @see getMaxNumSamples
          */
-        int getNumSamples() {return numSamplesUsed; }
+        const int getNumSamples() const {return numSamplesUsed; }
 
         /**
          * Returns the maximum number of samples per channel that can be held by this buffer. This equals the number of
          * samples passed to the buffers constructor.
          */
-        int getMaxNumSamples() {return numSamplesAllocated; }
+        const int getMaxNumSamples() const {return numSamplesAllocated; }
 
         /**
          * Sets the number of samples per channel current held by this buffer. This can be everything between 0 and
@@ -790,14 +790,14 @@ namespace ntlab
         }
 
         /** Returns the number of channels held by this buffer */
-        int getNumChannels() {return  numChannelsAllocated; }
+        const int getNumChannels() const {return  numChannelsAllocated; }
 
         /**
          * Returns a read-only pointer to the host memory buffer for a dedicated channel. Always use this for read-only
          * operations. For speed reasons it does not check if the channelNumber is inside the valid range, so be careful
          * when using it.
          */
-        const SampleType* getReadPointer (int channelNumber)
+        const SampleType* getReadPointer (int channelNumber) const
         {
             jassert (juce::isPositiveAndBelow (channelNumber, numChannelsAllocated));
             return channels[channelNumber];
@@ -818,7 +818,7 @@ namespace ntlab
          * Returns a read-only array of pointers to the host memory buffers for all channels. Always use this for
          * read-only operations.
          */
-        const SampleType** getArrayOfReadPointers() {return const_cast<const SampleType**> (channels.data()); }
+        const SampleType** getArrayOfReadPointers() const {return const_cast<const SampleType**> (channels.data()); }
 
         /**
          * Returns an array of pointers to the host memory buffers for all channels. Use this if you want to write to
@@ -855,7 +855,7 @@ namespace ntlab
                 int sourceStartSample = 0,
                 int destinationStartSample = 0,
                 int sourceStartChannelNumber = 0,
-                int destinationStartChannelNumber = 0)
+                int destinationStartChannelNumber = 0) const
         {
             NTLAB_ASSERT_CHANNEL_AND_SAMPLE_COUNTS_PASSED_ARE_VALID
             NTLAB_OPERATION_ON_ALL_CHANNELS (std::memcpy (writePtr, readPtr, numSamlesToCopy * sizeof (SampleType)))
@@ -879,7 +879,7 @@ namespace ntlab
                 int sourceStartSample = 0,
                 int destinationStartSample = 0,
                 int sourceStartChannelNumber = 0,
-                int destinationStartChannelNumber = 0)
+                int destinationStartChannelNumber = 0) const
         {
             NTLAB_ASSERT_CHANNEL_AND_SAMPLE_COUNTS_PASSED_ARE_VALID
             NTLAB_OPERATION_ON_ALL_CHANNELS (std::memcpy (writePtr, readPtr, numSamlesToCopy * sizeof (SampleType)))
@@ -938,7 +938,7 @@ namespace ntlab
         /**
          * Returns true if host device access is enabled, false if CL device access is enabled.
          */
-        bool getCurrentAccessMode() {return isInHostAccessMode; }
+        bool getCurrentAccessMode() const {return isInHostAccessMode; }
 
         /**
          * Returns the number of valid samples per channel currently used. To get the maximum possible numer of samples
@@ -946,13 +946,13 @@ namespace ntlab
          *
          * @see getMaxNumSamples
          */
-        int getNumSamples() {return numSamplesUsed; }
+        const int getNumSamples() const {return numSamplesUsed; }
 
         /**
          * Returns the maximum number of samples per channel that can be held by this buffer. This equals the number of
          * samples passed to the buffers constructor.
          */
-        int getMaxNumSamples() {return numSamplesAllocated; }
+        const int getMaxNumSamples() const {return numSamplesAllocated; }
 
         /**
          * Sets the number of samples per channel current held by this buffer. This can be everything between 0 and
@@ -965,14 +965,14 @@ namespace ntlab
         }
 
         /** Returns the number of channels held by this buffer */
-        int getNumChannels() {return  numChannelsAllocated; }
+        const int getNumChannels() const {return  numChannelsAllocated; }
 
         /**
          * Returns a read-only pointer to the host memory buffer for a dedicated channel. Always use this for read-only
          * operations. For speed reasons it does neither check if the channelNumber is inside the valid range nor if
          * host device access is enabled, so be careful when using it.
          */
-        const std::complex<SampleType>* getReadPointer (int channelNumber)
+        const std::complex<SampleType>* getReadPointer (int channelNumber) const
         {
 
         }
@@ -992,7 +992,7 @@ namespace ntlab
          * read-only operations. For speed reasons it does not check if host device access is enabled, so be careful
          * when using it.
          */
-        const std::complex<SampleType>** getArrayOfReadPointers()
+        const std::complex<SampleType>** getArrayOfReadPointers() const
         {
 
         }
@@ -1036,7 +1036,7 @@ namespace ntlab
                 int sourceStartSample = 0,
                 int destinationStartSample = 0,
                 int sourceStartChannelNumber = 0,
-                int destinationStartChannelNumber = 0)
+                int destinationStartChannelNumber = 0) const
         {
             NTLAB_ASSERT_CHANNEL_AND_SAMPLE_COUNTS_PASSED_ARE_VALID
         }
@@ -1059,7 +1059,7 @@ namespace ntlab
                 int sourceStartSample = 0,
                 int destinationStartSample = 0,
                 int sourceStartChannelNumber = 0,
-                int destinationStartChannelNumber = 0)
+                int destinationStartChannelNumber = 0) const
         {
             NTLAB_ASSERT_CHANNEL_AND_SAMPLE_COUNTS_PASSED_ARE_VALID
         }
@@ -1086,7 +1086,7 @@ namespace ntlab
                 int destinationStartSample = 0,
                 int sourceStartChannelNumber = 0,
                 int destinationStartChannelNumber = 0,
-                bool clearImaginaryPartOfDestinationBuffer = true)
+                bool clearImaginaryPartOfDestinationBuffer = true) const
         {
             NTLAB_ASSERT_CHANNEL_AND_SAMPLE_COUNTS_PASSED_ARE_VALID
         }
@@ -1113,7 +1113,7 @@ namespace ntlab
                 int destinationStartSample = 0,
                 int sourceStartChannelNumber = 0,
                 int destinationStartChannelNumber = 0,
-                bool clearImaginaryPartOfDestinationBuffer = true)
+                bool clearImaginaryPartOfDestinationBuffer = true) const
         {
             NTLAB_ASSERT_CHANNEL_AND_SAMPLE_COUNTS_PASSED_ARE_VALID
         }
@@ -1137,7 +1137,7 @@ namespace ntlab
                 int sourceStartSample = 0,
                 int destinationStartSample = 0,
                 int sourceStartChannelNumber = 0,
-                int destinationStartChannelNumber = 0)
+                int destinationStartChannelNumber = 0) const
         {
             NTLAB_ASSERT_CHANNEL_AND_SAMPLE_COUNTS_PASSED_ARE_VALID
         }
@@ -1160,7 +1160,7 @@ namespace ntlab
                 int sourceStartSample = 0,
                 int destinationStartSample = 0,
                 int sourceStartChannelNumber = 0,
-                int destinationStartChannelNumber = 0)
+                int destinationStartChannelNumber = 0) const
         {
             NTLAB_ASSERT_CHANNEL_AND_SAMPLE_COUNTS_PASSED_ARE_VALID
         }
@@ -1187,7 +1187,7 @@ namespace ntlab
                 int destinationStartSample = 0,
                 int sourceStartChannelNumber = 0,
                 int destinationStartChannelNumber = 0,
-                bool clearRealPartOfDestinationBuffer = true)
+                bool clearRealPartOfDestinationBuffer = true) const
         {
             NTLAB_ASSERT_CHANNEL_AND_SAMPLE_COUNTS_PASSED_ARE_VALID
         }
@@ -1214,7 +1214,7 @@ namespace ntlab
                 int destinationStartSample = 0,
                 int sourceStartChannelNumber = 0,
                 int destinationStartChannelNumber = 0,
-                bool clearRealPartOfDestinationBuffer = true)
+                bool clearRealPartOfDestinationBuffer = true) const
         {
             NTLAB_ASSERT_CHANNEL_AND_SAMPLE_COUNTS_PASSED_ARE_VALID
         }
@@ -1238,7 +1238,7 @@ namespace ntlab
                 int sourceStartSample = 0,
                 int destinationStartSample = 0,
                 int sourceStartChannelNumber = 0,
-                int destinationStartChannelNumber = 0)
+                int destinationStartChannelNumber = 0) const
         {
             NTLAB_ASSERT_CHANNEL_AND_SAMPLE_COUNTS_PASSED_ARE_VALID
         }
@@ -1262,7 +1262,7 @@ namespace ntlab
                 int sourceStartSample = 0,
                 int destinationStartSample = 0,
                 int sourceStartChannelNumber = 0,
-                int destinationStartChannelNumber = 0)
+                int destinationStartChannelNumber = 0) const
         {
             NTLAB_ASSERT_CHANNEL_AND_SAMPLE_COUNTS_PASSED_ARE_VALID
         }
@@ -1286,7 +1286,7 @@ namespace ntlab
                 int sourceStartSample = 0,
                 int destinationStartSample = 0,
                 int sourceStartChannelNumber = 0,
-                int destinationStartChannelNumber = 0)
+                int destinationStartChannelNumber = 0) const
         {
             NTLAB_ASSERT_CHANNEL_AND_SAMPLE_COUNTS_PASSED_ARE_VALID
         }
@@ -1310,7 +1310,7 @@ namespace ntlab
                 int sourceStartSample = 0,
                 int destinationStartSample = 0,
                 int sourceStartChannelNumber = 0,
-                int destinationStartChannelNumber = 0)
+                int destinationStartChannelNumber = 0) const
         {
             NTLAB_ASSERT_CHANNEL_AND_SAMPLE_COUNTS_PASSED_ARE_VALID
         }
