@@ -500,8 +500,8 @@ namespace ntlab
     }
 
     UHDEngine::ChannelMapping::ChannelMapping (juce::Array<ntlab::UHDEngine::ChannelSetup>& channelSetup, UHDEngine& engine)
-      : channelSetupHardwareOrder (channelSetup),
-        numChannels (channelSetup.size()),
+      : numChannels (channelSetup.size()),
+        channelSetupHardwareOrder (channelSetup),
         uhdEngine (engine)
     {
         int numChannels = channelSetup.size();
