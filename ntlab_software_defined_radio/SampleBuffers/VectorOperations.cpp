@@ -70,6 +70,18 @@ namespace ntlab
         numElementsRemainingToProcessWithoutSIMD = vectorLength - numElementsToProcessWithSIMD;
     }
 
+    template<>
+    constexpr int SIMDHelpers::VectorLength<double>::numValues() {return simdVectorLengthDouble; }
+
+    template<>
+    constexpr int SIMDHelpers::VectorLength<float>::numValues() {return simdVectorLengthFloat; }
+
+    template<>
+    constexpr int SIMDHelpers::VectorLength<int32_t>::numValues() {return simdVectorLengthInt32; }
+
+    template<>
+    constexpr int SIMDHelpers::VectorLength<int16_t>::numValues() {return simdVectorLengthInt16; }
+
 #if NTLAB_USE_AVX2
 
     void ComplexVectorOperations::extractRealPart (const std::complex<float>* complexInVector, float* realOutVector, int length)

@@ -97,8 +97,14 @@ namespace ntlab
             static void forArbitraryLengthVector (const int vectorLength, int& numSIMDVectors, int& numElementsToProcessWithSIMD, int& numElementsRemainingToProcessWithoutSIMD);
         };
 
+        template <typename T>
+        struct VectorLength
+        {
+            static constexpr int numValues();
+        };
 
     private:
+
 #if NTLAB_USE_AVX2
         static const int simdRequiredAlignmentBytes = 32;
         static const int simdVectorLengthDouble = 4;
