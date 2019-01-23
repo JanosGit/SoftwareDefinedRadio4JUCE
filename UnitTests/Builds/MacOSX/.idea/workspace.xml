@@ -2,25 +2,11 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="f5ee73e9-f00c-47fd-b849-4a68c4543e8d" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/../LinuxMakefile/Makefile" beforeDir="false" afterPath="$PROJECT_DIR$/../LinuxMakefile/Makefile" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/UnitTests.xcodeproj/project.pbxproj" beforeDir="false" afterPath="$PROJECT_DIR$/UnitTests.xcodeproj/project.pbxproj" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/UnitTests.xcodeproj/xcuserdata/janosbuttgereit.xcuserdatad/xcschemes/UnitTests - ConsoleApp.xcscheme" beforeDir="false" afterPath="$PROJECT_DIR$/UnitTests.xcodeproj/xcuserdata/janosbuttgereit.xcuserdatad/xcschemes/UnitTests - ConsoleApp.xcscheme" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/build/Debug/UnitTests" beforeDir="false" afterPath="$PROJECT_DIR$/build/Debug/UnitTests" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/Release/UnitTests" beforeDir="false" afterPath="$PROJECT_DIR$/build/Release/UnitTests" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../VisualStudio2017/UnitTests_ConsoleApp.vcxproj" beforeDir="false" afterPath="$PROJECT_DIR$/../VisualStudio2017/UnitTests_ConsoleApp.vcxproj" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../VisualStudio2017/UnitTests_ConsoleApp.vcxproj.filters" beforeDir="false" afterPath="$PROJECT_DIR$/../VisualStudio2017/UnitTests_ConsoleApp.vcxproj.filters" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../JuceLibraryCode/AppConfig.h" beforeDir="false" afterPath="$PROJECT_DIR$/../../JuceLibraryCode/AppConfig.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../JuceLibraryCode/JuceHeader.h" beforeDir="false" afterPath="$PROJECT_DIR$/../../JuceLibraryCode/JuceHeader.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../UnitTests.jucer" beforeDir="false" afterPath="$PROJECT_DIR$/../../UnitTests.jucer" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../ntlab_software_defined_radio/HardwareDevices/EttusEngine/UHDReplacement.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../../../ntlab_software_defined_radio/HardwareDevices/EttusEngine/UHDReplacement.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../ntlab_software_defined_radio/HardwareDevices/EttusEngine/UHDReplacement.h" beforeDir="false" afterPath="$PROJECT_DIR$/../../../ntlab_software_defined_radio/HardwareDevices/EttusEngine/UHDReplacement.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../ntlab_software_defined_radio/HardwareDevices/MCVFileEngine/MCVFileEngine.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../../../ntlab_software_defined_radio/HardwareDevices/MCVFileEngine/MCVFileEngine.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../ntlab_software_defined_radio/MCVFileFormat/MCVHeader.h" beforeDir="false" afterPath="$PROJECT_DIR$/../../../ntlab_software_defined_radio/MCVFileFormat/MCVHeader.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../ntlab_software_defined_radio/MCVFileFormat/MCVReader.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../../../ntlab_software_defined_radio/MCVFileFormat/MCVReader.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../ntlab_software_defined_radio/MCVFileFormat/MCVReader.h" beforeDir="false" afterPath="$PROJECT_DIR$/../../../ntlab_software_defined_radio/MCVFileFormat/MCVReader.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../ntlab_software_defined_radio/MCVFileFormat/MCVUnitTests.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../../../ntlab_software_defined_radio/MCVFileFormat/MCVUnitTests.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../../ntlab_software_defined_radio/MCVFileFormat/MCVWriter.h" beforeDir="false" afterPath="$PROJECT_DIR$/../../../ntlab_software_defined_radio/MCVFileFormat/MCVWriter.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../ntlab_software_defined_radio/SampleBuffers/VectorOperations.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../../../ntlab_software_defined_radio/SampleBuffers/VectorOperations.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../ntlab_software_defined_radio/SampleBuffers/VectorOperations.h" beforeDir="false" afterPath="$PROJECT_DIR$/../../../ntlab_software_defined_radio/SampleBuffers/VectorOperations.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../ntlab_software_defined_radio/ntlab_software_defined_radio.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../../../ntlab_software_defined_radio/ntlab_software_defined_radio.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../../../ntlab_software_defined_radio/ntlab_software_defined_radio.h" beforeDir="false" afterPath="$PROJECT_DIR$/../../../ntlab_software_defined_radio/ntlab_software_defined_radio.h" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -63,36 +49,37 @@
       <usages-collector id="statistics.file.extensions.open">
         <counts>
           <entry key="__string" value="1" />
-          <entry key="cpp" value="80" />
-          <entry key="h" value="134" />
+          <entry key="cpp" value="87" />
+          <entry key="h" value="148" />
           <entry key="hpp" value="2" />
           <entry key="initializer_list" value="1" />
           <entry key="memory" value="4" />
+          <entry key="numeric" value="1" />
           <entry key="ostream" value="1" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.open">
         <counts>
-          <entry key="ObjectiveC" value="223" />
+          <entry key="ObjectiveC" value="245" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.edit">
         <counts>
-          <entry key="cpp" value="32825" />
-          <entry key="h" value="41851" />
+          <entry key="cpp" value="34036" />
+          <entry key="h" value="52545" />
           <entry key="txt" value="1" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
-          <entry key="Doxygen file" value="180" />
-          <entry key="ObjectiveC" value="74496" />
+          <entry key="Doxygen file" value="197" />
+          <entry key="ObjectiveC" value="86384" />
           <entry key="PLAIN_TEXT" value="1" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.appcode.build">
         <counts>
-          <entry key="buildservice" value="311" />
+          <entry key="buildservice" value="409" />
           <entry key="xcodebuild" value="5" />
         </counts>
       </usages-collector>
@@ -101,62 +88,88 @@
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/../../../ntlab_software_defined_radio/MCVFileFormat/MCVWriter.h">
+        <entry file="file://$PROJECT_DIR$/../../../ntlab_software_defined_radio/Matrix/CovarianceMatrix.cpp">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1744">
-              <caret line="111" column="58" lean-forward="true" selection-start-line="111" selection-start-column="58" selection-end-line="111" selection-end-column="58" />
+            <state relative-caret-position="133">
+              <caret line="33" column="56" selection-start-line="33" selection-start-column="56" selection-end-line="33" selection-end-column="56" />
               <folding>
-                <element signature="e#4939#4971#0" expanded="true" />
+                <element signature="e#706#791#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/../../../ntlab_software_defined_radio/Matrix/CovarianceMatrix.h">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="-1186">
+              <caret line="31" column="7" selection-start-line="31" selection-start-column="7" selection-end-line="31" selection-end-column="7" />
+              <folding>
+                <element signature="e#779#822#0" expanded="true" />
+                <element signature="e#1225#1341#0" expanded="true" />
+                <element signature="e#1319#1370#0" expanded="true" />
+                <element signature="e#5412#5446#0" expanded="true" />
+                <element signature="e#7529#7739#0" expanded="true" />
+                <element signature="e#10670#10709#0" expanded="true" />
+                <element signature="e#14207#14246#0" expanded="true" />
+                <element signature="e#17750#17784#0" expanded="true" />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/../../../ntlab_software_defined_radio/MCVFileFormat/MCVHeader.h">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="395">
-              <caret line="164" column="25" selection-start-line="164" selection-start-column="25" selection-end-line="164" selection-end-column="25" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/../../../ntlab_software_defined_radio/MCVFileFormat/MCVWriter.cpp">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="666">
-              <caret line="359" selection-start-line="335" selection-start-column="8" selection-end-line="359" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/../../../ntlab_software_defined_radio/ntlab_software_defined_radio.h">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="194">
-              <caret line="66" selection-start-line="66" selection-end-line="66" />
+            <state relative-caret-position="219">
+              <caret line="35" column="21" selection-start-line="35" selection-start-column="21" selection-end-line="35" selection-end-column="21" />
               <folding>
                 <element signature="e#2448#2477#0" expanded="true" />
-                <element signature="e#2930#2966#0" expanded="true" />
+                <element signature="e#2486#2541#0" expanded="true" />
+                <element signature="e#2872#2907#0" expanded="true" />
+                <element signature="e#2953#2989#0" expanded="true" />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/../../../ntlab_software_defined_radio/ntlab_software_defined_radio.cpp">
+        <entry file="file://$PROJECT_DIR$/../../../ntlab_software_defined_radio/SampleBuffers/SampleBuffers.h">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="256">
-              <caret line="16" selection-start-line="16" selection-end-line="16" />
+            <state relative-caret-position="-252">
+              <caret line="757" column="28" selection-start-line="757" selection-start-column="10" selection-end-line="757" selection-end-column="28" />
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/../../../ntlab_software_defined_radio/MCVFileFormat/MCVReader.h">
+        <entry file="file://$PROJECT_DIR$/../../../ntlab_software_defined_radio/SampleBuffers/VectorOperations.h">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="145">
-              <caret line="138" column="52" lean-forward="true" selection-start-line="138" selection-start-column="52" selection-end-line="138" selection-end-column="52" />
+            <state relative-caret-position="103">
+              <caret line="57" column="43" selection-start-line="57" selection-start-column="22" selection-end-line="57" selection-end-column="43" />
+              <folding>
+                <element signature="e#720#752#0" expanded="true" />
+                <element signature="e#1889#2105#0" expanded="true" />
+                <element signature="e#3258#3270#0" expanded="true" />
+                <element signature="e#3431#3752#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/../../../ntlab_software_defined_radio/SampleBuffers/VectorOperations.cpp">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="144">
+              <caret line="76" selection-start-line="76" selection-end-line="76" />
+              <folding>
+                <element signature="e#3812#3814#0" expanded="true" />
+                <element signature="e#4277#4279#0" expanded="true" />
+                <element signature="e#4392#4394#0" expanded="true" />
+                <element signature="e#4505#4507#0" expanded="true" />
+                <element signature="e#4620#4622#0" expanded="true" />
+                <element signature="e#11904#12845#0" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -164,26 +177,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/../../../ntlab_software_defined_radio/MCVFileFormat/MCVUnitTests.cpp">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-1302">
+            <state relative-caret-position="-223">
               <caret line="26" selection-start-line="26" selection-end-line="26" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/../../../../../SDKs/JUCE/modules/juce_core/unit_tests/juce_UnitTest.cpp">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="149">
-              <caret line="104" selection-start-line="104" selection-end-line="104" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/../../../ntlab_software_defined_radio/MCVFileFormat/MCVReader.cpp">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="2432">
-              <caret line="152" column="68" selection-start-line="152" selection-start-column="68" selection-end-line="152" selection-end-column="68" />
             </state>
           </provider>
         </entry>
@@ -214,6 +209,7 @@
       <find>ip-addr</find>
       <find>Dynam</find>
       <find>Array</find>
+      <find>std::accumulate</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -222,14 +218,12 @@
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
-        <option value="$PROJECT_DIR$/../../../ntlab_software_defined_radio/SampleBuffers/VectorOperations.cpp" />
         <option value="$PROJECT_DIR$/../../../ntlab_software_defined_radio/HardwareDevices/EttusSpecific/UHDReplacement.h" />
         <option value="$PROJECT_DIR$/../../../ntlab_software_defined_radio/HardwareDevices/EttusSpecific/UHDUSRPProbeParser.h" />
         <option value="$PROJECT_DIR$/../../../ntlab_software_defined_radio/HardwareDevices/EttusSpecific/UHDReplacement.cpp" />
         <option value="$PROJECT_DIR$/../../../ntlab_software_defined_radio/MCVFileFormat/MCVShared.h" />
         <option value="$PROJECT_DIR$/../../../ntlab_software_defined_radio/UnitTestHelpers/UnitTestHelpers.cpp" />
         <option value="$PROJECT_DIR$/../../../ntlab_software_defined_radio/UnitTestHelpers/UnitTestHelpers.h" />
-        <option value="$PROJECT_DIR$/../../../ntlab_software_defined_radio/SampleBuffers/SampleBuffers.h" />
         <option value="$PROJECT_DIR$/../../../ntlab_software_defined_radio/HardwareDevices/SDRIODeviceManger.h" />
         <option value="$PROJECT_DIR$/../../../ntlab_software_defined_radio/HardwareDevices/SDRIOEngine.cpp" />
         <option value="$PROJECT_DIR$/../../../ntlab_software_defined_radio/HardwareDevices/SDRIODeviceManger.cpp" />
@@ -242,8 +236,6 @@
         <option value="$PROJECT_DIR$/../../../ntlab_software_defined_radio/HardwareDevices/EttusEngine/UHDUSRPProbeParser.cpp" />
         <option value="$PROJECT_DIR$/../../../ntlab_software_defined_radio/HardwareDevices/SDRIOEngine.h" />
         <option value="$PROJECT_DIR$/../../../ntlab_software_defined_radio/HardwareDevices/MCVFileEngine/MCVFileEngine.h" />
-        <option value="$PROJECT_DIR$/../../../ntlab_software_defined_radio/ntlab_software_defined_radio.h" />
-        <option value="$PROJECT_DIR$/../../../ntlab_software_defined_radio/ntlab_software_defined_radio.cpp" />
         <option value="$PROJECT_DIR$/../../../ntlab_software_defined_radio/HardwareDevices/EttusEngine/UHDEngine.h" />
         <option value="$PROJECT_DIR$/../../../ntlab_software_defined_radio/HardwareDevices/EttusEngine/UHDEngine.cpp" />
         <option value="$PROJECT_DIR$/../../../ntlab_software_defined_radio/HardwareDevices/EttusEngine/UHDReplacement.cpp" />
@@ -254,6 +246,13 @@
         <option value="$PROJECT_DIR$/../../../ntlab_software_defined_radio/MCVFileFormat/MCVReader.h" />
         <option value="$PROJECT_DIR$/../../../ntlab_software_defined_radio/MCVFileFormat/MCVWriter.h" />
         <option value="$PROJECT_DIR$/../../../ntlab_software_defined_radio/MCVFileFormat/MCVHeader.h" />
+        <option value="$PROJECT_DIR$/../../../ntlab_software_defined_radio/ntlab_software_defined_radio.cpp" />
+        <option value="$PROJECT_DIR$/../../../ntlab_software_defined_radio/SampleBuffers/VectorOperations.cpp" />
+        <option value="$PROJECT_DIR$/../../../ntlab_software_defined_radio/Matrix/CovarianceMatrix.cpp" />
+        <option value="$PROJECT_DIR$/../../../ntlab_software_defined_radio/SampleBuffers/SampleBuffers.h" />
+        <option value="$PROJECT_DIR$/../../../ntlab_software_defined_radio/SampleBuffers/VectorOperations.h" />
+        <option value="$PROJECT_DIR$/../../../ntlab_software_defined_radio/Matrix/CovarianceMatrix.h" />
+        <option value="$PROJECT_DIR$/../../../ntlab_software_defined_radio/ntlab_software_defined_radio.h" />
       </list>
     </option>
   </component>
@@ -265,10 +264,8 @@
   </component>
   <component name="OCFindUsagesOptions" text="true" ivars="false" properties="true" derivedClasses="false" />
   <component name="ProjectFrameBounds" fullScreen="true">
-    <option name="x" value="-129" />
-    <option name="y" value="-1080" />
-    <option name="width" value="1920" />
-    <option name="height" value="1080" />
+    <option name="width" value="1680" />
+    <option name="height" value="1050" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectView">
@@ -346,12 +343,12 @@
       <workItem from="1545059151738" duration="18694000" />
       <workItem from="1545900913463" duration="243000" />
       <workItem from="1546604448982" duration="2103000" />
-      <workItem from="1547028332342" duration="16791000" />
+      <workItem from="1547028332342" duration="59706000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="192680000" />
+    <option name="totallyTimeSpent" value="235595000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -363,17 +360,17 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="-129" y="-1080" width="1920" height="1080" extended-state="0" />
+    <frame x="0" y="0" width="1680" height="1050" extended-state="0" />
     <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.17571884" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.2014652" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Designer" order="2" />
       <window_info id="Favorites" order="3" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" weight="0.32959184" />
-      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.43267328" />
-      <window_info anchor="bottom" id="Debug" order="3" weight="0.5059406" />
+      <window_info anchor="bottom" id="Run" order="2" weight="0.24081632" />
+      <window_info anchor="bottom" id="Debug" order="3" weight="0.50510204" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="6" weight="0.32959184" />
@@ -381,7 +378,7 @@
       <window_info anchor="bottom" id="Version Control" order="8" show_stripe_button="false" />
       <window_info anchor="bottom" id="Terminal" order="9" weight="0.32959184" />
       <window_info anchor="bottom" id="Event Log" order="10" side_tool="true" />
-      <window_info anchor="bottom" id="Messages" order="11" weight="0.3158416" />
+      <window_info active="true" anchor="bottom" id="Messages" order="11" visible="true" weight="0.3255102" />
       <window_info anchor="right" id="Commander" order="0" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
@@ -419,55 +416,6 @@
     <option name="myLimit" value="2678400000" />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/../../../../../SDKs/JUCE/modules/juce_core/native/juce_posix_SharedCode.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="67">
-          <caret line="1457" column="40" selection-start-line="1457" selection-start-column="40" selection-end-line="1457" selection-end-column="40" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../../../../../SDKs/JUCE/modules/juce_core/threads/juce_Thread.cpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="378">
-          <caret line="299" column="13" selection-start-line="299" selection-start-column="13" selection-end-line="299" selection-end-column="13" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../../../../../SDKs/JUCE/modules/juce_core/threads/juce_Thread.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="152">
-          <caret line="270" column="19" lean-forward="true" selection-start-line="270" selection-end-line="271" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../../../ntlab_software_defined_radio/Threading/RealtimeSetterThreadWithFIFO.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="186">
-          <caret line="59" column="25" selection-start-line="59" selection-start-column="25" selection-end-line="59" selection-end-column="25" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file:///Applications/Xcode9.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/v1/__string">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="186">
-          <caret line="216" selection-start-line="216" selection-end-line="216" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file:///Applications/Xcode9.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/v1/ostream">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="186">
-          <caret line="863" selection-start-line="863" selection-end-line="863" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../../../../../SDKs/JUCE/modules/juce_core/system/juce_PlatformDefs.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="186">
-          <caret line="148" column="8" selection-start-line="148" selection-start-column="8" selection-end-line="148" selection-end-column="8" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/../../../ntlab_software_defined_radio/ErrorHandling/boost/current_function.hpp">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="240">
@@ -486,13 +434,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="172">
           <caret line="323" column="16" selection-start-line="323" selection-start-column="16" selection-end-line="323" selection-end-column="16" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../../../ntlab_software_defined_radio/SampleBuffers/SampleBuffers.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="12448">
-          <caret line="778" column="11" selection-start-line="778" selection-start-column="11" selection-end-line="778" selection-end-column="11" />
         </state>
       </provider>
     </entry>
@@ -618,33 +559,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/../../../ntlab_software_defined_radio/Matrix/Eigen/Eigen/src/Core/AssignEvaluator.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="144">
-          <caret line="419" selection-start-line="419" selection-end-line="419" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../../../ntlab_software_defined_radio/HardwareDevices/MCVFileEngine/MCVFileEngine.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="102">
-          <caret line="73" column="34" selection-start-line="73" selection-start-column="34" selection-end-line="73" selection-end-column="34" />
-          <folding>
-            <element signature="e#720#747#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../../../ntlab_software_defined_radio/HardwareDevices/EttusEngine/UHDEngine.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="207">
-          <caret line="206" column="9" selection-start-line="206" selection-start-column="9" selection-end-line="206" selection-end-column="9" />
-          <folding>
-            <element signature="e#720#747#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/../../../../../SDKs/JUCE/modules/juce_core/threads/juce_DynamicLibrary.h">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="-128">
@@ -690,28 +604,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/../../../ntlab_software_defined_radio/ntlab_software_defined_radio.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="194">
-          <caret line="66" selection-start-line="66" selection-end-line="66" />
-          <folding>
-            <element signature="e#2448#2477#0" expanded="true" />
-            <element signature="e#2930#2966#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/../../../ntlab_software_defined_radio/HardwareDevices/MCVFileEngine/MCVFileEngine.cpp">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="379">
           <caret line="308" selection-start-line="308" selection-end-line="308" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../../../ntlab_software_defined_radio/HardwareDevices/SDRIOEngine.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1223">
-          <caret line="129" selection-start-line="129" selection-end-line="129" />
         </state>
       </provider>
     </entry>
@@ -729,55 +625,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/../../../ntlab_software_defined_radio/ntlab_software_defined_radio.cpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="256">
-          <caret line="16" selection-start-line="16" selection-end-line="16" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../../../ntlab_software_defined_radio/MCVFileFormat/MCVWriter.cpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="666">
-          <caret line="359" selection-start-line="335" selection-start-column="8" selection-end-line="359" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/../../../../../SDKs/JUCE/modules/juce_core/unit_tests/juce_UnitTest.cpp">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="149">
           <caret line="104" selection-start-line="104" selection-end-line="104" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../../../ntlab_software_defined_radio/MCVFileFormat/MCVUnitTests.cpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-1302">
-          <caret line="26" selection-start-line="26" selection-end-line="26" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../../../ntlab_software_defined_radio/MCVFileFormat/MCVReader.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="145">
-          <caret line="138" column="52" lean-forward="true" selection-start-line="138" selection-start-column="52" selection-end-line="138" selection-end-column="52" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../../../ntlab_software_defined_radio/MCVFileFormat/MCVReader.cpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2432">
-          <caret line="152" column="68" selection-start-line="152" selection-start-column="68" selection-end-line="152" selection-end-column="68" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../../../ntlab_software_defined_radio/MCVFileFormat/MCVWriter.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1744">
-          <caret line="111" column="58" lean-forward="true" selection-start-line="111" selection-start-column="58" selection-end-line="111" selection-end-column="58" />
-          <folding>
-            <element signature="e#4939#4971#0" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -788,10 +639,188 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/../../../ntlab_software_defined_radio/MCVFileFormat/MCVWriter.cpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="666">
+          <caret line="359" selection-start-line="335" selection-start-column="8" selection-end-line="359" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../../../ntlab_software_defined_radio/HardwareDevices/SDRIOEngine.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="79">
+          <caret line="142" column="29" selection-start-line="142" selection-start-column="10" selection-end-line="142" selection-end-column="29" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../../../ntlab_software_defined_radio/HardwareDevices/EttusEngine/UHDEngine.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state>
+          <caret selection-end-line="15" selection-end-column="2" />
+          <folding>
+            <element signature="e#720#747#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../../../ntlab_software_defined_radio/HardwareDevices/MCVFileEngine/MCVFileEngine.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="442">
+          <caret line="73" column="34" selection-start-line="73" selection-start-column="34" selection-end-line="73" selection-end-column="34" />
+          <folding>
+            <element signature="e#720#747#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../../../ntlab_software_defined_radio/HardwareDevices/SDRIODeviceManger.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="274">
+          <caret line="25" column="28" selection-start-line="25" selection-start-column="10" selection-end-line="25" selection-end-column="28" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/../../../ntlab_software_defined_radio/MCVFileFormat/MCVHeader.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="395">
+        <state relative-caret-position="1494">
           <caret line="164" column="25" selection-start-line="164" selection-start-column="25" selection-end-line="164" selection-end-column="25" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../../../ntlab_software_defined_radio/MCVFileFormat/MCVWriter.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="441">
+          <caret line="111" column="58" selection-start-line="111" selection-start-column="58" selection-end-line="111" selection-end-column="58" />
+          <folding>
+            <element signature="e#4939#4971#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../../../ntlab_software_defined_radio/MCVFileFormat/MCVReader.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-258">
+          <caret line="73" column="64" selection-start-line="73" selection-start-column="46" selection-end-line="73" selection-end-column="64" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../../../ntlab_software_defined_radio/MCVFileFormat/MCVReader.cpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-1175">
+          <caret line="152" column="68" selection-start-line="152" selection-start-column="68" selection-end-line="152" selection-end-column="68" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../../../ntlab_software_defined_radio/MCVFileFormat/MCVUnitTests.cpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-223">
+          <caret line="26" selection-start-line="26" selection-end-line="26" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../../../ntlab_software_defined_radio/SampleBuffers/VectorOperations.cpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="144">
+          <caret line="76" selection-start-line="76" selection-end-line="76" />
+          <folding>
+            <element signature="e#3812#3814#0" expanded="true" />
+            <element signature="e#4277#4279#0" expanded="true" />
+            <element signature="e#4392#4394#0" expanded="true" />
+            <element signature="e#4505#4507#0" expanded="true" />
+            <element signature="e#4620#4622#0" expanded="true" />
+            <element signature="e#11904#12845#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../../../ntlab_software_defined_radio/ntlab_software_defined_radio.cpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="304">
+          <caret line="19" selection-start-line="19" selection-end-line="19" />
+          <folding>
+            <element signature="e#708#756#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file:///Applications/Xcode9.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/v1/numeric">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="113">
+          <caret line="159" selection-start-line="159" selection-end-line="159" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../../JuceLibraryCode/include_ntlab_software_defined_radio.cpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="128">
+          <caret line="8" selection-start-line="8" selection-end-line="8" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../../../ntlab_software_defined_radio/Matrix/Eigen/Eigen/src/Core/AssignEvaluator.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="144">
+          <caret line="858" column="2" selection-start-line="858" selection-start-column="2" selection-end-line="858" selection-end-column="2" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../../../ntlab_software_defined_radio/SampleBuffers/SampleBuffers.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-252">
+          <caret line="757" column="28" selection-start-line="757" selection-start-column="10" selection-end-line="757" selection-end-column="28" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../../../ntlab_software_defined_radio/SampleBuffers/VectorOperations.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="103">
+          <caret line="57" column="43" selection-start-line="57" selection-start-column="22" selection-end-line="57" selection-end-column="43" />
+          <folding>
+            <element signature="e#720#752#0" expanded="true" />
+            <element signature="e#1889#2105#0" expanded="true" />
+            <element signature="e#3258#3270#0" expanded="true" />
+            <element signature="e#3431#3752#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../../../ntlab_software_defined_radio/Matrix/CovarianceMatrix.cpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="133">
+          <caret line="33" column="56" selection-start-line="33" selection-start-column="56" selection-end-line="33" selection-end-column="56" />
+          <folding>
+            <element signature="e#706#791#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../../../ntlab_software_defined_radio/Matrix/CovarianceMatrix.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-1186">
+          <caret line="31" column="7" selection-start-line="31" selection-start-column="7" selection-end-line="31" selection-end-column="7" />
+          <folding>
+            <element signature="e#779#822#0" expanded="true" />
+            <element signature="e#1225#1341#0" expanded="true" />
+            <element signature="e#1319#1370#0" expanded="true" />
+            <element signature="e#5412#5446#0" expanded="true" />
+            <element signature="e#7529#7739#0" expanded="true" />
+            <element signature="e#10670#10709#0" expanded="true" />
+            <element signature="e#14207#14246#0" expanded="true" />
+            <element signature="e#17750#17784#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../../../ntlab_software_defined_radio/ntlab_software_defined_radio.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="219">
+          <caret line="35" column="21" selection-start-line="35" selection-start-column="21" selection-end-line="35" selection-end-column="21" />
+          <folding>
+            <element signature="e#2448#2477#0" expanded="true" />
+            <element signature="e#2486#2541#0" expanded="true" />
+            <element signature="e#2872#2907#0" expanded="true" />
+            <element signature="e#2953#2989#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>

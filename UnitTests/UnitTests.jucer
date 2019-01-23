@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <JUCERPROJECT id="oceN5e" name="UnitTests" projectType="consoleapp" jucerVersion="5.3.2"
-              defines="NTLAB_SOFTWARE_DEFINED_RADIO_UNIT_TESTS">
+              defines="NTLAB_SOFTWARE_DEFINED_RADIO_UNIT_TESTS" cppLanguageStandard="17">
   <MAINGROUP id="ZIe7xv" name="UnitTests">
     <GROUP id="{9976FF4C-A2F5-8BA4-A333-2FFB4D34A840}" name="MATLAB">
       <FILE id="VzvTTW" name="readMCV.m" compile="0" resource="1" file="../MCVFileFormat/MATLAB/readMCV.m"/>

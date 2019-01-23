@@ -24,15 +24,16 @@ along with SoftwareDefinedRadio4JUCE. If not, see <http://www.gnu.org/licenses/>
 
  BEGIN_JUCE_MODULE_DECLARATION
 
-  ID:               ntlab_software_defined_radio
-  vendor:           Janos Buttgereit
-  version:          1.0.0
-  name:             Software Defined Radio
-  description:      Classes to use JUCE for software defined radio applications, optionally OpenCL accelerated
+  ID:                 ntlab_software_defined_radio
+  vendor:             Janos Buttgereit
+  version:            1.0.0
+  name:               Software Defined Radio
+  description:        Classes to use JUCE for software defined radio applications, optionally OpenCL accelerated
   website:
-  license:          GPL v3
+  license:            GPL v3
+  minimumCppStandard: 17
 
-  dependencies:     juce_dsp
+  dependencies:       juce_dsp
 
  END_JUCE_MODULE_DECLARATION
 

@@ -3640,6 +3640,9 @@
     <ClCompile Include="..\..\..\ntlab_software_defined_radio\Matrix\Eigen\unsupported\test\splines.cpp">
       <Filter>JUCE Modules\ntlab_software_defined_radio\Matrix\Eigen\unsupported\test</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\ntlab_software_defined_radio\Matrix\CovarianceMatrix.cpp">
+      <Filter>JUCE Modules\ntlab_software_defined_radio\Matrix</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\..\ntlab_software_defined_radio\MCVFileFormat\MCVReader.cpp">
       <Filter>JUCE Modules\ntlab_software_defined_radio\MCVFileFormat</Filter>
     </ClCompile>
@@ -6329,6 +6332,9 @@
     </ClInclude>
     <ClInclude Include="..\..\..\ntlab_software_defined_radio\Matrix\Eigen\unsupported\test\matrix_functions.h">
       <Filter>JUCE Modules\ntlab_software_defined_radio\Matrix\Eigen\unsupported\test</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ntlab_software_defined_radio\Matrix\CovarianceMatrix.h">
+      <Filter>JUCE Modules\ntlab_software_defined_radio\Matrix</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\ntlab_software_defined_radio\MCVFileFormat\MCVHeader.h">
       <Filter>JUCE Modules\ntlab_software_defined_radio\MCVFileFormat</Filter>
