@@ -73,6 +73,7 @@ along with SoftwareDefinedRadio4JUCE. If not, see <http://www.gnu.org/licenses/>
 
 #if NTLAB_INCLUDE_EIGEN
 #include "Matrix/Eigen/Eigen/Dense"
+#include "Matrix/CovarianceMatrix.h"
 #endif
 
 #include "MCVFileFormat/MCVHeader.h"
