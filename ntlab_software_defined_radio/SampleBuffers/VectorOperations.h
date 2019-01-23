@@ -70,6 +70,12 @@ namespace ntlab
             }
 
             /**
+             * Returns a pointer to a vector with numElements space for elements of type T. Always free it with
+             * a call to freeAlignedVector
+             */
+            static T* allocateAlignedVector (int numElements) {return allocateAlignedVector (static_cast<size_t> (numElements)); }
+
+            /**
              * Frees a vector that was previously allocated by allocateAlignedVector. Using this to free anything else
              * leads to undefined behaviour.
              */
