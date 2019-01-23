@@ -239,17 +239,17 @@ namespace ntlab
 
 #elif NTLAB_NO_SIMD
 
-    forcedinline ComplexVectorOperations::extractRealPart (const std::complex<float>* complexInVector, float* realOutVector, int length)
+    forcedinline void ComplexVectorOperations::extractRealPart (const std::complex<float>* complexInVector, float* realOutVector, int length)
     {
         extractRealPartNonSIMD (complexInVector, realOutVector, length);
     }
 
-    forcedinline ComplexVectorOperations::extractImagPart (const std::complex<float>* complexInVector, float* imagOutVector, int length)
+    forcedinline void ComplexVectorOperations::extractImagPart (const std::complex<float>* complexInVector, float* imagOutVector, int length)
     {
         extractRealPartNonSIMD (complexInVector, imagOutVector, length);
     }
 
-    forcedinline ComplexVectorOperations::extractRealAndImagPart (const std::complex<float>* complexInVector, float* realOutVector, float* imagOutVector, int length)
+    forcedinline void ComplexVectorOperations::extractRealAndImagPart (const std::complex<float>* complexInVector, float* realOutVector, float* imagOutVector, int length)
     {
         extractRealAndImagPartNonSIMD (complexInVector, realOutVector, imagOutVector, length);
     }
