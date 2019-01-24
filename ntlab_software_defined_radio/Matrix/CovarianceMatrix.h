@@ -123,9 +123,7 @@ namespace ntlab
         template <typename ComplexSampleBufferType>
         void processNextSampleBlock (const ComplexSampleBufferType& buffer)
         {
-            static_assert ((std::is_same<ComplexSampleBufferType,   SampleBufferComplex<SampleType>>::value ||
-                            std::is_same<ComplexSampleBufferType, CLSampleBufferComplex<SampleType>>::value),
-                            "Only SampleBufferComplex or CLSampleBufferComplex supported");
+            static_assert (IsSampleBuffer<ComplexSampleBufferType, SampleType>::complex(), "Only SampleBufferComplex or CLSampleBufferComplex supported");
 
             jassert (buffer.getNumChannels() == numChannelsExpected);
 

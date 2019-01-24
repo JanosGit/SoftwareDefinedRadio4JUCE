@@ -145,6 +145,12 @@ namespace ntlab
         }
 
         /**
+         * A simple way for templated functions to figure out if a buffer passed is complex valued. Can be completely
+         * evaluated at compile time by an if constexpr statement
+         */
+        static constexpr bool isComplex() {return false; }
+
+        /**
          * Returns the number of valid samples per channel currently used. To get the maximum possible numer of samples
          * allocated by this buffer call getMaxNumSamples();
          *
@@ -264,6 +270,10 @@ namespace ntlab
             NTLAB_OPERATION_ON_ALL_CHANNELS (std::memcpy (writePtr, readPtr, numSamlesToCopy * sizeof (SampleType)))
         }
 
+        /** Helper to create one Sample of the buffers SampleType in templated code */
+        template <typename OriginalType>
+        static SampleType castToSampleType (OriginalType sample) {return static_cast<SampleType> (sample); }
+
 
     private:
         bool ownsBuffer;
@@ -367,6 +377,12 @@ namespace ntlab
                 }
             }
         }
+
+        /**
+         * A simple way for templated functions to figure out if a buffer passed is complex valued. Can be completely
+         * evaluated at compile time by an if constexpr statement
+         */
+        static constexpr bool isComplex() {return true; }
 
         /**
          * Returns the number of valid samples per channel currently used. To get the maximum possible numer of samples
@@ -741,6 +757,14 @@ namespace ntlab
             NTLAB_OPERATION_ON_ALL_CHANNELS (ComplexVectorOperations::abs (readPtr, writePtr, numSamlesToCopy))
         }
 
+        /** Helper to create one Sample of the buffers SampleType in templated code */
+        template <typename OriginalType>
+        static std::complex<SampleType> castToSampleType (std::complex<OriginalType> sample) {return (static_cast<SampleType> (sample.real()), static_cast<SampleType> (sample.imag())); }
+
+        /** Helper to create one Sample of the buffers SampleType in templated code */
+        template <typename OriginalType>
+        static std::complex<SampleType> castToSampleType (OriginalType re, OriginalType im) {return (static_cast<SampleType> (re), static_cast<SampleType> (im)); }
+
     private:
         bool ownsBuffer;
 
@@ -764,6 +788,12 @@ namespace ntlab
             // not implemented yet
             jassertfalse;
         }
+
+        /**
+         * A simple way for templated functions to figure out if a buffer passed is complex valued. Can be completely
+         * evaluated at compile time by an if constexpr statement
+         */
+        static constexpr bool isComplex() {return false; }
 
         /**
          * Enables access of the buffer for the host processor. This call might block until kernel executions in
@@ -918,6 +948,10 @@ namespace ntlab
             NTLAB_OPERATION_ON_ALL_CHANNELS (std::memcpy (writePtr, readPtr, numSamlesToCopy * sizeof (SampleType)))
         }
 
+        /** Helper to create one Sample of the buffers SampleType in templated code */
+        template <typename OriginalType>
+        static SampleType castToSampleType (OriginalType sample) {return static_cast<SampleType> (sample); }
+
     private:
         int numChannelsAllocated;
         int numSamplesAllocated;
@@ -939,6 +973,12 @@ namespace ntlab
             // not implemented yet
             jassertfalse;
         }
+
+        /**
+         * A simple way for templated functions to figure out if a buffer passed is complex valued. Can be completely
+         * evaluated at compile time by an if constexpr statement
+         */
+        static constexpr bool isComplex() {return true; }
 
         /**
          * Enables access of the buffer for the host processor. This call might block until kernel executions in
@@ -1348,6 +1388,14 @@ namespace ntlab
             NTLAB_ASSERT_CHANNEL_AND_SAMPLE_COUNTS_PASSED_ARE_VALID
         }
 
+        /** Helper to create one Sample of the buffers SampleType in templated code */
+        template <typename OriginalType>
+        static std::complex<SampleType> castToSampleType (std::complex<OriginalType> sample) {return (static_cast<SampleType> (sample.real()), static_cast<SampleType> (sample.imag())); }
+
+        /** Helper to create one Sample of the buffers SampleType in templated code */
+        template <typename OriginalType>
+        static std::complex<SampleType> castToSampleType (OriginalType re, OriginalType im) {return (static_cast<SampleType> (re), static_cast<SampleType> (im)); }
+
     private:
         int numChannelsAllocated;
         int numSamplesAllocated;
@@ -1357,6 +1405,95 @@ namespace ntlab
         bool isInHostAccessMode = true;
 
         JUCE_LEAK_DETECTOR (CLSampleBufferComplex)
+    };
+
+    /**
+     * A placeholder to be used as template parameter for IsSampleBuffer if you want to check if a buffer contains
+     * either float, double, int16 or int32 samples.
+     */
+    struct AllValidSampleTypes;
+
+    /**
+     * A handy helper class if you write templated DSP functions that accept some kind of SampleBuffer. You can use it
+     * this way
+     *
+     * Example 1: Your DSP class only accepts buffer with a certain SampleType same to the DSP class template type
+     * @code
+     * template <typename SampleType>
+     * class MyDSPClass
+     * {
+     * public:
+     *     template <typename BufferType>
+     *     void processRealBuffer (BufferType& buffer)
+     *     {
+     *         static_assert (IsSampleBuffer<BufferType, SampleType>::real(), "Only real valued buffers supported");
+     *     }
+     *
+     *     template <typename BufferType>
+     *     void processCplxBuffer (BufferType& buffer)
+     *     {
+     *         static_assert (IsSampleBuffer<BufferType, SampleType>::complex(), "Only complex valued buffers supported");
+     *     }
+     * }
+     * @endcode
+     *
+     * Example 2: Your DSP class will accept any buffer type. This works as the default parameter for ExpectedSampleType
+     * is AllValidSampleTypes.
+     * @code
+     * class MyDSPClass
+     * {
+     * public:
+     *     template <typename BufferType>
+     *     void processRealBuffer (BufferType& buffer)
+     *     {
+     *         static_assert (IsSampleBuffer<BufferType>::complexOrReal(), "Only SampleBuffers supported");
+     *     }
+     * @endcode
+     */
+    template <typename BufferTypeToCheck, typename ExpectedSampleType = AllValidSampleTypes>
+    struct IsSampleBuffer
+    {
+        /** Returns true if it is a SampleBufferReal<ExpectedSampleType> or CLSampleBufferReal<ExpectedSampleType> */
+        static constexpr bool real()
+        {
+            if constexpr (std::is_same<ExpectedSampleType, AllValidSampleTypes>::value)
+            {
+                return std::is_same<BufferTypeToCheck, SampleBufferReal<float>>::value     ||
+                       std::is_same<BufferTypeToCheck, CLSampleBufferReal<float>>::value   ||
+                       std::is_same<BufferTypeToCheck, SampleBufferReal<double>>::value    ||
+                       std::is_same<BufferTypeToCheck, CLSampleBufferReal<double>>::value  ||
+                       std::is_same<BufferTypeToCheck, SampleBufferReal<int16_t>>::value   ||
+                       std::is_same<BufferTypeToCheck, CLSampleBufferReal<int16_t>>::value ||
+                       std::is_same<BufferTypeToCheck, SampleBufferReal<int32_t>>::value   ||
+                       std::is_same<BufferTypeToCheck, CLSampleBufferReal<int32_t>>::value;
+            }
+            return std::is_same<BufferTypeToCheck, SampleBufferReal<ExpectedSampleType>>::value ||
+                   std::is_same<BufferTypeToCheck, CLSampleBufferReal<ExpectedSampleType>>::value;
+        }
+
+        /** Returns true if it is a SampleBufferComplex<ExpectedSampleType> or CLSampleBufferComplex<ExpectedSampleType> */
+        static constexpr bool complex()
+        {
+            if constexpr (std::is_same<ExpectedSampleType, AllValidSampleTypes>::value)
+            {
+                return std::is_same<BufferTypeToCheck, SampleBufferComplex<float>>::value     ||
+                       std::is_same<BufferTypeToCheck, CLSampleBufferComplex<float>>::value   ||
+                       std::is_same<BufferTypeToCheck, SampleBufferComplex<double>>::value    ||
+                       std::is_same<BufferTypeToCheck, CLSampleBufferComplex<double>>::value  ||
+                       std::is_same<BufferTypeToCheck, SampleBufferComplex<int16_t>>::value   ||
+                       std::is_same<BufferTypeToCheck, CLSampleBufferComplex<int16_t>>::value ||
+                       std::is_same<BufferTypeToCheck, SampleBufferComplex<int32_t>>::value   ||
+                       std::is_same<BufferTypeToCheck, CLSampleBufferComplex<int32_t>>::value;
+            }
+            return std::is_same<BufferTypeToCheck, SampleBufferComplex<ExpectedSampleType>>::value ||
+                   std::is_same<BufferTypeToCheck, CLSampleBufferComplex<ExpectedSampleType>>::value;
+        }
+
+        /** Returns true if it is one of the four SampleBuffer classes with the expected sample type */
+        static constexpr bool complexOrReal()
+        {
+            return real() || complex();
+        }
     };
 }
 
