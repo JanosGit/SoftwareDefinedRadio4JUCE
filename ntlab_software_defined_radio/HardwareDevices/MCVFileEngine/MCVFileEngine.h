@@ -29,6 +29,14 @@ namespace ntlab
         friend class MCVFileEngineManager;
     public:
 
+        static const juce::Identifier propertyMCVFileEngine;
+        static const juce::Identifier propertyInFile;
+        static const juce::Identifier propertyOutFile;
+        static const juce::Identifier propertyRxEnabled;
+        static const juce::Identifier propertyTxEnabled;
+        static const juce::Identifier propertyInputEndOfFileBehaviour;
+        static const juce::Identifier propertyNumOutChannels;
+
         /**
          * Sets the file to read from. Note that the file will be closed when streaming has stopped, so if you want to
          * start streaming again you need to reopen it. Depending on the endOfFileBehaviour chosen, stopStreaming will
@@ -45,17 +53,21 @@ namespace ntlab
          */
         bool setOutFile (juce::File& newOutFile, int newNumOutChannels, bool enableTx = true);
 
+        const int getNumRxChannels() override;
+
+        const int getNumTxChannels() override;
+
         bool setDesiredBlockSize (int newBlockSize) override ;
 
         bool setSampleRate (double newSampleRate) override;
 
         double getSampleRate() override;
 
-        juce::var& getDeviceTree() override;
+        juce::ValueTree getDeviceTree() override;
 
         juce::var getActiveConfig() override;
 
-        bool setConfig (juce::var& configToSet) override;
+        juce::Result setConfig (juce::var& configToSet) override;
 
         bool isReadyToStream() override;
 
@@ -72,6 +84,7 @@ namespace ntlab
         MCVFileEngine();
 
         juce::var dummyDeviceTree;
+        juce::var engineConfig;
 
         int blockSize = 512;
         int numOutChannels = 0;

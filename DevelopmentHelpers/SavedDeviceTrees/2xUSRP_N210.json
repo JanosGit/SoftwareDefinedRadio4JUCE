@@ -1,308 +1,302 @@
 {
   "USRP Device": {
     "USRP2 / N-Series Device 0": {
-      "Mboard": {
-        "N210r4": {
-          "hardware": "2577",
-          "mac-addr": "00:80:2f:21:0b:a7",
-          "ip-addr": "192.168.20.3",
-          "subnet": "255.255.255.255",
-          "gateway": "255.255.255.255",
-          "gpsdo": "none",
-          "serial": "3089166",
-          "FW Version": "12.4",
-          "FPGA Version": "11.1",
-          "Time sources": [
-            "none",
-            "external",
-            "_external_",
-            "mimo"
-          ],
-          "Clock sources": [
-            "internal",
-            "external",
-            "mimo"
-          ],
-          "Sensors": [
-            "mimo_locked",
-            "ref_locked"
-          ],
-          "RX DSP": {
+      "Mboard": "N210r4",
+      "hardware": "2577",
+      "mac-addr": "00:80:2f:21:0b:a7",
+      "ip-addr": "192.168.20.3",
+      "subnet": "255.255.255.255",
+      "gateway": "255.255.255.255",
+      "gpsdo": "none",
+      "serial": "3089166",
+      "FW Version": "12.4",
+      "FPGA Version": "11.1",
+      "Time sources": [
+        "none",
+        "external",
+        "_external_",
+        "mimo"
+      ],
+      "Clock sources": [
+        "internal",
+        "external",
+        "mimo"
+      ],
+      "Sensors": [
+        "mimo_locked",
+        "ref_locked"
+      ],
+      "RX DSP": {
+        "0": {
+          "Freq range": {
+            "min": -50,
+            "max": 50,
+            "step width": 0,
+            "unit": "MHz"
+          }
+        },
+        "1": {
+          "Freq range": {
+            "min": -50,
+            "max": 50,
+            "step width": 0,
+            "unit": "MHz"
+          }
+        }
+      },
+      "RX Dboard": {
+        "A": {
+          "ID": "UBX-40 v1 (0x0078)",
+          "Serial": "30C0DA8",
+          "RX Frontend": {
             "0": {
+              "Name": "UBX RX",
+              "Antennas": [
+                "TX/RX",
+                "RX2",
+                "CAL"
+              ],
+              "Sensors": "lo_locked",
               "Freq range": {
-                "min": -50.0,
-                "max": 50.0,
-                "step width": 0.0,
+                "min": 10,
+                "max": 6000,
+                "step width": 0,
                 "unit": "MHz"
-              }
-            },
-            "1": {
-              "Freq range": {
-                "min": -50.0,
-                "max": 50.0,
-                "step width": 0.0,
-                "unit": "MHz"
-              }
-            }
-          },
-          "RX Dboard": {
-            "A": {
-              "ID": "UBX-40 v1 (0x0078)",
-              "Serial": "30C0DA8",
-              "RX Frontend": {
-                "0": {
-                  "Name": "UBX RX",
-                  "Antennas": [
-                    "TX/RX",
-                    "RX2",
-                    "CAL"
-                  ],
-                  "Sensors": "lo_locked",
-                  "Freq range": {
-                    "min": 10.0,
-                    "max": 6000.0,
-                    "step width": 0.0,
-                    "unit": "MHz"
-                  },
-                  "Gain range PGA0": {
-                    "min": 0.0,
-                    "max": 31.5,
-                    "step width": 0.5,
-                    "unit": "dB"
-                  },
-                  "Bandwidth range": {
-                    "min": 40000000.0,
-                    "max": 40000000.0,
-                    "step width": 0.0,
-                    "unit": "Hz"
-                  },
-                  "Connection Type": "IQ",
-                  "Uses LO offset": "No"
-                }
               },
-              "RX Codec": {
-                "A": {
-                  "Name": "ads62p44",
-                  "Gain range digital": {
-                    "min": 0.0,
-                    "max": 6.0,
-                    "step width": 0.5,
-                    "unit": "dB"
-                  },
-                  "Gain range fine": {
-                    "min": 0.0,
-                    "max": 0.5,
-                    "step width": 0.10000000000000000555,
-                    "unit": "dB"
-                  }
-                }
-              }
+              "Gain range PGA0": {
+                "min": 0,
+                "max": 31.5,
+                "step width": 0.5,
+                "unit": "dB"
+              },
+              "Bandwidth range": {
+                "min": 40000000,
+                "max": 40000000,
+                "step width": 0,
+                "unit": "Hz"
+              },
+              "Connection Type": "IQ",
+              "Uses LO offset": "No"
             }
           },
-          "TX DSP": {
+          "RX Codec": {
+            "A": {
+              "Name": "ads62p44",
+              "Gain range digital": {
+                "min": 0,
+                "max": 6,
+                "step width": 0.5,
+                "unit": "dB"
+              },
+              "Gain range fine": {
+                "min": 0,
+                "max": 0.5,
+                "step width": 0.1,
+                "unit": "dB"
+              }
+            }
+          }
+        }
+      },
+      "TX DSP": {
+        "0": {
+          "Freq range": {
+            "min": -200,
+            "max": 200,
+            "step width": 0,
+            "unit": "MHz"
+          }
+        }
+      },
+      "TX Dboard": {
+        "A": {
+          "ID": "UBX-40 v1 (0x0077)",
+          "Serial": "30C0DA8",
+          "TX Frontend": {
             "0": {
+              "Name": "UBX TX",
+              "Antennas": [
+                "TX/RX",
+                "CAL"
+              ],
+              "Sensors": "lo_locked",
               "Freq range": {
-                "min": -200.0,
-                "max": 200.0,
-                "step width": 0.0,
+                "min": 10,
+                "max": 6000,
+                "step width": 0,
                 "unit": "MHz"
-              }
+              },
+              "Gain range PGA0": {
+                "min": 0,
+                "max": 31.5,
+                "step width": 0.5,
+                "unit": "dB"
+              },
+              "Bandwidth range": {
+                "min": 40000000,
+                "max": 40000000,
+                "step width": 0,
+                "unit": "Hz"
+              },
+              "Connection Type": "QI",
+              "Uses LO offset": "No"
             }
           },
-          "TX Dboard": {
+          "TX Codec": {
             "A": {
-              "ID": "UBX-40 v1 (0x0077)",
-              "Serial": "30C0DA8",
-              "TX Frontend": {
-                "0": {
-                  "Name": "UBX TX",
-                  "Antennas": [
-                    "TX/RX",
-                    "CAL"
-                  ],
-                  "Sensors": "lo_locked",
-                  "Freq range": {
-                    "min": 10.0,
-                    "max": 6000.0,
-                    "step width": 0.0,
-                    "unit": "MHz"
-                  },
-                  "Gain range PGA0": {
-                    "min": 0.0,
-                    "max": 31.5,
-                    "step width": 0.5,
-                    "unit": "dB"
-                  },
-                  "Bandwidth range": {
-                    "min": 40000000.0,
-                    "max": 40000000.0,
-                    "step width": 0.0,
-                    "unit": "Hz"
-                  },
-                  "Connection Type": "QI",
-                  "Uses LO offset": "No"
-                }
-              },
-              "TX Codec": {
-                "A": {
-                  "Name": "ad9777",
-                  "Gain Elements": "None"
-                }
-              }
+              "Name": "ad9777",
+              "Gain Elements": "None"
             }
           }
         }
       }
     },
     "USRP2 / N-Series Device 1": {
-      "Mboard": {
-        "N210r4": {
-          "hardware": "2577",
-          "mac-addr": "00:80:2f:0a:e5:f5",
-          "ip-addr": "192.168.20.1",
-          "subnet": "255.255.255.255",
-          "gateway": "255.255.255.255",
-          "gpsdo": "none",
-          "serial": "F4A07C",
-          "FW Version": "12.4",
-          "FPGA Version": "11.1",
-          "Time sources": [
-            "none",
-            "external",
-            "_external_",
-            "mimo"
-          ],
-          "Clock sources": [
-            "internal",
-            "external",
-            "mimo"
-          ],
-          "Sensors": [
-            "mimo_locked",
-            "ref_locked"
-          ],
-          "RX DSP": {
+      "Mboard": "N210r4",
+      "hardware": "2577",
+      "mac-addr": "00:80:2f:0a:e5:f5",
+      "ip-addr": "192.168.20.1",
+      "subnet": "255.255.255.255",
+      "gateway": "255.255.255.255",
+      "gpsdo": "none",
+      "serial": "F4A07C",
+      "FW Version": "12.4",
+      "FPGA Version": "11.1",
+      "Time sources": [
+        "none",
+        "external",
+        "_external_",
+        "mimo"
+      ],
+      "Clock sources": [
+        "internal",
+        "external",
+        "mimo"
+      ],
+      "Sensors": [
+        "mimo_locked",
+        "ref_locked"
+      ],
+      "RX DSP": {
+        "0": {
+          "Freq range": {
+            "min": -50,
+            "max": 50,
+            "step width": 0,
+            "unit": "MHz"
+          }
+        },
+        "1": {
+          "Freq range": {
+            "min": -50,
+            "max": 50,
+            "step width": 0,
+            "unit": "MHz"
+          }
+        }
+      },
+      "RX Dboard": {
+        "A": {
+          "ID": "UBX-40 v1 (0x0078)",
+          "Serial": "30C0DAF",
+          "RX Frontend": {
             "0": {
+              "Name": "UBX RX",
+              "Antennas": [
+                "TX/RX",
+                "RX2",
+                "CAL"
+              ],
+              "Sensors": "lo_locked",
               "Freq range": {
-                "min": -50.0,
-                "max": 50.0,
-                "step width": 0.0,
+                "min": 10,
+                "max": 6000,
+                "step width": 0,
                 "unit": "MHz"
-              }
-            },
-            "1": {
-              "Freq range": {
-                "min": -50.0,
-                "max": 50.0,
-                "step width": 0.0,
-                "unit": "MHz"
-              }
-            }
-          },
-          "RX Dboard": {
-            "A": {
-              "ID": "UBX-40 v1 (0x0078)",
-              "Serial": "30C0DAF",
-              "RX Frontend": {
-                "0": {
-                  "Name": "UBX RX",
-                  "Antennas": [
-                    "TX/RX",
-                    "RX2",
-                    "CAL"
-                  ],
-                  "Sensors": "lo_locked",
-                  "Freq range": {
-                    "min": 10.0,
-                    "max": 6000.0,
-                    "step width": 0.0,
-                    "unit": "MHz"
-                  },
-                  "Gain range PGA0": {
-                    "min": 0.0,
-                    "max": 31.5,
-                    "step width": 0.5,
-                    "unit": "dB"
-                  },
-                  "Bandwidth range": {
-                    "min": 40000000.0,
-                    "max": 40000000.0,
-                    "step width": 0.0,
-                    "unit": "Hz"
-                  },
-                  "Connection Type": "IQ",
-                  "Uses LO offset": "No"
-                }
               },
-              "RX Codec": {
-                "A": {
-                  "Name": "ads62p44",
-                  "Gain range digital": {
-                    "min": 0.0,
-                    "max": 6.0,
-                    "step width": 0.5,
-                    "unit": "dB"
-                  },
-                  "Gain range fine": {
-                    "min": 0.0,
-                    "max": 0.5,
-                    "step width": 0.10000000000000000555,
-                    "unit": "dB"
-                  }
-                }
-              }
+              "Gain range PGA0": {
+                "min": 0,
+                "max": 31.5,
+                "step width": 0.5,
+                "unit": "dB"
+              },
+              "Bandwidth range": {
+                "min": 40000000,
+                "max": 40000000,
+                "step width": 0,
+                "unit": "Hz"
+              },
+              "Connection Type": "IQ",
+              "Uses LO offset": "No"
             }
           },
-          "TX DSP": {
+          "RX Codec": {
+            "A": {
+              "Name": "ads62p44",
+              "Gain range digital": {
+                "min": 0,
+                "max": 6,
+                "step width": 0.5,
+                "unit": "dB"
+              },
+              "Gain range fine": {
+                "min": 0,
+                "max": 0.5,
+                "step width": 0.1,
+                "unit": "dB"
+              }
+            }
+          }
+        }
+      },
+      "TX DSP": {
+        "0": {
+          "Freq range": {
+            "min": -200,
+            "max": 200,
+            "step width": 0,
+            "unit": "MHz"
+          }
+        }
+      },
+      "TX Dboard": {
+        "A": {
+          "ID": "UBX-40 v1 (0x0077)",
+          "Serial": "30C0DAF",
+          "TX Frontend": {
             "0": {
+              "Name": "UBX TX",
+              "Antennas": [
+                "TX/RX",
+                "CAL"
+              ],
+              "Sensors": "lo_locked",
               "Freq range": {
-                "min": -200.0,
-                "max": 200.0,
-                "step width": 0.0,
+                "min": 10,
+                "max": 6000,
+                "step width": 0,
                 "unit": "MHz"
-              }
+              },
+              "Gain range PGA0": {
+                "min": 0,
+                "max": 31.5,
+                "step width": 0.5,
+                "unit": "dB"
+              },
+              "Bandwidth range": {
+                "min": 40000000,
+                "max": 40000000,
+                "step width": 0,
+                "unit": "Hz"
+              },
+              "Connection Type": "QI",
+              "Uses LO offset": "No"
             }
           },
-          "TX Dboard": {
+          "TX Codec": {
             "A": {
-              "ID": "UBX-40 v1 (0x0077)",
-              "Serial": "30C0DAF",
-              "TX Frontend": {
-                "0": {
-                  "Name": "UBX TX",
-                  "Antennas": [
-                    "TX/RX",
-                    "CAL"
-                  ],
-                  "Sensors": "lo_locked",
-                  "Freq range": {
-                    "min": 10.0,
-                    "max": 6000.0,
-                    "step width": 0.0,
-                    "unit": "MHz"
-                  },
-                  "Gain range PGA0": {
-                    "min": 0.0,
-                    "max": 31.5,
-                    "step width": 0.5,
-                    "unit": "dB"
-                  },
-                  "Bandwidth range": {
-                    "min": 40000000.0,
-                    "max": 40000000.0,
-                    "step width": 0.0,
-                    "unit": "Hz"
-                  },
-                  "Connection Type": "QI",
-                  "Uses LO offset": "No"
-                }
-              },
-              "TX Codec": {
-                "A": {
-                  "Name": "ad9777",
-                  "Gain Elements": "None"
-                }
-              }
+              "Name": "ad9777",
+              "Gain Elements": "None"
             }
           }
         }

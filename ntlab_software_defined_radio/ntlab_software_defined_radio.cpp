@@ -22,7 +22,6 @@ along with SoftwareDefinedRadio4JUCE. If not, see <http://www.gnu.org/licenses/>
 
 #include "HardwareDevices/EttusEngine/UHDReplacement.cpp"
 #include "HardwareDevices/EttusEngine/UHDEngine.cpp"
-#include "HardwareDevices/EttusEngine/UHDUSRPProbeParser.cpp"
 #include "HardwareDevices/MCVFileEngine/MCVFileEngine.cpp"
 
 #include "MCVFileFormat/MCVWriter.cpp"

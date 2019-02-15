@@ -22,6 +22,55 @@ along with SoftwareDefinedRadio4JUCE. If not, see <http://www.gnu.org/licenses/>
 
 namespace ntlab
 {
+    void SDRIOHardwareEngine::addTuneChangeListener (TuneChangeListener* newListener)
+    {
+        jassert (newListener != nullptr);
+
+        tuneChangeListeners.addIfNotAlreadyThere (newListener);
+
+        const int numRxChannels = getNumRxChannels();
+        for (int rxChannel = 0; rxChannel < numRxChannels; ++rxChannel)
+        {
+            newListener->rxBandwidthChanged (getRxBandwidth (rxChannel), rxChannel);
+            newListener->rxCenterFreqChanged (getRxCenterFrequency (rxChannel), rxChannel);
+        }
+
+        const int numTxChannels = getNumTxChannels();
+        for (int txChannel = 0; txChannel < numTxChannels; ++txChannel)
+        {
+            newListener->txBandwidthChanged (getTxBandwidth (txChannel), txChannel);
+            newListener->txCenterFreqChanged (getTxCenterFrequency (txChannel), txChannel);
+        }
+    }
+
+    void SDRIOHardwareEngine::removeTuneChangeListener (TuneChangeListener* listenerToRemove)
+    {
+        tuneChangeListeners.removeFirstMatchingValue (listenerToRemove);
+    }
+
+    void SDRIOHardwareEngine::notifyListenersRxBandwidthChanged (double newRxBandwidth, int channel)
+    {
+        for (auto* listener : tuneChangeListeners)
+            listener->rxBandwidthChanged (newRxBandwidth, channel);
+    }
+
+    void SDRIOHardwareEngine::notifyListenersRxCenterFreqChanged (double newRxCenterFreq, int channel)
+    {
+        for (auto* listener : tuneChangeListeners)
+            listener->rxCenterFreqChanged (newRxCenterFreq, channel);
+    }
+
+    void SDRIOHardwareEngine::notifyListenersTxBandwidthChanged (double newTxBandwidth, int channel)
+    {
+        for (auto* listener : tuneChangeListeners)
+            listener->txBandwidthChanged (newTxBandwidth, channel);
+    }
+
+    void SDRIOHardwareEngine::notifyListenersTxCenterFreqChanged (double newTxCenterFreq, int channel)
+    {
+        for (auto* listener : tuneChangeListeners)
+            listener->txCenterFreqChanged (newTxCenterFreq, channel);
+    }
 
     juce::OwnedArray<SDRIOEngineManager> SDRIOEngineManager::managers;
 

@@ -19,9 +19,29 @@ along with SoftwareDefinedRadio4JUCE. If not, see <http://www.gnu.org/licenses/>
 
 #include "SDRIODeviceCallback.h"
 
+#include <juce_data_structures/juce_data_structures.h>
 
 namespace ntlab
 {
+    class SDRIOEngineConfigurationInterface
+    {
+    public:
+        virtual ~SDRIOEngineConfigurationInterface () {};
+
+        /**
+         * As an engine might handle multiple devices with heterogenous hardware capabilities this call returns a tree
+         * of all available devices, sub devices, etc. depending on the actual structure of the engine.
+         */
+        virtual juce::ValueTree getDeviceTree() = 0;
+
+        /** Returns the currently active config if any exists */
+        virtual juce::var getActiveConfig() = 0;
+
+        /** Applies a complete config. If this was successful it returns true, otherwise it returns false */
+        virtual juce::Result setConfig (juce::var& configToSet) = 0;
+
+    };
+
     /**
      * A base class for all SDRIOEngines. Note that those functions are not intended to be called directly but should
      * be invoked through the SDRIODeviceManager. Also note that you should supply a corresponding SDRIOEngineManager
@@ -29,24 +49,16 @@ namespace ntlab
      *
      * @see SDRIOEngineManager
      */
-    class SDRIOEngine
+    class SDRIOEngine : public SDRIOEngineConfigurationInterface
     {
     public:
         virtual ~SDRIOEngine() {};
 
         static const int allChannels = -1;
 
-        /**
-         * As an engine might handle multiple devices with heterogenous hardware capabilities this call returns a tree
-         * of all available devices, sub devices, etc. depending on the actual structure of the engine.
-         */
-        virtual const juce::var& getDeviceTree() = 0;
+        virtual const int getNumRxChannels() = 0;
 
-        /** Returns the currently active config if any exists */
-        virtual juce::var getActiveConfig() = 0;
-
-        /** Applies a complete config. If this was successful it returns true, otherwise it returns false */
-        virtual bool setConfig (juce::var& configToSet) = 0;
+        virtual const int getNumTxChannels() = 0;
 
         /**
          * Tries to set a desired block size. If true is returned it is guaranteed that no block passed to the callback
@@ -145,10 +157,31 @@ namespace ntlab
     public:
         enum GainElement
         {
-            unspecified,
-            analogPreADC,
-            analogPostDAC,
-            digital
+            /** Let the Engine chose which gain element to use */
+            unspecified = -1,
+            /** Fully analog gain, controlled by a PGA chip */
+            analog = 0,
+            /** Digital gain, set directly before the DAC / after the ADC */
+            digital = 1
+        };
+
+        /**
+         * Classes that need to be informed about a changed tuning of the hardware frontend can inherit from this
+         * class. Just call addTuneChangeListener and the listener will be informed about changes. Note that the
+         * channel value can always be SDRIOEngine::allChannels (-1) if a change applies to all channels.
+         */
+        class TuneChangeListener
+        {
+        public:
+            virtual ~TuneChangeListener() {};
+
+            virtual void rxBandwidthChanged (double newBandwidth, int channel) {};
+
+            virtual void txBandwidthChanged (double newBandwidth, int channel) {};
+
+            virtual void rxCenterFreqChanged (double newCenterFreq, int channel) {};
+
+            virtual void txCenterFreqChanged (double newCenterFreq, int channel) {};
         };
 
         virtual ~SDRIOHardwareEngine () {};
@@ -181,5 +214,23 @@ namespace ntlab
         virtual bool setTxGain (double newGain, GainElement gainElement = GainElement::unspecified, int channel = allChannels) = 0;
 
         virtual double getTxGain (int channel, GainElement gainElement = GainElement::unspecified) = 0;
+
+        /** Adds a TuneChangeListener and calls all four change notification messages to initialize the new listener */
+        void addTuneChangeListener (TuneChangeListener* newListener);
+
+        void removeTuneChangeListener (TuneChangeListener* listenerToRemove);
+
+    protected:
+
+        void notifyListenersRxBandwidthChanged (double newRxBandwidth, int channel);
+
+        void notifyListenersTxBandwidthChanged (double newTxBandwidth, int channel);
+
+        void notifyListenersRxCenterFreqChanged (double newRxCenterFreq, int channel);
+
+        void notifyListenersTxCenterFreqChanged (double newTxCenterFreq, int channel);
+
+    private:
+        juce::Array<TuneChangeListener*> tuneChangeListeners;
     };
 }

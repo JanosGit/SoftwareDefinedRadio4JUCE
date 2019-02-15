@@ -50,15 +50,29 @@ along with SoftwareDefinedRadio4JUCE. If not, see <http://www.gnu.org/licenses/>
 #define NTLAB_PRINT_ERROR_TO_DBG_AND_INVOKE_ACTIONS(error, actionsToInvoke) \
     if (error) \
     { \
-        DBG ("Error executing " << juce::String (BOOST_CURRENT_FUNCTION) << ": " << errorDescription (error) << ". Continuing..."); \
+        DBG ("Error executing " << juce::String (BOOST_CURRENT_FUNCTION) << ": \"" << errorDescription (error) << "\" Continuing..."); \
         actionsToInvoke \
     }
 
 /** Returns false if the condition evaluates to true, continues otherwise */
 #define NTLAB_RETURN_FALSE_IF(condition) if (condition) return false;
 
+/** Returns false and asserts in a debug build if the condition evaluates to true, continues otherwise */
+#define NTLAB_RETURN_FALSE_AND_ASSERT_IF(condition) if (condition) {jassertfalse; return false;}
+
 /** Returns -1.0 if the condition evaluates to true, continues otherwise */
 #define NTLAB_RETURN_MINUS_ONE_IF(condition) if (condition) return -1.0;
+
+/**
+ * Returns false and prints some Debug information in debug builds if the juce::Result passed in evaluates to be failed.
+ * Continues otherwise
+ */
+#define NTLAB_RETURN_FALSE_AND_PRINT_ERROR_DBG_IF_FAILED(result) \
+    if (result.failed()) \
+    { \
+        DBG ("Error executing " << juce::String (BOOST_CURRENT_FUNCTION) << " \"" << result.getErrorMessage() << "\". Continuing..."); \
+        return false; \
+    }
 
 /**
  * Returns false and prints some Debug information in debug builds if the juce::Result passed in evaluates to be failed.
@@ -67,10 +81,10 @@ along with SoftwareDefinedRadio4JUCE. If not, see <http://www.gnu.org/licenses/>
 #define NTLAB_RETURN_FALSE_AND_PRINT_ERROR_DBG_IF_FAILED_RETURN_TRUE_OTHERWISE(result) \
     if (result.failed()) \
     { \
-        DBG ("Error executing " << juce::String (BOOST_CURRENT_FUNCTION) << result.getErrorMessage() << ". Continuing..."); \
+        DBG ("Error executing " << juce::String (BOOST_CURRENT_FUNCTION) << " \"" << result.getErrorMessage() << "\". Continuing..."); \
         return false; \
-   } \
-   return true
+    } \
+    return true
 
 /**
  * Returns -1.0 and prints some Debug information in debug builds if the error value passed evaluates to true. Continues

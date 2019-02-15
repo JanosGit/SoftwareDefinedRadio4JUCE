@@ -33,7 +33,7 @@ along with SoftwareDefinedRadio4JUCE. If not, see <http://www.gnu.org/licenses/>
   license:            GPL v3
   minimumCppStandard: 17
 
-  dependencies:       juce_dsp
+  dependencies:       juce_dsp, juce_data_structures
 
  END_JUCE_MODULE_DECLARATION
 
@@ -63,8 +63,20 @@ along with SoftwareDefinedRadio4JUCE. If not, see <http://www.gnu.org/licenses/>
 #define NTLAB_INCLUDE_EIGEN 0
 #endif
 
+/** Config: NTLAB_WARN_ABOUT_MISSING_UHD_GAIN_ELEMENTS
+    If enabled, a message to stderr will be printed in case that an expected gain element
+    could not be found in your hardware setup. SoftwareDefinedRadio4JUCE tries to abstract
+    the device behaviour as good as possible, however we don't know each variety of Ettus
+    devices out there so we are not sure if the current code covers all edge cases. This
+    warning helps us to spot unhandled cases and add a string matching case to handle those
+    cases.
+    Disable this option if you are bothered by false errors.
+ */
+#ifndef NTLAB_WARN_ABOUT_MISSING_UHD_GAIN_ELEMENTS
+#define NTLAB_WARN_ABOUT_MISSING_UHD_GAIN_ELEMENTS 1
+#endif
+
 #include "HardwareDevices/EttusEngine/UHDReplacement.h"
-#include "HardwareDevices/EttusEngine/UHDUSRPProbeParser.h"
 #include "HardwareDevices/EttusEngine/UHDEngine.h"
 #include "HardwareDevices/MCVFileEngine/MCVFileEngine.h"
 #include "HardwareDevices/SDRIODeviceCallback.h"

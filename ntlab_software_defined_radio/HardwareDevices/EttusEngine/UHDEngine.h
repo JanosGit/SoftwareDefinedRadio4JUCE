@@ -77,6 +77,29 @@ namespace ntlab
             twoDevicesMIMOCableMasterSlave
         };
 
+        static const juce::Identifier propertyUSRPDevice;
+        static const juce::Identifier propertyMBoard;
+        static const juce::Identifier propertyRxDboard;
+        static const juce::Identifier propertyTxDboard;
+        static const juce::Identifier propertyRxFrontend;
+        static const juce::Identifier propertyTxFrontend;
+        static const juce::Identifier propertyRxCodec;
+        static const juce::Identifier propertyTxCodec;
+        static const juce::Identifier propertyIPAddress;
+        static const juce::Identifier propertyID;
+        static const juce::Identifier propertyName;
+        static const juce::Identifier propertySerial;
+        static const juce::Identifier propertyMin;
+        static const juce::Identifier propertyMax;
+        static const juce::Identifier propertyStepWidth;
+        static const juce::Identifier propertyUnit;
+        static const juce::Identifier propertyUnitScaling;
+        static const juce::Identifier propertyCurrentValue;
+        static const juce::Identifier propertyArray;
+        static const juce::Identifier propertyFreqRange;
+        static const juce::Identifier propertyBandwidthRange;
+        static const juce::Identifier propertyAntennas;
+
         /**
          * If an UHDEngine instance was created through SDRIOEngineManager::createEngine you might want to cast the
          * std::unique_ptr returned to a raw pointer to a UHDEngine instace. Therefore this is a simple wrapper
@@ -112,6 +135,10 @@ namespace ntlab
          */
         juce::Result makeUSRP (juce::Array<juce::IPAddress> ipAddresses, SynchronizationSetup synchronizationSetup);
 
+        const int getNumRxChannels() override;
+
+        const int getNumTxChannels() override;
+
         /**
          * To receive samples, any UHD setup needs some initial channel mapping. See the comment above ChannelSetup
          * for a more detailed information.
@@ -130,11 +157,11 @@ namespace ntlab
 
         double getSampleRate() override;
 
-        const juce::var& getDeviceTree() override;
+        juce::ValueTree getDeviceTree() override;
 
         juce::var getActiveConfig() override;
 
-        bool setConfig (juce::var& configToSet) override;
+        juce::Result setConfig (juce::var& configToSet) override;
 
         bool setDesiredBlockSize (int desiredBlockSize) override;
 
@@ -177,29 +204,83 @@ namespace ntlab
         double getTxGain (int channel, GainElement gainElement) override;
 
     private:
+        enum TreeLevel
+        {
+            beforeOrAfterTree,
+            device,
+            mboard,
+            dboardOrDSP,
+            frontendOrCodec
+        };
+
         // manages the mapping between the buffer channels exposed to the public interface and the hardware ressources
         class ChannelMapping
         {
         public:
-            ChannelMapping (juce::Array<ChannelSetup>& channelSetup, UHDEngine& engine);
+            enum UHDGainElements : size_t {analog, digital, digitalFine, automatic, count};
+            friend std::ostream& operator<< (std::ostream& os, UHDEngine::ChannelMapping::UHDGainElements gainElement)
+            {
+                switch (gainElement)
+                {
+                    case UHDEngine::ChannelMapping::UHDGainElements::analog      : return os << "analog";
+                    case UHDEngine::ChannelMapping::UHDGainElements::digital     : return os << "digital";
+                    case UHDEngine::ChannelMapping::UHDGainElements::digitalFine : return os << "digitalFine";
+                    default : return os << static_cast<size_t>(gainElement);
+                };
+            }
 
-            int getMboardForBufferChannel (int bufferChannel);
+            enum Direction
+            {
+                rx,
+                tx
+            };
 
-            const juce::String& getDboardForBufferChannel (int bufferChannel);
+            ChannelMapping (juce::Array<ChannelSetup>& channelSetup, UHDEngine& engine, Direction direction);
 
-            const juce::String& getFrontendForBufferChannel (int bufferChannel);
+            void setGainElements (std::vector<juce::StringArray>&& newGainElements);
 
-            const juce::StringArray& getSubdevSpecs();
+            int getHardwareChannelForBufferChannel (int bufferChannel) const;
 
-            size_t* getStreamArgsChannelList();
+            int getMboardIdxForBufferChannel (int bufferChannel) const;
+
+            const juce::ValueTree getMboardForBufferChannel (int bufferChannel) const;
+
+            const juce::ValueTree getDboardForBufferChannel (int bufferChannel) const;
+
+            const juce::ValueTree getFrontendForBufferChannel (int bufferChannel) const;
+
+            const juce::StringArray& getSubdevSpecs() const;
+
+            const juce::StringArray& getValidAntennas (int bufferChannel) const;
+
+            bool isValidAntennaForChannel (const char* antennaName, int bufferChannel) const;
+
+            juce::Result isFrontendPropertyInValidRange (const int bufferChannel, const juce::Identifier& propertyToCheck, const double valueToTest, bool updateTreeIfValid = true);
+
+            // Returns the string of the gain element if the element exists and the gain value was valid, returns an
+            // empty string if the gain element does not exist, returns a nullptr if the gain value is invalid
+            const char* getGainElementStringIfGainIsInValidRange (const int bufferChannel, UHDGainElements uhdGainElement, double gainValueToCheck);
+
+            void digitalGainPartition (const int bufferChannel, const double desiredGain, double& requiredCoarseGain, double& requiredFineGain);
+
+            size_t* getStreamArgsChannelList() const;
 
             const int numChannels;
 
         private:
             juce::Array<ChannelSetup> channelSetupHardwareOrder;
             juce::Array<size_t> bufferOrderToHardwareOrder;
+            juce::Array<juce::ValueTree> mboardBufferOrder;
+            juce::Array<juce::ValueTree> dboardBufferOrder;
+            juce::Array<juce::ValueTree> frontendBufferOrder;
+            juce::Array<juce::ValueTree> codecBufferOrder;
             juce::StringArray subdevSpecs;
+            std::vector<juce::StringArray> validAntennas;
+            std::vector<juce::StringArray> gainElements;
+            std::vector<std::vector<juce::ValueTree>> gainElementSubtree;
+            std::vector<std::array<int, UHDGainElements::count>> gainElementsMap; // Maps the gain element enum values to the strings in the gainElements array
             UHDEngine& uhdEngine;
+            static const char emptyGainElementString[1];
         };
 
         UHDEngine (UHDr::Ptr uhdLibrary);
@@ -207,13 +288,12 @@ namespace ntlab
         UHDr::Ptr uhdr;
 
         // The device tree holds all devices available, however not all devices might be used in a multi usrp setup
-        juce::var deviceTree;
+        juce::ValueTree deviceTree;
+
+        juce::ValueTree devicesInActiveUSRPSetup;
         int numMboardsInDeviceTree = 0;
         juce::StringArray deviceTypesInDeviceTree;
         juce::Array<std::reference_wrapper<juce::var>> mboardsInDeviceTree;
-
-        static const juce::Identifier propertyUSRPDevice;
-        static const juce::Identifier propertyIPAddress;
 
         UHDr::USRP::Ptr usrp;
         int numMboardsInUSRP = 0;
@@ -229,9 +309,6 @@ namespace ntlab
         bool rxEnabled = false;
         bool txEnabled = false;
 
-        juce::Array<UHDr::TuneResult> rxTuneResults;
-        juce::Array<UHDr::TuneResult> txTuneResults;
-
         int desiredBlockSize = 1024;
 
         // default streaming args
@@ -244,6 +321,8 @@ namespace ntlab
         SDRIODeviceCallback* activeCallback = nullptr;
 
         void run() override;
+
+        juce::ValueTree getUHDTree();
 
         const juce::var& getDeviceTreeUpdateIfNotPresent();
 

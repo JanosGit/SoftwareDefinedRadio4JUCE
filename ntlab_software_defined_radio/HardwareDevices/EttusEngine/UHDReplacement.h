@@ -239,6 +239,7 @@ namespace ntlab
 
         typedef Error (*SetGain)(USRPHandle, double, size_t, const char*);
         typedef Error (*GetGain)(USRPHandle, size_t, const char*, double*);
+        typedef Error (*GetGainElementNames)(USRPHandle, size_t, StringVectorHandle*);
 
         typedef Error (*SetFrequency)(USRPHandle, TuneRequest*, size_t, TuneResult*);
         typedef Error (*GetFrequency)(USRPHandle, size_t, double*);
@@ -351,47 +352,54 @@ namespace ntlab
 
             ~USRP();
 
-            /** Sets the sample rate for a specific rx channel or for all channels if -1 is passed as index*/
+            /** Sets the sample rate for a specific rx channel*/
             juce::Result setRxSampleRate (double newSampleRate, int channelIdx);
 
-            /** Sets the sample rate for a specific tx channel or for all channels if -1 is passed as index*/
+            /** Sets the sample rate for a specific tx channel*/
             juce::Result setTxSampleRate (double newSampleRate, int channelIdx);
 
             /**
-             * Returns the sample rate for a specific rx channel. Note that -1 for all channels obviously can not be passed
-             * as an argument. In case of any error -1 will be returned. Check the error code passed for further details.
+             * Returns the sample rate for a specific rx channel. In case of any error -1 will be returned. Check the
+             * error code passed for further details.
              */
             double getRxSampleRate (int channelIdx, Error &error);
 
             /**
-             * Returns an array filled the sample rates for all rx channels. In case of an error, an emptry array will be
-             * returned. Check the error code passed for further details.
+             * Returns an array filled the sample rates for all rx channels. In case of an error, an empty array will
+             * be returned. Check the error code passed for further details.
              */
             juce::Array<double> getRxSampleRates (Error &error);
 
             /**
-             * Returns the sample rate for a specific tx channel. Note that -1 for all channels obviously can not be passed
-             * as an argument. In case of any error -1 will be returned. Check the error code passed for further details.
+             * Returns the sample rate for a specific tx channel. In case of any error -1 will be returned. Check the
+             * error code passed for further details.
              */
             double getTxSampleRate (int channelIdx, Error &error);
 
             /**
-             * Returns an array filled the sample rates for all tx channels. In case of an error, an emptry array will be
+             * Returns an array filled the sample rates for all tx channels. In case of an error, an empty array will be
              * returned. Check the error code passed for further details.
              */
             juce::Array<double> getTxSampleRates (Error &error);
 
-            /** Sets the gain for a specific rx channel or for all channels if -1 is passed as index*/
-            juce::Result setRxGain (double newGain, int channelIdx, const char* gainElement);
+            /** Sets the gain for a specific rx channel*/
+            Error setRxGain (double newGain, int channelIdx, const char* gainElement);
 
-            /** Sets the sample rate for a specific tx channel or for all channels if -1 is passed as index*/
-            juce::Result setTxGain (double newGain, int channelIdx, const char* gainElement);
+            /** Sets the sample rate for a specific tx*/
+            Error setTxGain (double newGain, int channelIdx, const char* gainElement);
 
             /**
-             * Returns the sample rate for a specific rx channel. Note that -1 for all channels obviously can not be passed
-             * as an argument. In case of any error -1 will be returned. Check the error code passed for further details.
+             * Returns the sample rate for a specific rx channel. In case of any error -1 will be returned. Check the
+             * error code passed for further details.
+             * @see getValidRxGainElements
              */
             double getRxGain (int channelIdx, Error &error, const char* gainElement);
+
+            /**
+             * Returns a string array filled with all valid gainElement strings that might be passed to getRxGain for
+             * this channel
+             */
+            juce::StringArray getValidRxGainElements (int channelIdx);
 
             /**
              * Returns an array filled the sample rates for all rx channels. In case of an error, an emptry array will be
@@ -400,66 +408,69 @@ namespace ntlab
             juce::Array<double> getRxGains (Error &error);
 
             /**
-             * Returns the sample rate for a specific tx channel. Note that -1 for all channels obviously can not be passed
-             * as an argument. In case of any error -1 will be returned. Check the error code passed for further details.
+             * Returns the sample rate for a specific tx channel. In case of any error -1 will be returned. Check the
+             * error code passed for further details.
+             * @see getValidTxGainElemens
              */
             double getTxGain (int channelIdx, Error &error, const char* gainElement);
 
             /**
-             * Returns an array filled the sample rates for all tx channels. In case of an error, an emptry array will be
+             * Returns a string array filled with all valid gainElement strings that might be passed to getTxGain for
+             * this channel
+             */
+            juce::StringArray getValidTxGainElements (int channelIdx);
+
+            /**
+             * Returns an array filled the sample rates for all tx channels. In case of an error, an empty array will be
              * returned. Check the error code passed for further details.
              */
             juce::Array<double> getTxGains (Error &error);
 
             /**
-             * Sets the frequency for a specific rx channel or for all channels if -1 is passed as index.
-             * Not all TuneRequests can be handled exactly by the hardware, so check the tuneResults for
-             * details on how the request was handled. The tuneResults array size will be equal to the
-             * number of channels tuned, all items of the array passed will be cleared when calling this function.
+             * Sets the frequency for a specific rx channel. Not all TuneRequests can be handled exactly by the
+             * hardware, so check the tuneResult for details on how the request was handled.
              */
-            juce::Result setRxFrequency (TuneRequest &tuneRequest, juce::Array<TuneResult> &tuneResults, int channelIdx);
+            Error setRxFrequency (TuneRequest &tuneRequest, TuneResult& tuneResults, int channelIdx);
 
             /**
-             * Sets the frequency for a specific tx channel or for all channels if -1 is passed as index.
-             * Not all TuneRequests can be handled exactly by the hardware, so check the tuneResults for
-             * details on how the request was handled. The tuneResults array size will be equal to the
-             * number of channels tuned, all items of the array passed will be cleared when calling this function.
-             */
-            juce::Result setTxFrequency (TuneRequest &tuneRequest, juce::Array<TuneResult> &tuneResults, int channelIdx);
+            * Sets the frequency for a specific tx channel. Not all TuneRequests can be handled exactly by the
+            * hardware, so check the tuneResult for details on how the request was handled.
+            */
+            Error setTxFrequency (TuneRequest &tuneRequest, TuneResult& tuneResult, int channelIdx);
 
             /**
-             * Returns the rx frequency for a specific rx channel. Note that -1 for all channels obviously can not be passed
-             * as an argument. In case of any error -1 will be returned. Check the error code passed for further details.
+             * Returns the rx frequency for a specific rx channel. In case of any error -1 will be returned. Check the
+             * error code passed for further details.
              */
             double getRxFrequency (int channelIdx, Error &error);
 
             /**
-             * Returns an array filled the rx frequencies for all rx channels. In case of an error, an emptry array will be
-             * returned. Check the error code passed for further details.
+             * Returns an array filled the rx frequencies for all rx channels. In case of an error, an empty array will
+             * be returned. Check the error code passed for further details.
              */
             juce::Array<double> getRxFrequencies (Error &error);
 
             /**
-             * Returns the tx frequency for a specific tx channel. Note that -1 for all channels obviously can not be passed
-             * as an argument. In case of any error -1 will be returned. Check the error code passed for further details.
+             * Returns the tx frequency for a specific tx channel. In case of any error -1 will be returned. Check the
+             * error code passed for further details.
              */
             double getTxFrequency (int channelIdx, Error &error);
 
             /**
-             * Returns an array filled the tx frequencies for all tx channels. In case of an error, an emptry array will be
-             * returned. Check the error code passed for further details.
+             * Returns an array filled the tx frequencies for all tx channels. In case of an error, an empty array will
+             * be returned. Check the error code passed for further details.
              */
             juce::Array<double> getTxFrequencies (Error &error);
 
-            /** Sets the bandwidth for a specific rx channel or for all channels if -1 is passed as index*/
-            juce::Result setRxBandwidth (double newBandwidth, int channelIdx);
+            /** Sets the analog frontend bandwidth for a specific rx channel. Most devices have a fixed bandwidth*/
+            Error setRxBandwidth (double newBandwidth, int channelIdx);
 
-            /** Sets the bandwidth for a specific tx channel or for all channels if -1 is passed as index*/
-            juce::Result setTxBandwidth (double newBandwidth, int channelIdx);
+            /** Sets the analog frontend bandwidth for a specific tx channel. Most devices have a fixed bandwidth*/
+            Error setTxBandwidth (double newBandwidth, int channelIdx);
 
             /**
-             * Returns the bandwidth for a specific rx channel. Note that -1 for all channels obviously can not be passed
-             * as an argument. In case of any error -1 will be returned. Check the error code passed for further details.
+             * Returns the bandwidth for a specific rx channel. In case of any error -1 will be returned. Check the
+             * error code passed for further details.
              */
             double getRxBandwidth (int channelIdx, Error &error);
 
@@ -470,8 +481,8 @@ namespace ntlab
             juce::Array<double> getRxBandwidths (Error &error);
 
             /**
-             * Returns the bandwidth for a specific tx channel. Note that -1 for all channels obviously can not be passed
-             * as an argument. In case of any error -1 will be returned. Check the error code passed for further details.
+             * Returns the bandwidth for a specific tx channel. In case of any error -1 will be returned. Check the
+             * error code passed for further details.
              */
             double getTxBandwidth (int channelIdx, Error &error);
 
@@ -482,16 +493,16 @@ namespace ntlab
             juce::Array<double> getTxBandwidths (Error &error);
 
             /**
-             * Sets the antenna port that is used as the physical input for this channel or for all channels if -1 is passed
-             * as index. Note: Uses a lightweight char pointer for the string for faster execution from the realtime thread.
+             * Sets the antenna port that is used as the physical input for this channel. Note: Uses a lightweight char
+             * pointer for the string for faster execution from the realtime thread.
              */
-            juce::Result setRxAntenna (const char* antennaPort, int channelIdx);
+            Error setRxAntenna (const char* antennaPort, int channelIdx);
 
             /**
-             * Sets the antenna port that is used as the physical output for this channel or for all channels if -1 is passed
-             * as index. Note: Uses a lightweight char pointer for the string for faster execution from the realtime thread.
+             * Sets the antenna port that is used as the physical output for this channel. Note: Uses a lightweight char
+             * pointer for the string for faster execution from the realtime thread.
              */
-            juce::Result setTxAntenna (const char* antennaPort, int channelIdx);
+            Error setTxAntenna (const char* antennaPort, int channelIdx);
 
             juce::Result setRxSubdevSpec (const juce::String& subdevSpec, int mboardIdx);
 
@@ -521,7 +532,7 @@ namespace ntlab
             /** Sets the time source for a particular motherboard */
             juce::Result setTimeSource (const juce::String timeSource, int mboardIdx);
 
-            /** Sets the time for all motherboards immediately */
+            /** Sets the time for all motherboards after the next PPS pulse received */
             juce::Result setTimeUnknownPPS (time_t fullSecs, double fracSecs);
 
             /**
@@ -718,6 +729,8 @@ namespace ntlab
         GetGain                  getRxGain;
         SetGain                  setTxGain;
         GetGain                  getTxGain;
+        GetGainElementNames      getRxGainElementNames;
+        GetGainElementNames      getTxGainElementNames;
         SetFrequency             setRxFrequency;
         GetFrequency             getRxFrequency;
         SetFrequency             setTxFrequency;
@@ -752,5 +765,8 @@ namespace ntlab
         // The constructor is private to make sure that it's only created by a valid opened library through UHDr::load
         UHDr () {}
 
+        // converts an uhd string vector to a juce::StringArray and frees the string vector afterwards. Returns an empty
+        // array in case of any error
+        juce::StringArray uhdStringVectorToStringArray (StringVectorHandle stringVectorHandle);
     };
 }
