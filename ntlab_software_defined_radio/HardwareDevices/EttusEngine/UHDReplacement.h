@@ -284,7 +284,7 @@ namespace ntlab
 
             // a string buffer used either by SetGain or SetAntenna to store the string. In those cases the unions
             // asCharPtr representation will point to this buffer
-            static const int stringBufferSize = 6; // an 8 bit int a bool and a 6 byte string make up a nicely packed struct
+            static const int stringBufferSize = 14; // an 8 bit int a bool and a 14 byte string make up a nicely packed struct
             char stringBuffer[stringBufferSize];
 
             void* functionPointer;
