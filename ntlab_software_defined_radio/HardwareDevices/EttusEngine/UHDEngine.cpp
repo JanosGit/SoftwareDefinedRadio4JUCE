@@ -20,8 +20,16 @@ along with SoftwareDefinedRadio4JUCE. If not, see <http://www.gnu.org/licenses/>
 
 #include <typeinfo> // for std::bad_cast
 
+template <>
+struct juce::VariantConverter<ntlab::UHDEngine::SynchronizationSetup>
+{
+    static ntlab::UHDEngine::SynchronizationSetup fromVar (const juce::var& v)                              { return static_cast<ntlab::UHDEngine::SynchronizationSetup> (static_cast<int> (v)); }
+    static juce::var                              toVar   (const ntlab::UHDEngine::SynchronizationSetup& s) { return s; }
+};
+
 namespace ntlab
 {
+    using varSyncSetupConverter = juce::VariantConverter<UHDEngine::SynchronizationSetup>;
 
 // ugly solution but makes the NTLAB_RETURN_FAIL_WITH_ERROR_CODE_DESCRIPTION_IN_CASE_OF_ERROR macro work
 #define errorDescription UHDr::errorDescription
@@ -30,28 +38,46 @@ namespace ntlab
     const juce::String UHDEngine::defaultOtwFormat ("sc16");
     const juce::String UHDEngine::defaultArgs;
 
-    const juce::Identifier UHDEngine::propertyUSRPDevice     ("USRP_Device");
-    const juce::Identifier UHDEngine::propertyMBoard         ("MBoard");
-    const juce::Identifier UHDEngine::propertyRxDboard       ("RX_Dboard");
-    const juce::Identifier UHDEngine::propertyTxDboard       ("TX_Dboard");
-    const juce::Identifier UHDEngine::propertyRxFrontend     ("RX_Frontend");
-    const juce::Identifier UHDEngine::propertyTxFrontend     ("TX_Frontend");
-    const juce::Identifier UHDEngine::propertyRxCodec        ("RX_Codec");
-    const juce::Identifier UHDEngine::propertyTxCodec        ("TX_Codec");
-    const juce::Identifier UHDEngine::propertyIPAddress      ("ip-addr");
-    const juce::Identifier UHDEngine::propertyID             ("ID");
-    const juce::Identifier UHDEngine::propertyName           ("Name");
-    const juce::Identifier UHDEngine::propertySerial         ("Serial");
-    const juce::Identifier UHDEngine::propertyMin            ("min");
-    const juce::Identifier UHDEngine::propertyMax            ("max");
-    const juce::Identifier UHDEngine::propertyStepWidth      ("step_width");
-    const juce::Identifier UHDEngine::propertyUnit           ("unit");
-    const juce::Identifier UHDEngine::propertyUnitScaling    ("unit_scaling");
-    const juce::Identifier UHDEngine::propertyCurrentValue   ("current_value");
-    const juce::Identifier UHDEngine::propertyArray          ("array");
-    const juce::Identifier UHDEngine::propertyFreqRange      ("Freq_range");
-    const juce::Identifier UHDEngine::propertyBandwidthRange ("Bandwidth_range");
-    const juce::Identifier UHDEngine::propertyAntennas       ("Antennas");
+    const juce::Identifier UHDEngine::propertyUSRPDevice       ("USRP_Device");
+    const juce::Identifier UHDEngine::propertyUSRPDeviceConfig ("USRP_Device_config");
+    const juce::Identifier UHDEngine::propertyMBoard           ("Mboard");
+    const juce::Identifier UHDEngine::propertyMBoards          ("Mboards");
+    const juce::Identifier UHDEngine::propertyTimeSources      ("Time_sources");
+    const juce::Identifier UHDEngine::propertyClockSources     ("Clock_sources");
+    const juce::Identifier UHDEngine::propertyRxDboard         ("RX_Dboard");
+    const juce::Identifier UHDEngine::propertyTxDboard         ("TX_Dboard");
+    const juce::Identifier UHDEngine::propertyRxFrontend       ("RX_Frontend");
+    const juce::Identifier UHDEngine::propertyTxFrontend       ("TX_Frontend");
+    const juce::Identifier UHDEngine::propertyRxCodec          ("RX_Codec");
+    const juce::Identifier UHDEngine::propertyTxCodec          ("TX_Codec");
+    const juce::Identifier UHDEngine::propertyIPAddress        ("ip-addr");
+    const juce::Identifier UHDEngine::propertyID               ("ID");
+    const juce::Identifier UHDEngine::propertyName             ("Name");
+    const juce::Identifier UHDEngine::propertySerial           ("Serial");
+    const juce::Identifier UHDEngine::propertyMin              ("min");
+    const juce::Identifier UHDEngine::propertyMax              ("max");
+    const juce::Identifier UHDEngine::propertyStepWidth        ("step_width");
+    const juce::Identifier UHDEngine::propertyUnit             ("unit");
+    const juce::Identifier UHDEngine::propertyUnitScaling      ("unit_scaling");
+    const juce::Identifier UHDEngine::propertyCurrentValue     ("current_value");
+    const juce::Identifier UHDEngine::propertyArray            ("array");
+    const juce::Identifier UHDEngine::propertyFreqRange        ("Freq_range");
+    const juce::Identifier UHDEngine::propertyBandwidthRange   ("Bandwidth_range");
+    const juce::Identifier UHDEngine::propertyAntennas         ("Antennas");
+    const juce::Identifier UHDEngine::propertySyncSetup        ("Synchronization_setup");
+    const juce::Identifier UHDEngine::propertySampleRate       ("Sample_rate");
+
+    const juce::Identifier UHDEngine::ChannelMapping::propertyNumChannels     ("num_channels");
+    const juce::Identifier UHDEngine::ChannelMapping::propertyHardwareChannel ("hardware_channel");
+    const juce::Identifier UHDEngine::ChannelMapping::propertyMboardIdx       ("mboard_idx");
+    const juce::Identifier UHDEngine::ChannelMapping::propertyDboardSlot      ("dboard_slot");
+    const juce::Identifier UHDEngine::ChannelMapping::propertyFrontendOnDboard("frontend_on_dboard");
+    const juce::Identifier UHDEngine::ChannelMapping::propertyAntennaPort     ("antenna_port");
+    const juce::Identifier UHDEngine::ChannelMapping::propertyAnalogGain      ("analog_gain");
+    const juce::Identifier UHDEngine::ChannelMapping::propertyDigitalGain     ("digital_gain");
+    const juce::Identifier UHDEngine::ChannelMapping::propertyDigitalGainFine ("digital_gain_fine");
+    const juce::Identifier UHDEngine::ChannelMapping::propertyCenterFrequency ("center_frequency");
+    const juce::Identifier UHDEngine::ChannelMapping::propertyAnalogBandwitdh ("analog_bandwidth");
 
     UHDEngine* UHDEngine::castToUHDEnginePtr (std::unique_ptr<ntlab::SDRIOEngine>& baseEnginePtr) { return dynamic_cast<ntlab::UHDEngine*> (baseEnginePtr.get()); }
 
@@ -83,10 +109,23 @@ namespace ntlab
 
     juce::Result UHDEngine::makeUSRP (juce::StringPairArray& args, SynchronizationSetup synchronizationSetup)
     {
+        // rearranging the whole setup while streaming is running seems like a bad idea...
+        jassert (!isStreaming());
+
         UHDr::Error error;
-        usrp = uhdr->makeUSRP (args, error);
+        auto newUSRP = uhdr->makeUSRP (args, error);
 
         NTLAB_RETURN_FAIL_WITH_ERROR_CODE_DESCRIPTION_IN_CASE_OF_ERROR (error);
+
+        // some cleanup
+        usrp = nullptr;
+        usrp = newUSRP;
+        rxStream = nullptr;
+        txStream = nullptr;
+        rxChannelMapping = nullptr;
+        txChannelMapping = nullptr;
+        devicesInActiveUSRPSetup.removeAllChildren (nullptr);
+        devicesInActiveUSRPSetup.removeAllProperties (nullptr);
 
         // if all went well we match the device tree with the arg vector to build a tree containing the selected devices
         const int numArgs = args.size();
@@ -333,7 +372,7 @@ namespace ntlab
 
         if (rxSampleRate != txSampleRate)
         {
-            lastError = "Error getting sample rate, different samplerates for rx (" + juce::String (rxSampleRate) + "Hz) and tx (" + juce::String (txSampleRate) + ") returned";
+            lastError = "Error getting sample rate, different samplerates for rx (" + juce::String (rxSampleRate) + "Hz) and tx (" + juce::String (txSampleRate) + "Hz) returned";
             DBG (lastError);
             return -1.0;
         }
@@ -350,18 +389,84 @@ namespace ntlab
         return deviceTree;
     }
 
-    const juce::var& UHDEngine::getDeviceTreeUpdateIfNotPresent ()
+    juce::ValueTree UHDEngine::getActiveConfig ()
     {
-        return juce::var();
+        juce::ValueTree activeSetup (propertyUSRPDeviceConfig);
+        activeSetup.setProperty (propertySyncSetup, synchronizationSetup, nullptr);
+        activeSetup.setProperty (propertySampleRate, getSampleRate(), nullptr);
+
+        juce::ValueTree mboardsInSetup (propertyMBoards);
+        activeSetup.addChild (mboardsInSetup, -1, nullptr);
+        int mboardIdx = 0;
+
+        for (const auto& mboard : devicesInActiveUSRPSetup)
+        {
+            juce::ValueTree mboardInformation (mboard.getType());
+            mboardsInSetup.addChild (mboardInformation, mboardIdx, nullptr);
+
+            mboardInformation.setProperty (propertyMBoard, mboard.getProperty (propertyMBoard), nullptr);
+            mboardInformation.setProperty (propertyIPAddress, mboard.getProperty (propertyIPAddress), nullptr);
+
+            ++mboardIdx;
+        }
+
+        if (rxChannelMapping != nullptr)
+            activeSetup.addChild (rxChannelMapping->serializeCurrentSetup (ChannelMapping::Direction::rx), -1, nullptr);
+
+        if (txChannelMapping != nullptr)
+            activeSetup.addChild (txChannelMapping->serializeCurrentSetup (ChannelMapping::Direction::tx), -1, nullptr);
+
+        return activeSetup;
     }
 
-    juce::var UHDEngine::getActiveConfig ()
+    juce::Result UHDEngine::setConfig (juce::ValueTree& configToSet)
     {
-        return juce::var();
-    }
+        if (!configToSet.hasType (propertyUSRPDeviceConfig))
+            return juce::Result::fail ("Expecting a config of type " + propertyUSRPDeviceConfig.toString () + " but got a config of type " + configToSet.getType ().toString ());
 
-    juce::Result UHDEngine::setConfig (juce::var& configToSet)
-    {
+        auto mboards = configToSet.getChildWithName (propertyMBoards);
+        auto syncSetup  = configToSet.getProperty (propertySyncSetup);
+        auto sampleRate = configToSet.getProperty (propertySampleRate);
+
+        if (!mboards.isValid ())
+            return juce::Result::fail ("Invalid config, missing Mboards entries");
+
+        if (syncSetup.isVoid())
+            return juce::Result::fail ("Invalid config, missing synchronization setup entry");
+
+        if (sampleRate.isVoid())
+            return juce::Result::fail ("Invalid config, missing sample rate entry");
+
+        const int numMboards = mboards.getNumChildren();
+        juce::StringPairArray args;
+
+        for (int m = 0; m < numMboards; ++m)
+        {
+            auto ipAddress = mboards.getChild(m).getProperty (propertyIPAddress);
+            jassert (!ipAddress.isVoid());
+            args.set ("addr" + juce::String(m), ipAddress.toString());
+        }
+
+        auto makingUSRP = makeUSRP (args, varSyncSetupConverter::fromVar (syncSetup));
+        if (makingUSRP.failed())
+            return makingUSRP;
+
+        auto rxSetup = configToSet.getChildWithName ("Rx_Channel_Setup");
+        auto txSetup = configToSet.getChildWithName ("Tx_Channel_Setup");
+
+        if (rxSetup.isValid())
+            ChannelMapping::deserializeSetup (rxSetup, *this);
+
+        if (txSetup.isValid())
+            ChannelMapping::deserializeSetup (txSetup, *this);
+
+        if ((rxChannelMapping != nullptr) || (txChannelMapping != nullptr))
+        {
+            auto successSettingSampleRate = setSampleRate (sampleRate);
+            if (!successSettingSampleRate)
+                return juce::Result::fail ("Error setting restoring sample rate " + sampleRate.toString());
+        }
+
         return juce::Result::ok();
     }
 
@@ -491,7 +596,7 @@ namespace ntlab
 
             if (setTxFrequency.wasOk())
             {
-                auto error = usrp->setRxFrequency (request, result, hardwareChannel);
+                auto error = usrp->setTxFrequency (request, result, hardwareChannel);
                 if (error)
                     setTxFrequency = juce::Result::fail (errorDescription (error));
             }
@@ -1038,6 +1143,214 @@ namespace ntlab
     }
 
     size_t* UHDEngine::ChannelMapping::getStreamArgsChannelList() const {return bufferOrderToHardwareOrder.data(); }
+
+    juce::ValueTree UHDEngine::ChannelMapping::serializeCurrentSetup (ntlab::UHDEngine::ChannelMapping::Direction direction)
+    {
+        juce::Identifier setupType = juce::String::formatted ("%cx_Channel_Setup", direction);
+
+        juce::ValueTree currentSetup (setupType);
+        currentSetup.setProperty (propertyNumChannels, numChannels, nullptr);
+
+        for (int c = 0; c < numChannels; ++c)
+        {
+            juce::Identifier propertyChannelC = "Channel_" + juce::String (c);
+            juce::ValueTree channelTree (propertyChannelC);
+
+            currentSetup.addChild (channelTree, c, nullptr);
+
+            const int hardwareChannel = static_cast<int> (bufferOrderToHardwareOrder[c]);
+            const auto& channelSetup = channelSetupHardwareOrder[hardwareChannel];
+
+            channelTree.setProperty (propertyMboardIdx,        channelSetup.mboardIdx,               nullptr);
+            channelTree.setProperty (propertyDboardSlot,       channelSetup.daughterboardSlot,       nullptr);
+            channelTree.setProperty (propertyFrontendOnDboard, channelSetup.frontendOnDaughterboard, nullptr);
+            channelTree.setProperty (propertyAntennaPort,      channelSetup.antennaPort,             nullptr);
+
+            const int idxOfAnalogGainElement      = gainElementsMap[c][UHDGainElements::analog];
+            const int idxOfDigitalGainElement     = gainElementsMap[c][UHDGainElements::digital];
+            const int idxOfDigitalFineGainElement = gainElementsMap[c][UHDGainElements::digitalFine];
+
+            UHDr::Error error;
+
+            if (direction == rx)
+            {
+                if (idxOfAnalogGainElement >= 0)
+                {
+                    channelTree.setProperty (propertyAnalogGain, uhdEngine.usrp->getRxGain (hardwareChannel, error, gainElements[c][idxOfAnalogGainElement].toRawUTF8()), nullptr);
+                    if (error) channelTree.removeProperty (propertyAnalogGain, nullptr);
+                }
+
+                if (idxOfDigitalGainElement >= 0)
+                {
+                    channelTree.setProperty (propertyDigitalGain, uhdEngine.usrp->getRxGain (hardwareChannel, error, gainElements[c][idxOfDigitalGainElement].toRawUTF8()), nullptr);
+                    if (error) channelTree.removeProperty (propertyDigitalGain, nullptr);
+                }
+
+                if (idxOfDigitalFineGainElement >= 0)
+                {
+                    channelTree.setProperty (propertyDigitalGainFine, uhdEngine.usrp->getRxGain (hardwareChannel, error, gainElements[c][idxOfDigitalFineGainElement].toRawUTF8()), nullptr);
+                    if (error) channelTree.removeProperty (propertyDigitalGainFine, nullptr);
+                }
+
+                channelTree.setProperty (propertyCenterFrequency, uhdEngine.getRxCenterFrequency (c), nullptr);
+                channelTree.setProperty (propertyAnalogBandwitdh, uhdEngine.getRxBandwidth       (c), nullptr);
+            }
+            else
+            {
+                if (idxOfAnalogGainElement >= 0)
+                {
+                    channelTree.setProperty (propertyAnalogGain, uhdEngine.usrp->getTxGain (hardwareChannel, error, gainElements[c][idxOfAnalogGainElement].toRawUTF8()), nullptr);
+                    if (error) channelTree.removeProperty (propertyAnalogGain, nullptr);
+                }
+
+                if (idxOfDigitalGainElement >= 0)
+                {
+                    channelTree.setProperty (propertyDigitalGain, uhdEngine.usrp->getTxGain (hardwareChannel, error, gainElements[c][idxOfDigitalGainElement].toRawUTF8()), nullptr);
+                    if (error) channelTree.removeProperty (propertyDigitalGain, nullptr);
+                }
+
+                if (idxOfDigitalFineGainElement >= 0)
+                {
+                    channelTree.setProperty (propertyDigitalGainFine, uhdEngine.usrp->getTxGain (hardwareChannel, error, gainElements[c][idxOfDigitalFineGainElement].toRawUTF8()), nullptr);
+                    if (error) channelTree.removeProperty (propertyDigitalGainFine, nullptr);
+                }
+
+                channelTree.setProperty (propertyCenterFrequency, uhdEngine.getTxCenterFrequency (c), nullptr);
+                channelTree.setProperty (propertyAnalogBandwitdh, uhdEngine.getTxBandwidth       (c), nullptr);
+            }
+        }
+
+        return currentSetup;
+    }
+
+    void UHDEngine::ChannelMapping::deserializeSetup (juce::ValueTree& serializedSetup, UHDEngine& engine)
+    {
+        Direction direction = static_cast<Direction> (serializedSetup.getType().toString()[0]);
+
+        auto numChannels = serializedSetup.getProperty (propertyNumChannels);
+        if (numChannels.isVoid())
+        {
+            // num_channels property missing
+            jassertfalse;
+            return;
+        }
+        const int numChannelsInt = numChannels;
+
+        // we expect the setup to have one child per channel describing the channel setup
+        jassert (static_cast<int> (numChannels) == serializedSetup.getNumChildren());
+
+        juce::Array<UHDEngine::ChannelSetup> channelSetup;
+        for (int c = 0; c < numChannelsInt; ++c)
+        {
+            auto channelTree = serializedSetup.getChild (c);
+            ChannelSetup channel;
+
+            channel.mboardIdx               = channelTree.getProperty (propertyMboardIdx);
+            channel.daughterboardSlot       = channelTree.getProperty (propertyDboardSlot);
+            channel.frontendOnDaughterboard = channelTree.getProperty (propertyFrontendOnDboard);
+            channel.antennaPort             = channelTree.getProperty (propertyAntennaPort);
+
+            channelSetup.add (std::move (channel));
+        }
+
+        juce::Result settingUpChannels                  ((direction == Direction::rx) ? engine.setupRxChannels (channelSetup) : engine.setupTxChannels (channelSetup));
+        std::unique_ptr<ChannelMapping>& channelMapping ((direction == Direction::rx) ? engine.rxChannelMapping        : engine.txChannelMapping);
+
+        if (settingUpChannels.failed())
+        {
+
+        }
+
+        for (int c = 0; c < numChannelsInt; ++c)
+        {
+            auto channelTree = serializedSetup.getChild (c);
+            const int hardwareChannel = static_cast<int> (channelMapping->bufferOrderToHardwareOrder[c]);
+
+            const int idxOfAnalogGainElement      = channelMapping->gainElementsMap[c][UHDGainElements::analog];
+            const int idxOfDigitalGainElement     = channelMapping->gainElementsMap[c][UHDGainElements::digital];
+            const int idxOfDigitalFineGainElement = channelMapping->gainElementsMap[c][UHDGainElements::digitalFine];
+
+            UHDr::Error error;
+
+            if (direction == rx)
+            {
+                if (idxOfAnalogGainElement >= 0)
+                {
+                    error = engine.usrp->setRxGain (channelTree.getProperty (propertyAnalogGain), hardwareChannel, channelMapping->gainElements[c][idxOfAnalogGainElement].toRawUTF8());
+                    NTLAB_PRINT_ERROR_TO_DBG_AND_INVOKE_ACTIONS (error, channelMapping.reset (nullptr); engine.rxStream.reset (nullptr); return; );
+                }
+
+                if (idxOfDigitalGainElement >= 0)
+                {
+                    error = engine.usrp->setRxGain (channelTree.getProperty (propertyDigitalGain), hardwareChannel, channelMapping->gainElements[c][idxOfDigitalGainElement].toRawUTF8());
+                    NTLAB_PRINT_ERROR_TO_DBG_AND_INVOKE_ACTIONS (error, channelMapping.reset (nullptr); engine.rxStream.reset (nullptr); return; );
+                }
+
+                if (idxOfDigitalFineGainElement >= 0)
+                {
+                    error = engine.usrp->setRxGain (channelTree.getProperty (propertyDigitalGainFine), hardwareChannel, channelMapping->gainElements[c][idxOfDigitalFineGainElement].toRawUTF8());
+                    NTLAB_PRINT_ERROR_TO_DBG_AND_INVOKE_ACTIONS (error, channelMapping.reset (nullptr); engine.rxStream.reset (nullptr); return; );
+                }
+
+                auto success = engine.setRxCenterFrequency (channelTree.getProperty (propertyCenterFrequency), c);
+                if (!success)
+                {
+                    DBG ("Error executing " << juce::String (BOOST_CURRENT_FUNCTION) << "\" Continuing...");
+                    channelMapping.reset (nullptr);
+                    engine.rxStream.reset (nullptr);
+                    return;
+                }
+
+                success = engine.setRxBandwidth (channelTree.getProperty (propertyAnalogBandwitdh), c);
+                if (!success)
+                {
+                    DBG ("Error executing " << juce::String (BOOST_CURRENT_FUNCTION) << "\" Continuing...");
+                    channelMapping.reset (nullptr);
+                    engine.rxStream.reset (nullptr);
+                    return;
+                }
+            }
+            else
+            {
+                if (idxOfAnalogGainElement >= 0)
+                {
+                    error = engine.usrp->setTxGain (channelTree.getProperty (propertyAnalogGain), hardwareChannel, channelMapping->gainElements[c][idxOfAnalogGainElement].toRawUTF8());
+                    NTLAB_PRINT_ERROR_TO_DBG_AND_INVOKE_ACTIONS (error, channelMapping.reset (nullptr); engine.txStream.reset (nullptr); return; );
+                }
+
+                if (idxOfDigitalGainElement >= 0)
+                {
+                    error = engine.usrp->setTxGain (channelTree.getProperty (propertyDigitalGain), hardwareChannel, channelMapping->gainElements[c][idxOfDigitalGainElement].toRawUTF8());
+                    NTLAB_PRINT_ERROR_TO_DBG_AND_INVOKE_ACTIONS (error, channelMapping.reset (nullptr); engine.txStream.reset (nullptr); return; );
+                }
+
+                if (idxOfDigitalFineGainElement >= 0)
+                {
+                    error = engine.usrp->setTxGain (channelTree.getProperty (propertyDigitalGainFine), hardwareChannel, channelMapping->gainElements[c][idxOfDigitalFineGainElement].toRawUTF8());
+                    NTLAB_PRINT_ERROR_TO_DBG_AND_INVOKE_ACTIONS (error, channelMapping.reset (nullptr); engine.txStream.reset (nullptr); return; );
+                }
+
+                auto success = engine.setTxCenterFrequency (channelTree.getProperty (propertyCenterFrequency), c);
+                if (!success)
+                {
+                    DBG ("Error executing " << juce::String (BOOST_CURRENT_FUNCTION) << "\" Continuing...");
+                    channelMapping.reset (nullptr);
+                    engine.txStream.reset (nullptr);
+                    return;
+                }
+
+                success = engine.setTxBandwidth (channelTree.getProperty (propertyAnalogBandwitdh), c);
+                if (!success)
+                {
+                    DBG ("Error executing " << juce::String (BOOST_CURRENT_FUNCTION) << "\" Continuing...");
+                    channelMapping.reset (nullptr);
+                    engine.txStream.reset (nullptr);
+                    return;
+                }
+            }
+        }
+
+    }
 
     const char UHDEngine::ChannelMapping::emptyGainElementString[1] = "";
 

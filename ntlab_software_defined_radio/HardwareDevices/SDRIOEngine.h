@@ -35,10 +35,10 @@ namespace ntlab
         virtual juce::ValueTree getDeviceTree() = 0;
 
         /** Returns the currently active config if any exists */
-        virtual juce::var getActiveConfig() = 0;
+        virtual juce::ValueTree getActiveConfig() = 0;
 
         /** Applies a complete config. If this was successful it returns true, otherwise it returns false */
-        virtual juce::Result setConfig (juce::var& configToSet) = 0;
+        virtual juce::Result setConfig (juce::ValueTree& configToSet) = 0;
 
     };
 

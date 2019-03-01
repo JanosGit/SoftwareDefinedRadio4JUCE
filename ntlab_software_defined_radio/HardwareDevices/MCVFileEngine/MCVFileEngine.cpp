@@ -20,30 +20,24 @@ along with SoftwareDefinedRadio4JUCE. If not, see <http://www.gnu.org/licenses/>
 
 namespace ntlab
 {
-    const juce::Identifier MCVFileEngine::propertyMCVFileEngine           ("MCV File Engine");
-    const juce::Identifier MCVFileEngine::propertyInFile                  ("Input File");
-    const juce::Identifier MCVFileEngine::propertyOutFile                 ("Output File");
-    const juce::Identifier MCVFileEngine::propertyTxEnabled               ("TX Enabled");
-    const juce::Identifier MCVFileEngine::propertyRxEnabled               ("RX Enabled");
-    const juce::Identifier MCVFileEngine::propertyInputEndOfFileBehaviour ("Input End Of File Behaviour");
-    const juce::Identifier MCVFileEngine::propertyNumOutChannels          ("Num Output Channels");
+    const juce::Identifier MCVFileEngine::propertyMCVFileEngine           ("MCV_File_Engine");
+    const juce::Identifier MCVFileEngine::propertyInFile                  ("Input_File");
+    const juce::Identifier MCVFileEngine::propertyOutFile                 ("Output_File");
+    const juce::Identifier MCVFileEngine::propertyTxEnabled               ("TX_Enabled");
+    const juce::Identifier MCVFileEngine::propertyRxEnabled               ("RX_Enabled");
+    const juce::Identifier MCVFileEngine::propertyInputEndOfFileBehaviour ("Input_End_Of_File_Behaviour");
+    const juce::Identifier MCVFileEngine::propertyNumOutChannels          ("Num_Output_Channels");
 
     MCVFileEngine::MCVFileEngine () : streamingControlThread (1)
     {
-        std::unique_ptr<juce::DynamicObject> fileEngineDevice (new juce::DynamicObject);
-        std::unique_ptr<juce::DynamicObject> newEngineConfig  (new juce::DynamicObject);
+        engineConfig = juce::ValueTree (propertyMCVFileEngine);
 
-        fileEngineDevice->setProperty (propertyMCVFileEngine, juce::var());
-        dummyDeviceTree = juce::var (fileEngineDevice.release());
-
-        newEngineConfig->setProperty (propertyInFile,  "");
-        newEngineConfig->setProperty (propertyOutFile, "");
-        newEngineConfig->setProperty (propertyRxEnabled, false);
-        newEngineConfig->setProperty (propertyTxEnabled, false);
-        newEngineConfig->setProperty (propertyInputEndOfFileBehaviour, static_cast<int> (MCVReader::EndOfFileBehaviour::stopAndResize));
-        newEngineConfig->setProperty (propertyNumOutChannels, 0);
-
-        engineConfig = juce::var (newEngineConfig.release());
+        engineConfig.setProperty (propertyInFile, "", nullptr);
+        engineConfig.setProperty (propertyOutFile, "", nullptr);
+        engineConfig.setProperty (propertyRxEnabled, false, nullptr);
+        engineConfig.setProperty (propertyTxEnabled, false, nullptr);
+        engineConfig.setProperty (propertyInputEndOfFileBehaviour, static_cast<int> (MCVReader::EndOfFileBehaviour::stopAndResize), nullptr);
+        engineConfig.setProperty (propertyNumOutChannels, 0, nullptr);
     }
 
     bool MCVFileEngine::setInFile (juce::File& newInFile, ntlab::MCVReader::EndOfFileBehaviour endOfFileBehaviour, bool enableRx)
@@ -69,10 +63,9 @@ namespace ntlab
 
         rxEnabled = enableRx;
 
-        auto* cfg = engineConfig.getDynamicObject();
-        cfg->setProperty (propertyInFile, newInFile.getFullPathName());
-        cfg->setProperty (propertyRxEnabled, rxEnabled);
-        cfg->setProperty (propertyInputEndOfFileBehaviour, static_cast<int> (endOfFileBehaviour));
+        engineConfig.setProperty (propertyInFile, newInFile.getFullPathName(), nullptr);
+        engineConfig.setProperty (propertyRxEnabled, rxEnabled, nullptr);
+        engineConfig.setProperty (propertyInputEndOfFileBehaviour, static_cast<int> (endOfFileBehaviour), nullptr);
 
         return true;
     }
@@ -99,10 +92,9 @@ namespace ntlab
 
         txEnabled = enableTx;
 
-        auto* cfg = engineConfig.getDynamicObject();
-        cfg->setProperty (propertyOutFile, newOutFile.getFullPathName());
-        cfg->setProperty (propertyTxEnabled, txEnabled);
-        cfg->setProperty (propertyNumOutChannels, newNumOutChannels);
+        engineConfig.setProperty (propertyOutFile, newOutFile.getFullPathName(), nullptr);
+        engineConfig.setProperty (propertyTxEnabled, txEnabled, nullptr);
+        engineConfig.setProperty (propertyNumOutChannels, newNumOutChannels, nullptr);
 
         return true;
     }
@@ -147,47 +139,48 @@ namespace ntlab
         return juce::ValueTree();
     }
 
-    juce::var MCVFileEngine::getActiveConfig()
+    juce::ValueTree MCVFileEngine::getActiveConfig()
     {
         return engineConfig;
     }
 
-    juce::Result MCVFileEngine::setConfig (juce::var& configToSet)
+    juce::Result MCVFileEngine::setConfig (juce::ValueTree& configToSet)
     {
-        if (auto* cfg = configToSet.getDynamicObject())
+        if (!configToSet.hasType (propertyMCVFileEngine))
+            return juce::Result::fail ("Expecting a config of type " + propertyMCVFileEngine.toString() + " but got a config of type " + configToSet.getType().toString());
+
+        if ((configToSet.hasProperty (propertyInFile))                  &&
+            (configToSet.hasProperty (propertyOutFile))                 &&
+            (configToSet.hasProperty (propertyRxEnabled))               &&
+            (configToSet.hasProperty (propertyTxEnabled))               &&
+            (configToSet.hasProperty (propertyInputEndOfFileBehaviour)) &&
+            (configToSet.hasProperty (propertyNumOutChannels)))
         {
-            if ((cfg->hasProperty (propertyInFile))                  &&
-                (cfg->hasProperty (propertyOutFile))                 &&
-                (cfg->hasProperty (propertyRxEnabled))               &&
-                (cfg->hasProperty (propertyTxEnabled))               &&
-                (cfg->hasProperty (propertyInputEndOfFileBehaviour)) &&
-                (cfg->hasProperty (propertyNumOutChannels)))
+            auto inFileName  = configToSet.getProperty (propertyInFile) .toString();
+            auto outFileName = configToSet.getProperty (propertyOutFile).toString();
+
+            if (inFileName.isNotEmpty())
             {
-                auto inFileName  = cfg->getProperty (propertyInFile) .toString();
-                auto outFileName = cfg->getProperty (propertyOutFile).toString();
+                bool rxEnabled         = configToSet.getProperty (propertyRxEnabled);
+                int endOfFileBehaviour = configToSet.getProperty (propertyInputEndOfFileBehaviour);
+                juce::File inFile (inFileName);
 
-                if (inFileName.isNotEmpty())
-                {
-                    bool rxEnabled         = cfg->getProperty (propertyRxEnabled);
-                    int endOfFileBehaviour = cfg->getProperty (propertyInputEndOfFileBehaviour);
-                    juce::File inFile (inFileName);
-
-                    setInFile (inFile, static_cast<MCVReader::EndOfFileBehaviour> (endOfFileBehaviour), rxEnabled);
-                }
-
-                if (outFileName.isNotEmpty())
-                {
-                    bool txEnabled     = cfg->getProperty (propertyTxEnabled);
-                    int numOutChannels = cfg->getProperty (propertyNumOutChannels);
-                    juce::File outFile (outFileName);
-
-                    setOutFile (outFile, numOutChannels, txEnabled);
-                }
-
-                return juce::Result::ok();
+                setInFile (inFile, static_cast<MCVReader::EndOfFileBehaviour> (endOfFileBehaviour), rxEnabled);
             }
+
+            if (outFileName.isNotEmpty())
+            {
+                bool txEnabled     = configToSet.getProperty (propertyTxEnabled);
+                int numOutChannels = configToSet.getProperty (propertyNumOutChannels);
+                juce::File outFile (outFileName);
+
+                setOutFile (outFile, numOutChannels, txEnabled);
+            }
+
+            return juce::Result::ok();
         }
-        return juce::Result::fail ("Config object passed is invalid");
+
+        return juce::Result::fail ("Invalid config, missing one or more properties");
     }
 
     bool MCVFileEngine::isReadyToStream()
@@ -250,9 +243,8 @@ namespace ntlab
         rxEnabled = enableRx;
         txEnabled = enableTx;
 
-        auto* cfg = engineConfig.getDynamicObject();
-        cfg->setProperty (propertyRxEnabled, rxEnabled);
-        cfg->setProperty (propertyTxEnabled, txEnabled);
+        engineConfig.setProperty (propertyRxEnabled, rxEnabled, nullptr);
+        engineConfig.setProperty (propertyTxEnabled, txEnabled, nullptr);
 
         return true;
     }

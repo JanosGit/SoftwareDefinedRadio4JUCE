@@ -78,7 +78,11 @@ namespace ntlab
         };
 
         static const juce::Identifier propertyUSRPDevice;
+        static const juce::Identifier propertyUSRPDeviceConfig;
+        static const juce::Identifier propertyMBoards;
         static const juce::Identifier propertyMBoard;
+        static const juce::Identifier propertyTimeSources;
+        static const juce::Identifier propertyClockSources;
         static const juce::Identifier propertyRxDboard;
         static const juce::Identifier propertyTxDboard;
         static const juce::Identifier propertyRxFrontend;
@@ -99,6 +103,8 @@ namespace ntlab
         static const juce::Identifier propertyFreqRange;
         static const juce::Identifier propertyBandwidthRange;
         static const juce::Identifier propertyAntennas;
+        static const juce::Identifier propertySyncSetup;
+        static const juce::Identifier propertySampleRate;
 
         /**
          * If an UHDEngine instance was created through SDRIOEngineManager::createEngine you might want to cast the
@@ -159,9 +165,9 @@ namespace ntlab
 
         juce::ValueTree getDeviceTree() override;
 
-        juce::var getActiveConfig() override;
+        juce::ValueTree getActiveConfig() override;
 
-        juce::Result setConfig (juce::var& configToSet) override;
+        juce::Result setConfig (juce::ValueTree& configToSet) override;
 
         bool setDesiredBlockSize (int desiredBlockSize) override;
 
@@ -229,11 +235,7 @@ namespace ntlab
                 };
             }
 
-            enum Direction
-            {
-                rx,
-                tx
-            };
+            enum Direction : juce::juce_wchar {rx = 'R', tx = 'T' };
 
             ChannelMapping (juce::Array<ChannelSetup>& channelSetup, UHDEngine& engine, Direction direction);
 
@@ -265,6 +267,9 @@ namespace ntlab
 
             size_t* getStreamArgsChannelList() const;
 
+            juce::ValueTree serializeCurrentSetup (Direction direction);
+            static void deserializeSetup (juce::ValueTree& serializedSetup, UHDEngine& engine);
+
             const int numChannels;
 
         private:
@@ -281,6 +286,18 @@ namespace ntlab
             std::vector<std::array<int, UHDGainElements::count>> gainElementsMap; // Maps the gain element enum values to the strings in the gainElements array
             UHDEngine& uhdEngine;
             static const char emptyGainElementString[1];
+
+            static const juce::Identifier propertyNumChannels;
+            static const juce::Identifier propertyMboardIdx;
+            static const juce::Identifier propertyDboardSlot;
+            static const juce::Identifier propertyFrontendOnDboard;
+            static const juce::Identifier propertyAntennaPort;
+            static const juce::Identifier propertyAnalogGain;
+            static const juce::Identifier propertyDigitalGain;
+            static const juce::Identifier propertyDigitalGainFine;
+            static const juce::Identifier propertyCenterFrequency;
+            static const juce::Identifier propertyAnalogBandwitdh;
+            static const juce::Identifier propertyHardwareChannel;
         };
 
         UHDEngine (UHDr::Ptr uhdLibrary);
@@ -323,8 +340,6 @@ namespace ntlab
         void run() override;
 
         juce::ValueTree getUHDTree();
-
-        const juce::var& getDeviceTreeUpdateIfNotPresent();
 
         juce::IPAddress getIPAddressForMboard (int mboardIdx);
     };

@@ -65,9 +65,9 @@ namespace ntlab
 
         juce::ValueTree getDeviceTree() override;
 
-        juce::var getActiveConfig() override;
+        juce::ValueTree getActiveConfig() override;
 
-        juce::Result setConfig (juce::var& configToSet) override;
+        juce::Result setConfig (juce::ValueTree& configToSet) override;
 
         bool isReadyToStream() override;
 
@@ -83,8 +83,7 @@ namespace ntlab
 
         MCVFileEngine();
 
-        juce::var dummyDeviceTree;
-        juce::var engineConfig;
+        juce::ValueTree engineConfig;
 
         int blockSize = 512;
         int numOutChannels = 0;
