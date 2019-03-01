@@ -903,7 +903,13 @@ namespace ntlab
 
     UHDr::USRP::USRP (ntlab::UHDr* uhdr, const char* args, ntlab::UHDr::Error& error) : uhd (uhdr)
     {
-        errorDescription = [](Error error) {return UHDr::errorDescription (error); };
+        errorDescription = [](Error error)
+        {
+            auto description = UHDr::errorDescription (error);
+            if (error == key)
+                description += "\n!!Make sure that your hardware is connected properly!!";
+            return description;
+        };
 
         error = uhd->usrpMake (&usrpHandle, args);
         NTLAB_PRINT_ERROR_TO_DBG_AND_INVOKE_ACTIONS (error, usrpHandle = nullptr; return;)
