@@ -759,11 +759,11 @@ namespace ntlab
 
         /** Helper to create one Sample of the buffers SampleType in templated code */
         template <typename OriginalType>
-        static std::complex<SampleType> castToSampleType (std::complex<OriginalType> sample) {return (static_cast<SampleType> (sample.real()), static_cast<SampleType> (sample.imag())); }
+        static std::complex<SampleType> castToSampleType (std::complex<OriginalType> sample) {return {static_cast<SampleType> (sample.real()), static_cast<SampleType> (sample.imag())}; }
 
         /** Helper to create one Sample of the buffers SampleType in templated code */
         template <typename OriginalType>
-        static std::complex<SampleType> castToSampleType (OriginalType re, OriginalType im) {return (static_cast<SampleType> (re), static_cast<SampleType> (im)); }
+        static std::complex<SampleType> castToSampleType (OriginalType re, OriginalType im) {return {static_cast<SampleType> (re), static_cast<SampleType> (im)}; }
 
     private:
         bool ownsBuffer;
@@ -1390,11 +1390,11 @@ namespace ntlab
 
         /** Helper to create one Sample of the buffers SampleType in templated code */
         template <typename OriginalType>
-        static std::complex<SampleType> castToSampleType (std::complex<OriginalType> sample) {return (static_cast<SampleType> (sample.real()), static_cast<SampleType> (sample.imag())); }
+        static std::complex<SampleType> castToSampleType (std::complex<OriginalType> sample) {return {static_cast<SampleType> (sample.real()), static_cast<SampleType> (sample.imag())}; }
 
         /** Helper to create one Sample of the buffers SampleType in templated code */
         template <typename OriginalType>
-        static std::complex<SampleType> castToSampleType (OriginalType re, OriginalType im) {return (static_cast<SampleType> (re), static_cast<SampleType> (im)); }
+        static std::complex<SampleType> castToSampleType (OriginalType re, OriginalType im) {return {static_cast<SampleType> (re), static_cast<SampleType> (im)}; }
 
     private:
         int numChannelsAllocated;
