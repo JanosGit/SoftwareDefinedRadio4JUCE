@@ -24,6 +24,8 @@ along with SoftwareDefinedRadio4JUCE. If not, see <http://www.gnu.org/licenses/>
 #include "HardwareDevices/EttusEngine/UHDEngine.cpp"
 #include "HardwareDevices/MCVFileEngine/MCVFileEngine.cpp"
 
+#include "DSP/Oscillator.cpp"
+
 #include "MCVFileFormat/MCVWriter.cpp"
 #include "MCVFileFormat/MCVReader.cpp"
 #include "MCVFileFormat/MCVUnitTests.cpp"

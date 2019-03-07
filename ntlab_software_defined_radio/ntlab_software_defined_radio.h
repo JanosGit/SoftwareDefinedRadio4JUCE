@@ -83,6 +83,8 @@ along with SoftwareDefinedRadio4JUCE. If not, see <http://www.gnu.org/licenses/>
 #include "HardwareDevices/SDRIOEngine.h"
 #include "HardwareDevices/SDRIODeviceManger.h"
 
+#include "DSP/Oscillator.h"
+
 #if NTLAB_INCLUDE_EIGEN
 #include "Matrix/Eigen/Eigen/Dense"
 #include "Matrix/CovarianceMatrix.h"
