@@ -27,6 +27,10 @@ namespace ntlab
     {
     public:
 
+        SDRIODeviceManager();
+
+        ~SDRIODeviceManager();
+
         /** Adds all engines that come with this module */
         void addDefaultEngines();
 
@@ -38,9 +42,9 @@ namespace ntlab
          * otherwise. Note that in order to invoke streaming you first need to apply a valid config to the engine and
          * start streaming with a call to startStreaming();
          */
-        bool selectEngine (juce::String& engineName);
+        bool selectEngine (juce::StringRef engineName);
 
-        SDRIOEngine& getSelectedEngine();
+        SDRIOEngine* getSelectedEngine();
 
         juce::String getSelectedEngineName();
 
@@ -59,5 +63,7 @@ namespace ntlab
         std::unique_ptr<SDRIOEngine> selectedEngine;
         juce::String selectedEngineName;
         SDRIODeviceCallback* callbackToUse = nullptr;
+
+        static std::atomic<int> numManagersActive;
     };
 }

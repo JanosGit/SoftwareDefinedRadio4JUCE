@@ -112,8 +112,9 @@ namespace ntlab
      */
     class SDRIOEngineManager
     {
-    public:
-        virtual ~SDRIOEngineManager () {};
+        friend class SDRIODeviceManager;
+        friend class juce::ContainerDeletePolicy<SDRIOEngineManager>;
+    private:
 
         /** Returns an array of all engines that can be created */
         static juce::StringArray getAvailableEngines();
@@ -138,10 +139,13 @@ namespace ntlab
          */
         static std::unique_ptr<SDRIOEngine> createEngine (const juce::String& engineName);
 
+    protected:
+        virtual ~SDRIOEngineManager () {};
+
         virtual juce::String getEngineName() = 0;
 
         virtual juce::Result isEngineAvailable() = 0;
-    protected:
+
         virtual SDRIOEngine* createEngine() = 0;
 
     private:

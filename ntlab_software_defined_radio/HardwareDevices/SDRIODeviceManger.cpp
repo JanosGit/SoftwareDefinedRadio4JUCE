@@ -20,6 +20,20 @@ along with SoftwareDefinedRadio4JUCE. If not, see <http://www.gnu.org/licenses/>
 
 namespace ntlab
 {
+    std::atomic<int> SDRIODeviceManager::numManagersActive (0);
+
+    SDRIODeviceManager::SDRIODeviceManager()
+    {
+        ++numManagersActive;
+    }
+
+    SDRIODeviceManager::~SDRIODeviceManager ()
+    {
+        --numManagersActive;
+        if (numManagersActive == 0)
+            SDRIOEngineManager::clearAllRegisteredEngines();
+    }
+
     void SDRIODeviceManager::addDefaultEngines ()
     {
         SDRIOEngineManager::registerDefaultEngines();
@@ -27,7 +41,7 @@ namespace ntlab
 
     juce::StringArray SDRIODeviceManager::getEngineNames () {return SDRIOEngineManager::getAvailableEngines(); }
 
-    bool SDRIODeviceManager::selectEngine (juce::String& engineName)
+    bool SDRIODeviceManager::selectEngine (juce::StringRef engineName)
     {
         auto newEngine = SDRIOEngineManager::createEngine (engineName);
         if (newEngine == nullptr)
@@ -37,7 +51,7 @@ namespace ntlab
         return true;
     }
 
-    SDRIOEngine& SDRIODeviceManager::getSelectedEngine () {return *selectedEngine; }
+    SDRIOEngine* SDRIODeviceManager::getSelectedEngine () {return selectedEngine.get(); }
 
     juce::String SDRIODeviceManager::getSelectedEngineName () {return selectedEngineName; }
 
