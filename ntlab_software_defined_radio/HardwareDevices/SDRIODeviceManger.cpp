@@ -48,6 +48,7 @@ namespace ntlab
             return false;
 
         selectedEngine = std::move (newEngine);
+        selectedEngineName = engineName;
         return true;
     }
 
