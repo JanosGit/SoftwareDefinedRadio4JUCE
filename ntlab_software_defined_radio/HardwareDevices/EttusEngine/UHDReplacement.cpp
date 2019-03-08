@@ -209,6 +209,7 @@ namespace ntlab
             NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (txStreamerFree,           TxStreamerFree,           "uhd_tx_streamer_free")
             NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (txMetadataMake,           TxMetadataMake,           "uhd_tx_metadata_make")
             NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (txMetadataFree,           TxMetadataFree,           "uhd_tx_metadata_free")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (txMetadataLastError,      TxMetadataLastError,      "uhd_tx_metadata_last_error")
             NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (subdevSpecMake,           SubdevSpecMake,           "uhd_subdev_spec_make")
             NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (subdevSpecFree,           SubdevSpecFree,           "uhd_subdev_spec_free")
             NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (stringVectorMake,         StringVectorMake,         "uhd_string_vector_make")
@@ -858,8 +859,14 @@ namespace ntlab
 
     UHDr::USRP::TxStream::~TxStream ()
     {
-        if (txMetadataHandle != nullptr)
-            uhd->txMetadataFree (&txMetadataHandle);
+        if (txMetadataStartOfBurst != nullptr)
+            uhd->txMetadataFree (&txMetadataStartOfBurst);
+
+        if (txMetadataContinous != nullptr)
+            uhd->txMetadataFree (&txMetadataContinous);
+
+        if (txMetadataEndOfBurst != nullptr)
+            uhd->txMetadataFree (&txMetadataEndOfBurst);
 
         if (txStreamerHandle != nullptr)
             uhd->txStreamerFree (&txStreamerHandle);
@@ -880,7 +887,23 @@ namespace ntlab
         size_t numSamplesSent;
         error = uhd->txStreamerSend (txStreamerHandle, buffsPtr, static_cast<size_t> (numSamples), &txMetadataHandle, timeoutInSeconds, &numSamplesSent);
         NTLAB_PRINT_ERROR_TO_DBG_AND_INVOKE_ACTIONS (error, );
+
+        if (txMetadataHandle == txMetadataStartOfBurst)
+            txMetadataHandle = txMetadataContinous;
+
         return static_cast<int> (numSamplesSent);
+    }
+
+    UHDr::Error UHDr::USRP::TxStream::sendEndOfBurst ()
+    {
+        txMetadataHandle = txMetadataEndOfBurst;
+        UHDr::Error error;
+
+        send (nullptr, 0, error, 1.0);
+
+        txMetadataHandle = txMetadataStartOfBurst;
+
+        return error;
     }
 
     UHDr::USRP::TxStream::TxStream (ntlab::UHDr::Ptr uhdr, ntlab::UHDr::USRPHandle& usrpHandle, ntlab::UHDr::StreamArgs& streamArgs, ntlab::UHDr::Error& error) : uhd (uhdr)
@@ -893,12 +916,34 @@ namespace ntlab
         error = uhd->getTxStream (usrpHandle, &streamArgs, txStreamerHandle);
         NTLAB_PRINT_ERROR_TO_DBG_AND_INVOKE_ACTIONS (error, uhd->txStreamerFree (&txStreamerHandle); return;)
 
-        error = uhd->txMetadataMake (&txMetadataHandle, false, 0, 0.1, true, false); // taken from the ettus tx_samples_c.c example
-        NTLAB_PRINT_ERROR_TO_DBG_AND_INVOKE_ACTIONS (error, txMetadataHandle = nullptr; uhd->txStreamerFree (&txStreamerHandle); return;)
+        bool startOfBurst = true;
+        bool endOfBurst = false;
+        error = uhd->txMetadataMake (&txMetadataStartOfBurst, false, 0, 0.1, startOfBurst, endOfBurst); // taken from the ettus tx_samples_c.c example
+        NTLAB_PRINT_ERROR_TO_DBG_AND_INVOKE_ACTIONS (error, txMetadataStartOfBurst = nullptr; uhd->txStreamerFree (&txStreamerHandle); return;)
+
+        startOfBurst = false;
+        error = uhd->txMetadataMake (&txMetadataContinous, false, 0, 0.0, startOfBurst, endOfBurst);
+        NTLAB_PRINT_ERROR_TO_DBG_AND_INVOKE_ACTIONS (error, txMetadataContinous = nullptr; uhd->txMetadataFree (&txMetadataStartOfBurst); uhd->txStreamerFree (&txStreamerHandle); return;)
+
+        endOfBurst = true;
+        error = uhd->txMetadataMake (&txMetadataEndOfBurst, false, 0, 0.0, startOfBurst, endOfBurst);
+        NTLAB_PRINT_ERROR_TO_DBG_AND_INVOKE_ACTIONS (error, txMetadataContinous = nullptr; uhd->txMetadataFree (&txMetadataStartOfBurst); uhd->txMetadataFree (&txMetadataContinous); uhd->txStreamerFree (&txStreamerHandle); return;)
+
+        txMetadataHandle = txMetadataStartOfBurst;
 
         numActiveChannels = streamArgs.numChannels;
         error = uhd->getTxStreamMaxNumSamples (txStreamerHandle, &maxNumSamples);
         NTLAB_PRINT_ERROR_TO_DBG_AND_INVOKE_ACTIONS (error, uhd->txStreamerFree (&txStreamerHandle); return;)
+    }
+
+    juce::String UHDr::USRP::TxStream::getLastError ()
+    {
+        const size_t tmpStringSize = 256;
+        char tmpString[tmpStringSize];
+
+        uhd->txMetadataLastError(txMetadataHandle, tmpString, tmpStringSize);
+
+        return juce::String::fromUTF8 (tmpString, tmpStringSize);
     }
 
     UHDr::USRP::USRP (ntlab::UHDr* uhdr, const char* args, ntlab::UHDr::Error& error) : uhd (uhdr)

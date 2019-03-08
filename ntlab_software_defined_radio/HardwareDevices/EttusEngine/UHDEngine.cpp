@@ -15,6 +15,10 @@ You should have received a copy of the GNU General Public License
 along with SoftwareDefinedRadio4JUCE. If not, see <http://www.gnu.org/licenses/>.
 */
 
+#if JUCE_MAC
+#import <Foundation/Foundation.h>
+#endif
+
 #include "UHDEngine.h"
 #include "../../ErrorHandling/ErrorHandlingMacros.h"
 
@@ -79,19 +83,11 @@ namespace ntlab
     const juce::Identifier UHDEngine::ChannelMapping::propertyCenterFrequency ("center_frequency");
     const juce::Identifier UHDEngine::ChannelMapping::propertyAnalogBandwitdh ("analog_bandwidth");
 
-    UHDEngine* UHDEngine::castToUHDEnginePtr (std::unique_ptr<ntlab::SDRIOEngine>& baseEnginePtr) { return dynamic_cast<ntlab::UHDEngine*> (baseEnginePtr.get()); }
-
-    UHDEngine& UHDEngine::castToUHDEngineRef (std::unique_ptr<ntlab::SDRIOEngine>& baseEnginePtr)
-    {
-        auto uhdEnginePtr = castToUHDEnginePtr (baseEnginePtr);
-        if (uhdEnginePtr == nullptr)
-            throw std::bad_cast();
-
-        return *uhdEnginePtr;
-    }
-
     UHDEngine::~UHDEngine ()
     {
+        if (isStreaming())
+            stopStreaming();
+
         if (threadShouldExit())
         {
             waitForThreadToExit (2100);
@@ -100,17 +96,27 @@ namespace ntlab
         {
             stopThread (2000);
         }
+
+        std::clog.rdbuf (previousClogStreambuf);
     }
 
     UHDEngine::UHDEngine (ntlab::UHDr::Ptr uhdLibrary)
       : juce::Thread ("UHD Engine Thread"),
+        uhdLogStreambuffer (activeCallback),
         uhdr (uhdLibrary),
-        devicesInActiveUSRPSetup ("Active_Devices") {}
+        devicesInActiveUSRPSetup ("Active_Devices")
+    {
+        previousClogStreambuf = std::clog.rdbuf (&uhdLogStreambuffer);
+    }
 
     juce::Result UHDEngine::makeUSRP (juce::StringPairArray& args, SynchronizationSetup synchronizationSetup)
     {
         // rearranging the whole setup while streaming is running seems like a bad idea...
         jassert (!isStreaming());
+
+        // update the device tree if neccesarry
+        if (!deviceTree.isValid())
+            getDeviceTree();
 
         UHDr::Error error;
         auto newUSRP = uhdr->makeUSRP (args, error);
@@ -154,7 +160,7 @@ namespace ntlab
 
         numMboardsInUSRP = usrp->getNumMboards();
         int numMboardsInActiveDeviceTree = devicesInActiveUSRPSetup.getNumChildren();
-        if (numMboardsInDeviceTree != numMboardsInActiveDeviceTree)
+        if (numMboardsInUSRP != numMboardsInActiveDeviceTree)
         {
             usrp = nullptr;
             jassertfalse;
@@ -364,20 +370,36 @@ namespace ntlab
         NTLAB_RETURN_MINUS_ONE_IF (usrp == nullptr);
 
         UHDr::Error error;
-        double rxSampleRate = usrp->getRxSampleRate (0, error);
-        NTLAB_RETURN_MINUS_ONE_AND_PRINT_ERROR_DBG_IF_FAILED (error);
 
-        double txSampleRate = usrp->getTxSampleRate (0, error);
-        NTLAB_RETURN_MINUS_ONE_AND_PRINT_ERROR_DBG_IF_FAILED (error);
+        double rxSampleRate, txSampleRate;
+        if (rxChannelMapping != nullptr)
+        {
+            rxSampleRate = usrp->getRxSampleRate (0, error);
+            NTLAB_RETURN_MINUS_ONE_AND_PRINT_ERROR_DBG_IF_FAILED (error);
+        }
 
-        if (rxSampleRate != txSampleRate)
+        if (txChannelMapping != nullptr)
+        {
+            txSampleRate = usrp->getTxSampleRate (0, error);
+            NTLAB_RETURN_MINUS_ONE_AND_PRINT_ERROR_DBG_IF_FAILED (error);
+        }
+
+        if ((txChannelMapping != nullptr) && (rxChannelMapping != nullptr) && (rxSampleRate != txSampleRate))
         {
             lastError = "Error getting sample rate, different samplerates for rx (" + juce::String (rxSampleRate) + "Hz) and tx (" + juce::String (txSampleRate) + "Hz) returned";
             DBG (lastError);
             return -1.0;
         }
 
-        return txSampleRate;
+        if (rxChannelMapping != nullptr)
+            return rxSampleRate;
+
+        if (txChannelMapping != nullptr)
+            return txSampleRate;
+
+        // trying to get the samplerate without having configured neiter an rx nor a tx stream seems like an unintended action...
+        jassertfalse;
+        return 0.0;
     }
 
     juce::ValueTree UHDEngine::getDeviceTree()
@@ -494,7 +516,7 @@ namespace ntlab
 
     void UHDEngine::stopStreaming ()
     {
-        stopThread (2000);
+        stopThread (20000);
     }
 
     bool UHDEngine::isStreaming ()
@@ -555,6 +577,8 @@ namespace ntlab
                 return false;
             }
 
+            notifyListenersRxCenterFreqChanged (result.actualRfFreq, channel);
+
             //if (!((result.actualRfFreq == result.targetRfFreq) && (result.actualDspFreq == result.targetDspFreq)))
             if (!juce::approximatelyEqual (result.actualRfFreq, result.targetRfFreq))
             {
@@ -565,8 +589,6 @@ namespace ntlab
                         + juce::String (result.actualDspFreq) + "Hz");
                 return false;
             }
-
-            notifyListenersRxCenterFreqChanged (newCenterFrequency, channel);
         }
         return true;
     }
@@ -607,6 +629,8 @@ namespace ntlab
                 return false;
             }
 
+            notifyListenersTxCenterFreqChanged (result.actualRfFreq, channel);
+
             //if (!((result.actualRfFreq == result.targetRfFreq) && (result.actualDspFreq == result.targetDspFreq)))
             if (!juce::approximatelyEqual (result.actualRfFreq, result.targetRfFreq))
             {
@@ -617,8 +641,6 @@ namespace ntlab
                         + juce::String (result.actualDspFreq) + "Hz");
                 return false;
             }
-
-            notifyListenersTxCenterFreqChanged (newCenterFrequency, channel);
         }
         return true;
     }
@@ -885,6 +907,41 @@ namespace ntlab
         double txGain = usrp->getTxGain (channel, error, gainElementString);
 
         NTLAB_RETURN_MINUS_ONE_AND_PRINT_ERROR_DBG_IF_FAILED_RETURN_VALUE_OTHERWISE (error, txGain);
+    }
+
+    UHDEngine::UHDLogStreambuffer::UHDLogStreambuffer (SDRIODeviceCallback*& callbackToUse) : callback (callbackToUse)
+    {
+        setp (nullptr, nullptr);
+    }
+
+    std::streamsize UHDEngine::UHDLogStreambuffer::xsputn (const char* string, std::streamsize count)
+    {
+        logTempBuffer += juce::String::fromUTF8 (string, static_cast<int> (count));
+        return count;
+    }
+
+    std::streambuf::int_type UHDEngine::UHDLogStreambuffer::overflow (std::streambuf::int_type character)
+    {
+        if (callback != nullptr)
+        {
+            if (logTempBuffer.contains ("[ERROR]"))
+            {
+                callback->handleError (logTempBuffer);
+            }
+        }
+        else
+        {
+#if JUCE_MAC
+            CFStringRef messageCFString = logTempBuffer.toCFString();
+            NSLog (@"%@", (NSString*)messageCFString);
+            CFRelease (messageCFString);
+#else
+            std::cerr << logTempBuffer;
+#endif
+        }
+
+        logTempBuffer.clear();
+        return character;
     }
 
     UHDEngine::ChannelMapping::ChannelMapping (juce::Array<ntlab::UHDEngine::ChannelSetup>& channelSetup, UHDEngine& engine, ChannelMapping::Direction direction)
@@ -1398,19 +1455,18 @@ namespace ntlab
                 // exactly one second after this call. This should be enough time for the hardware to prepare
                 usrp->setTimeUnknownPPS (0, 0);
             case twoDevicesMIMOCableMasterSlave:
-                // the master device
-                usrp->setTimeNow (0, 0.0, 0);
-
                 // the slave device
                 usrp->setClockSource ("mimo", 1);
                 usrp->setTimeSource  ("mimo", 1);
+
+                // the master device
+                usrp->setTimeNow (0, 0.0, 0);
 
                 //sleep a bit while the slave locks its time to the master
                 sleep (100);
         }
 
         const time_t delayInSecondsUntilStreamingStarts = 1;
-
 
         if (rxStream != nullptr)
         {
@@ -1421,7 +1477,7 @@ namespace ntlab
             streamCmd.timeSpecFracSecs = 0;
             streamCmd.timeSpecFullSecs = delayInSecondsUntilStreamingStarts;
 
-            juce::Result issueStreamCmd = rxStream->issueStreamCmd (streamCmd);
+            auto issueStreamCmd = rxStream->issueStreamCmd (streamCmd);
             if (issueStreamCmd.failed())
             {
                 activeCallback->handleError (issueStreamCmd.getErrorMessage() + ". Stopping stream.");
@@ -1462,7 +1518,8 @@ namespace ntlab
             if (txWasEnabled)
             {
                 UHDr::Error error;
-                txStream->send (txBuffer->getArrayOfWritePointers(), txBuffer->getNumSamples(), error, 0.5);
+                auto numSamplesToSend = txBuffer->getNumSamples();
+                auto numSamplesSent = txStream->send (txBuffer->getArrayOfWritePointers(), numSamplesToSend, error, 0.5);
 
                 if (error)
                 {
@@ -1470,7 +1527,22 @@ namespace ntlab
                     activeCallback->streamingHasStopped();
                     return;
                 }
+
+                if (numSamplesSent != numSamplesToSend)
+                {
+                    activeCallback->handleError ("Error sending samples: " + txStream->getLastError());
+                }
             }
+        }
+
+        if (txStream != nullptr)
+        {
+            auto error = txStream->sendEndOfBurst();
+            if (error)
+            {
+                activeCallback->handleError ("Warning: Error sending TX endOfBurst flag. " + UHDr::errorDescription (error));
+            }
+
         }
 
         activeCallback->streamingHasStopped();
@@ -1484,11 +1556,7 @@ namespace ntlab
         for (auto& d : allDevices)
             allIPAddresses.add (d.getValue ("addr", "0.0.0.0"));
 
-        //allIPAddresses.add ("0.0.0.0");
-
         juce::ValueTree tree (propertyUSRPDevice);
-
-
 
         juce::StringArray probeArgs ("uhd_usrp_probe");
 

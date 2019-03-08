@@ -216,8 +216,9 @@ namespace ntlab
         typedef Error (*TxStreamerFree)(TxStreamerHandle*);
 
         typedef void* TxMetadataHandle;
-        typedef Error (*TxMetadataMake)(TxMetadataHandle*, bool, time_t, double, bool, bool);
-        typedef Error (*TxMetadataFree)(TxMetadataHandle*);
+        typedef Error (*TxMetadataMake)     (TxMetadataHandle*, bool, time_t, double, bool, bool);
+        typedef Error (*TxMetadataFree)     (TxMetadataHandle*);
+        typedef Error (*TxMetadataLastError)(TxMetadataHandle, char*, size_t);
 
         typedef void* SubdevSpecHandle;
         typedef Error (*SubdevSpecMake)(SubdevSpecHandle*, const char*);
@@ -605,6 +606,8 @@ namespace ntlab
 
                 // Masking the UHDr::errorDescription to be able to add the usrpHandle's lastError string to the error description
                 std::function<juce::String(Error)> errorDescription;
+
+                JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (RxStream)
             };
 
 
@@ -639,17 +642,24 @@ namespace ntlab
                 // todo: check metadata for start/end of burst flag effects
                 int send (BuffsPtr buffsPtr, int numSamples, Error &error, double timeoutInSeconds = 1.0);
 
+                Error sendEndOfBurst();
+
+                juce::String getLastError();
+
             private:
                 TxStream (UHDr::Ptr uhdr, USRPHandle &usrpHandle, StreamArgs &streamArgs, Error &error);
 
                 UHDr::Ptr uhd;
                 TxStreamerHandle txStreamerHandle;
+                TxMetadataHandle txMetadataStartOfBurst, txMetadataContinous, txMetadataEndOfBurst;
                 TxMetadataHandle txMetadataHandle;
                 int numActiveChannels;
                 size_t maxNumSamples;
 
                 // Masking the UHDr::errorDescription to be able to add the usrpHandle's lastError string to the error description
                 std::function<juce::String(Error)> errorDescription;
+
+                JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (TxStream)
             };
 
             TxStream* makeTxStream (StreamArgs& streamArgs, Error& error);
@@ -668,6 +678,8 @@ namespace ntlab
 
             // Masking the UHDr::errorDescription to be able to add the usrpHandle's lastError string to the error description
             std::function<juce::String(Error)> errorDescription;
+
+            JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (USRP)
         };
 
         /**
@@ -712,6 +724,7 @@ namespace ntlab
         TxStreamerFree           txStreamerFree;
         TxMetadataMake           txMetadataMake;
         TxMetadataFree           txMetadataFree;
+        TxMetadataLastError      txMetadataLastError;
         SubdevSpecMake           subdevSpecMake;
         SubdevSpecFree           subdevSpecFree;
         StringVectorMake         stringVectorMake;
@@ -768,5 +781,7 @@ namespace ntlab
         // converts an uhd string vector to a juce::StringArray and frees the string vector afterwards. Returns an empty
         // array in case of any error
         juce::StringArray uhdStringVectorToStringArray (StringVectorHandle stringVectorHandle);
+
+        JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (UHDr)
     };
 }

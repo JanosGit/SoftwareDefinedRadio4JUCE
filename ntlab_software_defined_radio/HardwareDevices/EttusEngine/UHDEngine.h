@@ -106,25 +106,6 @@ namespace ntlab
         static const juce::Identifier propertySyncSetup;
         static const juce::Identifier propertySampleRate;
 
-        /**
-         * If an UHDEngine instance was created through SDRIOEngineManager::createEngine you might want to cast the
-         * std::unique_ptr returned to a raw pointer to a UHDEngine instace. Therefore this is a simple wrapper
-         * around a dynamic_cast for better code readability. It returns a raw pointer pointing to the instance owned
-         * by the unique_ptr passed in, so make sure that the unique_ptr has a lifetime longer than the pointer returned.
-         * It will return a nullprt in case the baseEnginePtr passed is not an UHDEngine instance.
-         */
-        static UHDEngine* castToUHDEnginePtr (std::unique_ptr<SDRIOEngine>& baseEnginePtr);
-
-        /**
-         * If an UHDEngine instance was created through SDRIOEngineManager::createEngine you might want to cast the
-         * std::unique_ptr returned to a reference to a UHDEngine instace. Therefore this is a simple wrapper
-         * around a dynamic_cast for better code readability. It returns a reference pointing to the instance
-         * owned by the unique_ptr passed in, so make sure that the unique_ptr has a lifetime longer than the reference
-         * returned. It will throw a std::bad_cast in case the baseEnginePtr passed is not an UHDEngine instance, so
-         * better only use it if you are absolutely sure that the baseEnginePtr holds a UHDEngine instance.
-         */
-        static UHDEngine& castToUHDEngineRef (std::unique_ptr<SDRIOEngine>& baseEnginePtr);
-
         ~UHDEngine();
 
         /**
@@ -189,8 +170,6 @@ namespace ntlab
 
         double getRxBandwidth (int channel) override;
 
-        //double getRxLOFrequency (int channel = allChannels) override;
-
         bool setRxGain (double newGain, GainElement gainElement, int channel) override;
 
         double getRxGain (int channel, GainElement gainElement) override;
@@ -202,8 +181,6 @@ namespace ntlab
         bool setTxBandwidth (double newBandwidth, int channel) override;
 
         double getTxBandwidth (int channel) override;
-
-        //double getTxLOFrequency (int channel = allChannels) override;
 
         bool setTxGain (double newGain, GainElement gainElement, int channel) override;
 
@@ -217,6 +194,17 @@ namespace ntlab
             mboard,
             dboardOrDSP,
             frontendOrCodec
+        };
+
+        class UHDLogStreambuffer : public std::streambuf
+        {
+        public:
+            UHDLogStreambuffer (SDRIODeviceCallback*& callbackToUse);
+            int_type overflow (int_type character = EOF) override;
+            std::streamsize xsputn (const char_type* string, std::streamsize count) override;
+        private:
+            juce::String logTempBuffer;
+            SDRIODeviceCallback*& callback;
         };
 
         // manages the mapping between the buffer channels exposed to the public interface and the hardware ressources
@@ -300,6 +288,11 @@ namespace ntlab
             static const juce::Identifier propertyHardwareChannel;
         };
 
+        SDRIODeviceCallback* activeCallback = nullptr;
+
+        std::streambuf* previousClogStreambuf;
+        UHDLogStreambuffer uhdLogStreambuffer;
+
         UHDEngine (UHDr::Ptr uhdLibrary);
 
         UHDr::Ptr uhdr;
@@ -335,8 +328,6 @@ namespace ntlab
 
         juce::String lastError;
 
-        SDRIODeviceCallback* activeCallback = nullptr;
-
         void run() override;
 
         juce::ValueTree getUHDTree();
@@ -344,14 +335,14 @@ namespace ntlab
         juce::IPAddress getIPAddressForMboard (int mboardIdx);
     };
 
-    class UHDEngineManager : public SDRIOEngineManager
+    class UHDEngineManager : private SDRIOEngineManager
     {
-    public:
+        friend class SDRIOEngineManager;
+    private:
         juce::String getEngineName() override;
 
         juce::Result isEngineAvailable() override;
 
-    protected:
         SDRIOEngine* createEngine() override;
 
     private:
