@@ -23,7 +23,7 @@ namespace ntlab
 {
 
 #ifdef NTLAB_USE_CL_SAMPLE_BUFFER_COMPLEX_FOR_SDR_IO_DEVICE_CALLBACK
-    using OptionalCLSampleBufferComplex = CLSampleBufferComplex<float>;
+    using OptionalCLSampleBufferComplexFloat = CLSampleBufferComplex<float>;
 #else
     using OptionalCLSampleBufferComplexFloat = SampleBufferComplex<float>;
 #endif
