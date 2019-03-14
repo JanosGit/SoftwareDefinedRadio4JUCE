@@ -112,7 +112,7 @@ namespace ntlab
                     }
                     ca += ad;
 
-                    if (ca > juce::MathConstants<double>::twoPi)
+                    if (ca > juce::MathConstants<double>::pi)
                         ca -= juce::MathConstants<double>::twoPi;
                 }
             }

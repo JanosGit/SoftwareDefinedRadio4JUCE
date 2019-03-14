@@ -33,7 +33,7 @@ namespace ntlab
         sdrCenterFreq.fill (0.0);
         ifFrequency  .fill (0.0);
         phase        .fill (0.0);
-        currentAngle .fill (0.0);
+        currentAngle .fill (- juce::MathConstants<double>::pi);
         angleDelta   .fill (0.0);
         amplitude    .fill (1.0);
     }
