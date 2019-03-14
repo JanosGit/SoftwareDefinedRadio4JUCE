@@ -51,7 +51,9 @@
 #define JUCE_MODULE_AVAILABLE_juce_audio_basics                 1
 #define JUCE_MODULE_AVAILABLE_juce_audio_formats                1
 #define JUCE_MODULE_AVAILABLE_juce_core                         1
+#define JUCE_MODULE_AVAILABLE_juce_data_structures              1
 #define JUCE_MODULE_AVAILABLE_juce_dsp                          1
+#define JUCE_MODULE_AVAILABLE_juce_events                       1
 #define JUCE_MODULE_AVAILABLE_ntlab_software_defined_radio      1
 
 #define JUCE_GLOBAL_MODULE_SETTINGS_INCLUDED 1
@@ -146,6 +148,13 @@
 #endif
 
 //==============================================================================
+// juce_events flags:
+
+#ifndef    JUCE_EXECUTE_APP_SUSPEND_ON_IOS_BACKGROUND_TASK
+ //#define JUCE_EXECUTE_APP_SUSPEND_ON_IOS_BACKGROUND_TASK 0
+#endif
+
+//==============================================================================
 // ntlab_software_defined_radio flags:
 
 #ifndef    NTLAB_NO_SIMD
@@ -155,6 +164,11 @@
 #ifndef    NTLAB_INCLUDE_EIGEN
  #define   NTLAB_INCLUDE_EIGEN 1
 #endif
+
+#ifndef    NTLAB_WARN_ABOUT_MISSING_UHD_GAIN_ELEMENTS
+ //#define NTLAB_WARN_ABOUT_MISSING_UHD_GAIN_ELEMENTS 1
+#endif
+
 //==============================================================================
 #ifndef    JUCE_STANDALONE_APPLICATION
  #if defined(JucePlugin_Name) && defined(JucePlugin_Build_Standalone)

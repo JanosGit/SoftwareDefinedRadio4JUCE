@@ -41,8 +41,8 @@ static const unsigned char temp_binary_data_0[] =
 "    numRows = fread(fileHandle, 1, 'int64');\r\n"
 "    \r\n"
 "    if isComplex\r\n"
-"        fileContentInterleaved = fread(fileHandle, [numCols, numRows * 2], precision);\r\n"
-"        fileContent = fileContentInterleaved(:, 1:2:end) + 1i * fileContentInterleaved(:, 2:2:end);\r\n"
+"        fileContentInterleaved = fread(fileHandle, [2 * numCols, numRows], precision);\r\n"
+"        fileContent = fileContentInterleaved(1:2:end, :) + 1i * fileContentInterleaved(2:2:end, :);\r\n"
 "    else\r\n"
 "        fileContent = fread(fileHandle, [numCols, numRows], precision);\r\n"
 "    end\r\n"
@@ -63,7 +63,8 @@ const char* readMCV_m = (const char*) temp_binary_data_0;
 const char* getNamedResource (const char* resourceNameUTF8, int& numBytes)
 {
     unsigned int hash = 0;
-    if (resourceNameUTF8 != 0)
+
+    if (resourceNameUTF8 != nullptr)
         while (*resourceNameUTF8 != 0)
             hash = 31 * hash + (unsigned int) *resourceNameUTF8++;
 
