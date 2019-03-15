@@ -91,13 +91,6 @@
 			path = ../../JuceLibraryCode/BinaryData.cpp;
 			sourceTree = "SOURCE_ROOT";
 		};
-		14E8564D4FF6C508F2A1CB7E = {
-			isa = PBXFileReference;
-			lastKnownFileType = file;
-			name = "juce_events";
-			path = "../../../../../SDKs/JUCE/modules/juce_events";
-			sourceTree = "SOURCE_ROOT";
-		};
 		212B2E10B6F91FD140DD5839 = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.cpp.objcpp;
@@ -147,18 +140,18 @@
 			path = ../../Source/Main.cpp;
 			sourceTree = "SOURCE_ROOT";
 		};
+		34A5DC62BFE924162CC50C3E = {
+			isa = PBXFileReference;
+			lastKnownFileType = file;
+			name = "juce_core";
+			path = "~/JUCE/modules/juce_core";
+			sourceTree = "<absolute>";
+		};
 		3AF0F816DE8DDD0892A0F8E9 = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.c.h;
 			name = BinaryData.h;
 			path = ../../JuceLibraryCode/BinaryData.h;
-			sourceTree = "SOURCE_ROOT";
-		};
-		3B175C5CF96659BC80941F0B = {
-			isa = PBXFileReference;
-			lastKnownFileType = file;
-			name = "juce_core";
-			path = "../../../../../SDKs/JUCE/modules/juce_core";
 			sourceTree = "SOURCE_ROOT";
 		};
 		400014FB1C398527E2325297 = {
@@ -182,13 +175,6 @@
 			path = System/Library/Frameworks/Cocoa.framework;
 			sourceTree = SDKROOT;
 		};
-		5F2AC1EAD910F3381EDD3384 = {
-			isa = PBXFileReference;
-			lastKnownFileType = file;
-			name = "juce_audio_basics";
-			path = "../../../../../SDKs/JUCE/modules/juce_audio_basics";
-			sourceTree = "SOURCE_ROOT";
-		};
 		61C3F95CCC3FA28631C7B476 = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.c.objc;
@@ -196,18 +182,18 @@
 			path = ../../../MCVFileFormat/MATLAB/readMCV.m;
 			sourceTree = "SOURCE_ROOT";
 		};
+		73D4AEE4E1B482644D1B1D18 = {
+			isa = PBXFileReference;
+			lastKnownFileType = file;
+			name = "juce_audio_basics";
+			path = "~/JUCE/modules/juce_audio_basics";
+			sourceTree = "<absolute>";
+		};
 		7F72638FEAEEB82184018DE3 = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.cpp.objcpp;
 			name = "include_juce_data_structures.mm";
 			path = "../../JuceLibraryCode/include_juce_data_structures.mm";
-			sourceTree = "SOURCE_ROOT";
-		};
-		844133E14A20125789F66B1C = {
-			isa = PBXFileReference;
-			lastKnownFileType = file;
-			name = "juce_audio_formats";
-			path = "../../../../../SDKs/JUCE/modules/juce_audio_formats";
 			sourceTree = "SOURCE_ROOT";
 		};
 		9704D70D73E125857CD4F2AB = {
@@ -223,6 +209,27 @@
 			name = "ntlab_software_defined_radio";
 			path = "../../../ntlab_software_defined_radio";
 			sourceTree = "SOURCE_ROOT";
+		};
+		A0D0E0B7C75E237E5B030934 = {
+			isa = PBXFileReference;
+			lastKnownFileType = file;
+			name = "juce_audio_formats";
+			path = "~/JUCE/modules/juce_audio_formats";
+			sourceTree = "<absolute>";
+		};
+		A4C30C71F2C814B09854FBF1 = {
+			isa = PBXFileReference;
+			lastKnownFileType = file;
+			name = "juce_events";
+			path = "~/JUCE/modules/juce_events";
+			sourceTree = "<absolute>";
+		};
+		AB201A43C141F35CC5EC6DD4 = {
+			isa = PBXFileReference;
+			lastKnownFileType = file;
+			name = "juce_dsp";
+			path = "~/JUCE/modules/juce_dsp";
+			sourceTree = "<absolute>";
 		};
 		B5B9333A684EB86BECEEF6B0 = {
 			isa = PBXFileReference;
@@ -243,13 +250,6 @@
 			lastKnownFileType = sourcecode.c.h;
 			name = AppConfig.h;
 			path = ../../JuceLibraryCode/AppConfig.h;
-			sourceTree = "SOURCE_ROOT";
-		};
-		D9C216604EC39F7520E7B574 = {
-			isa = PBXFileReference;
-			lastKnownFileType = file;
-			name = "juce_dsp";
-			path = "../../../../../SDKs/JUCE/modules/juce_dsp";
 			sourceTree = "SOURCE_ROOT";
 		};
 		DCA75FC440D424D2D8B8D8DE = {
@@ -308,12 +308,12 @@
 		17ABC049D105E5562BEAF129 = {
 			isa = PBXGroup;
 			children = (
-				5F2AC1EAD910F3381EDD3384,
-				844133E14A20125789F66B1C,
-				3B175C5CF96659BC80941F0B,
+				73D4AEE4E1B482644D1B1D18,
+				A0D0E0B7C75E237E5B030934,
+				34A5DC62BFE924162CC50C3E,
 				9704D70D73E125857CD4F2AB,
-				D9C216604EC39F7520E7B574,
-				14E8564D4FF6C508F2A1CB7E,
+				AB201A43C141F35CC5EC6DD4,
+				A4C30C71F2C814B09854FBF1,
 				9A90709E580E470151F89010,
 			);
 			name = "JUCE Modules";
@@ -411,6 +411,7 @@
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				HEADER_SEARCH_PATHS = (
 					"../../JuceLibraryCode",
+					"$(HOME)/JUCE/modules",
 					"../../../../../SDKs/JUCE/modules",
 					"../../../../SoftwareDefinedRadio4JUCE",
 					"$(inherited)",
@@ -455,6 +456,7 @@
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				HEADER_SEARCH_PATHS = (
 					"../../JuceLibraryCode",
+					"$(HOME)/JUCE/modules",
 					"../../../../../SDKs/JUCE/modules",
 					"../../../../SoftwareDefinedRadio4JUCE",
 					"$(inherited)",
