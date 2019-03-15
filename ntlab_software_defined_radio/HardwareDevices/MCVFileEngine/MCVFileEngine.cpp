@@ -356,7 +356,6 @@ namespace ntlab
 
             beginTest ("Create MCVFileEngine instance");
 
-            // Normally the SDRIOEngineManager is not used directly but called be the SDRIODeviceManager
             SDRIODeviceManager deviceManager;
             deviceManager.addDefaultEngines();
             expect (deviceManager.selectEngine ("MCV File Engine"));
