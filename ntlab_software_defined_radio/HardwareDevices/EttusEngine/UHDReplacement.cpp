@@ -327,10 +327,13 @@ namespace ntlab
 
     UHDr::USRP::~USRP ()
     {
-        // todo: investigate why usrpFree fails but delete works as expected
+        // todo: investigate why usrpFree fails on Mac OS but delete works as expected
         if (usrpHandle != nullptr)
+#if JUCE_MAC
             delete usrpHandle;
-            //uhd->usrpFree (&usrpHandle);
+#else
+            uhd->usrpFree (&usrpHandle);
+#endif
     }
 
     juce::Result UHDr::USRP::setRxSampleRate (double newSampleRate, int channelIdx)
