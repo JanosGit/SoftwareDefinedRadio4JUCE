@@ -136,7 +136,7 @@ namespace ntlab
 
     juce::ValueTree MCVFileEngine::getDeviceTree()
     {
-        return juce::ValueTree();
+        return engineConfig;
     }
 
     juce::ValueTree MCVFileEngine::getActiveConfig()
@@ -357,15 +357,19 @@ namespace ntlab
             beginTest ("Create MCVFileEngine instance");
 
             // Normally the SDRIOEngineManager is not used directly but called be the SDRIODeviceManager
-            SDRIOEngineManager::registerSDREngine (new MCVFileEngineManager);
-            auto engine = SDRIOEngineManager::createEngine ("MCV File Engine");
+            SDRIODeviceManager deviceManager;
+            deviceManager.addDefaultEngines();
+            expect (deviceManager.selectEngine ("MCV File Engine"));
 
-            auto mcvFileEngine = dynamic_cast<MCVFileEngine*> (engine.get());
+            auto mcvFileEngine = dynamic_cast<MCVFileEngine*> (deviceManager.getSelectedEngine());
             expect (mcvFileEngine->setInFile (inFile));
             expect (mcvFileEngine->setOutFile (outFile, numChannels));
             expect (mcvFileEngine->setSampleRate (sampleRate));
 
-            mcvFileEngine->startStreaming (this);
+            deviceManager.setCallback (this);
+            expect (deviceManager.isReadyToStream());
+
+            deviceManager.startStreaming();
 
             waitForEngineToFinish.wait (-1);
 

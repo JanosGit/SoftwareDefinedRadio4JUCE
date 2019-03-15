@@ -114,9 +114,10 @@ namespace ntlab
         void endStreaming();
     };
 
-    class MCVFileEngineManager : public SDRIOEngineManager
+    class MCVFileEngineManager : private SDRIOEngineManager
     {
-    public:
+        friend class SDRIOEngineManager;
+    private:
         juce::String getEngineName() override;
 
         juce::Result isEngineAvailable() override;

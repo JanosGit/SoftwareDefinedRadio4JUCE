@@ -1577,8 +1577,6 @@ namespace ntlab
                 continue;
 
             auto outputToParse = uhdUSRPProbe.readAllProcessOutput ();
-            //juce::FileInputStream savedOutput (juce::File ("/Users/janosbuttgereit/Entwicklung/Eigene JUCE Module/SoftwareDefinedRadio4JUCE/DevelopmentHelpers/SavedDeviceTrees/2xUSRP_N210_ConsoleOutput.txt"));
-            //auto outputToParse = savedOutput.readEntireStreamAsString();
 
             if (outputToParse.isEmpty ())
                 continue;
