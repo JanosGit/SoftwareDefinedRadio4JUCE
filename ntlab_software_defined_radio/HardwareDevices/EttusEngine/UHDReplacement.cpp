@@ -20,7 +20,15 @@ along with SoftwareDefinedRadio4JUCE. If not, see <http://www.gnu.org/licenses/>
 
 namespace ntlab
 {
-    UHDr::UHDSetter::UHDSetter () : numArguments (0) {}
+#if JUCE_MAC
+	const juce::String UHDr::uhdLibName ("libuhd.dylib");
+#elif JUCE_WINDOWS
+	const juce::String UHDr::uhdLibName ("C:\\Program Files\\UHD\\bin\\uhd.dll");
+#else
+#error "No uhd library path specified for this operating system"
+#endif
+	
+	UHDr::UHDSetter::UHDSetter () : numArguments (0) {}
 
     UHDr::UHDSetter::UHDSetter (UHDr::SetGain fptr, UHDr::USRPHandle usrpHandle, double gain, size_t channel, const char* gainElement)
       : numArguments (4),
@@ -1017,17 +1025,14 @@ namespace ntlab
 
         void runTest () override
         {
-#if JUCE_MAC
-            juce::String uhdLibName = "libuhd.dylib";
-#endif
             juce::DynamicLibrary uhdLib;
-            if (uhdLib.open (uhdLibName))
+            if (uhdLib.open (UHDr::uhdLibName))
             {
                 uhdLib.close();
 
                 beginTest ("Dynamically loading of UHD functions");
                 juce::String error;
-                expect (UHDr::load (uhdLibName, error) != nullptr, error);
+                expect (UHDr::load (UHDr::uhdLibName, error) != nullptr, error);
 
                 logMessage ("Info: Size of UHDSetter struct: " + juce::String(sizeof (UHDr::UHDSetter)) + " bytes");
             }

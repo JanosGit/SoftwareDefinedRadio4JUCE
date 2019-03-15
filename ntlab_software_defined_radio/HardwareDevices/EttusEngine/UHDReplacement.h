@@ -272,6 +272,8 @@ namespace ntlab
 
         typedef Error (*GetRxMetadataErrorCode)(RxMetadataHandle, RxMetadataError*);
 
+		static const juce::String uhdLibName;
+
         struct UHDSetter
         {
             UHDSetter();

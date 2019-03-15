@@ -1764,16 +1764,13 @@ namespace ntlab
         if (uhdr != nullptr)
             return juce::Result::ok();
 
-#if JUCE_MAC
-        juce::String uhdLibName = "libuhd.dylib";
-#endif
         juce::DynamicLibrary uhdLib;
-        if (uhdLib.open (uhdLibName))
+        if (uhdLib.open (UHDr::uhdLibName))
         {
             uhdLib.close();
 
             juce::String error;
-            uhdr = UHDr::load (uhdLibName, error);
+            uhdr = UHDr::load (UHDr::uhdLibName, error);
 
             if (uhdr == nullptr)
                 return juce::Result::fail (error);
@@ -1781,7 +1778,7 @@ namespace ntlab
             return juce::Result::ok();
         }
 
-        return juce::Result::fail (uhdLibName + " cannot be found on this system");
+        return juce::Result::fail (UHDr::uhdLibName + " cannot be found on this system");
     }
 
     SDRIOEngine* UHDEngineManager::createEngine ()
