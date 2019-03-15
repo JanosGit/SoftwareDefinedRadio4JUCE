@@ -17,7 +17,7 @@ along with SoftwareDefinedRadio4JUCE. If not, see <http://www.gnu.org/licenses/>
 
 #pragma once
 
-#include <OpenCL/opencl.h>
+//#include <OpenCL/opencl.h>
 #include <complex>
 #include <juce_core/juce_core.h>
 #include "VectorOperations.h"

@@ -18,6 +18,7 @@ along with SoftwareDefinedRadio4JUCE. If not, see <http://www.gnu.org/licenses/>
 #pragma once
 
 #include <juce_core/juce_core.h>
+#include <bitset>
 
 namespace ntlab
 {

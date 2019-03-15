@@ -24,6 +24,7 @@ along with SoftwareDefinedRadio4JUCE. If not, see <http://www.gnu.org/licenses/>
 #include <juce_core/juce_core.h>
 #include "MCVHeader.h"
 #include "../SampleBuffers/SampleBuffers.h"
+#include <mutex>
 
 namespace ntlab
 {
