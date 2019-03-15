@@ -335,6 +335,90 @@ namespace ntlab
         juce::IPAddress getIPAddressForMboard (int mboardIdx);
     };
 
+#if JUCE_MODULE_AVAILABLE_juce_gui_basics
+
+    class UHDEngineConfigurationComponent : public juce::Component
+    {
+    public:
+        UHDEngineConfigurationComponent (SDRIOEngineConfigurationInterface& configurationInterface);
+
+        void paint (juce::Graphics& g) override;
+
+        void resized() override;
+
+    private:
+        class RangeValueComponent : public juce::Component
+        {
+        public:
+            RangeValueComponent (juce::ValueTree& treeItemToReferTo);
+            void paint (juce::Graphics& g) override;
+            void resized() override;
+        private:
+            juce::ValueTree treeItem;
+            juce::Range<double> allowedValueRange;
+            double stepWidth, scalingFactor;
+            juce::Label valueDescription;
+            juce::TextEditor valueEditor;
+            juce::String unit, previousValueEditorText;
+        };
+
+        class SelectionValueComponent : public juce::Component
+        {
+        public:
+            SelectionValueComponent (juce::ValueTree& treeItemToReferTo);
+            void paint (juce::Graphics& g) override;
+            void resized() override;
+        private:
+            juce::ValueTree treeItem;
+            juce::Label valueDescription;
+            juce::ComboBox valueSelector;
+        };
+
+        class ValueTreeItem  : public juce::TreeViewItem, private juce::ValueTree::Listener
+        {
+        public:
+            ValueTreeItem (const juce::ValueTree& v, juce::UndoManager& um);
+
+            juce::String getUniqueName() const override;
+
+            bool mightContainSubItems() override;
+
+            int getItemHeight() const override;
+
+            void paintItem (juce::Graphics& g, int width, int height) override;
+
+            void itemOpennessChanged (bool isNowOpen) override;
+
+
+        private:
+            juce::ValueTree tree;
+            juce::UndoManager& undoManager;
+
+            static const int heightPerProperty = 20;
+
+            void refreshSubItems();
+
+            void valueTreePropertyChanged (juce::ValueTree&, const juce::Identifier&) override;
+            void valueTreeChildAdded (juce::ValueTree& parentTree, juce::ValueTree&) override;
+            void valueTreeChildRemoved (juce::ValueTree& parentTree, juce::ValueTree&, int) override;
+            void valueTreeChildOrderChanged (juce::ValueTree& parentTree, int, int) override;
+            void valueTreeParentChanged (juce::ValueTree&) override;
+
+            void treeChildrenChanged (const juce::ValueTree& parentTree);
+
+            JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ValueTreeItem)
+        };
+
+        SDRIOEngineConfigurationInterface& configInterface;
+
+        juce::ValueTree deviceValueTree;
+        juce::TreeView treeView;
+
+        std::unique_ptr<ValueTreeItem> rootItem;
+        juce::UndoManager undoManager;
+    };
+#endif
+
     class UHDEngineManager : private SDRIOEngineManager
     {
         friend class SDRIOEngineManager;
@@ -342,6 +426,9 @@ namespace ntlab
         juce::String getEngineName() override;
 
         juce::Result isEngineAvailable() override;
+#if JUCE_MODULE_AVAILABLE_juce_gui_basics
+        std::unique_ptr<juce::Component> createEngineConfigurationComponent (SDRIOEngineConfigurationInterface& configurationInterface) override;
+#endif
 
         SDRIOEngine* createEngine() override;
 

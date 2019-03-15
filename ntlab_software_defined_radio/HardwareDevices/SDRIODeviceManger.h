@@ -48,6 +48,10 @@ namespace ntlab
 
         juce::String getSelectedEngineName();
 
+#if JUCE_MODULE_AVAILABLE_juce_gui_basics
+        std::unique_ptr<juce::Component> getConfigurationComponentForSelectedEngine();
+#endif
+
         void setCallback (SDRIODeviceCallback* callback);
 
         /** Returns true if an engine is configured and can start to stream */

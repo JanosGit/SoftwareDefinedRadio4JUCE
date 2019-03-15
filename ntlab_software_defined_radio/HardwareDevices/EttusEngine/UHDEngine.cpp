@@ -1757,6 +1757,214 @@ namespace ntlab
         return juce::IPAddress ("0.0.0.0");
     }
 
+#if JUCE_MODULE_AVAILABLE_juce_gui_basics
+    UHDEngineConfigurationComponent::UHDEngineConfigurationComponent (ntlab::SDRIOEngineConfigurationInterface& configurationInterface) : configInterface (configurationInterface)
+    {
+        deviceValueTree = configInterface.getDeviceTree();
+
+        addAndMakeVisible (treeView);
+
+        treeView.setDefaultOpenness (true);
+        treeView.setMultiSelectEnabled (true);
+        rootItem.reset (new ValueTreeItem (deviceValueTree, undoManager));
+        treeView.setRootItem (rootItem.get());
+
+        setSize (500, 500);
+    }
+
+    void UHDEngineConfigurationComponent::paint (juce::Graphics& g)
+    {
+        g.fillAll (getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));
+    }
+
+    void UHDEngineConfigurationComponent::resized ()
+    {
+        treeView.setBounds (getLocalBounds());
+    }
+
+    UHDEngineConfigurationComponent::RangeValueComponent::RangeValueComponent (juce::ValueTree& treeItemToReferTo)
+     : treeItem (treeItemToReferTo),
+       allowedValueRange (treeItem.getProperty (UHDEngine::propertyMin), treeItem.getProperty (UHDEngine::propertyMax)),
+       stepWidth         (treeItem.getProperty (UHDEngine::propertyStepWidth)),
+       scalingFactor     (treeItem.getProperty (UHDEngine::propertyUnitScaling)),
+       unit              (treeItem.getProperty (UHDEngine::propertyUnit).toString())
+    {
+        valueDescription.setText (treeItem.getType().toString().replaceCharacter ('_', ' ') + " in " + unit +
+                                  ". Min: " + juce::String (allowedValueRange.getStart()) + unit +
+                                  " Max: " + juce::String (allowedValueRange.getEnd()) + unit,
+                                  juce::NotificationType::dontSendNotification);
+
+        double currentValue = treeItem.getProperty (UHDEngine::propertyCurrentValue);
+
+        if (std::isnan (currentValue))
+            previousValueEditorText = "Not specified";
+        else
+            previousValueEditorText = juce::String (currentValue) + unit;
+
+        valueEditor.setText (previousValueEditorText, false);
+        valueEditor.onTextChange = [this]()
+        {
+            std::stringstream valueEnteredAsString;
+            double valueEnteredAsDouble;
+
+            valueEnteredAsString << valueEditor.getText();
+
+            if (valueEnteredAsString >> valueEnteredAsDouble)
+            {
+                valueEnteredAsDouble = allowedValueRange.clipValue (valueEnteredAsDouble);
+                treeItem.setProperty (UHDEngine::propertyCurrentValue, valueEnteredAsDouble, nullptr);
+                previousValueEditorText = juce::String (valueEnteredAsDouble) + unit;
+            }
+
+            valueEditor.setText (previousValueEditorText, false);
+        };
+
+        addAndMakeVisible (valueDescription);
+        addAndMakeVisible (valueEditor);
+
+        setSize (200, 26);
+    }
+
+    void UHDEngineConfigurationComponent::RangeValueComponent::paint (juce::Graphics&)
+    {
+
+    }
+
+    void UHDEngineConfigurationComponent::RangeValueComponent::resized ()
+    {
+        auto bounds = getLocalBounds().removeFromTop (3).removeFromBottom (3);
+        valueDescription.setBounds (bounds.removeFromLeft (100));
+        valueEditor     .setBounds (bounds);
+    }
+
+    UHDEngineConfigurationComponent::SelectionValueComponent::SelectionValueComponent (juce::ValueTree& treeItemToReferTo) : treeItem (treeItemToReferTo)
+    {
+        valueDescription.setText (treeItem.getType().toString().replaceCharacter ('_', ' '), juce::NotificationType::dontSendNotification);
+
+        auto arrayValuesAsString = treeItem.getProperty (UHDEngine::propertyArray).toString().replaceCharacter ('_', ' ');
+        auto arrayValues = juce::StringArray::fromTokens (arrayValuesAsString, ";", "\"");
+        valueSelector.addItemList (arrayValues, 1);
+
+        juce::String currentValue = treeItem.getProperty (UHDEngine::propertyCurrentValue);
+
+        if (int id = arrayValues.indexOf (currentValue) != -1)
+            valueSelector.setSelectedItemIndex (id + 1, juce::NotificationType::dontSendNotification);
+
+        valueSelector.onChange = [this]()
+        {
+            auto currentSelection = valueSelector.getText().replaceCharacter (' ', '_');
+            treeItem.setProperty (UHDEngine::propertyCurrentValue, currentSelection, nullptr);
+        };
+
+        addAndMakeVisible (valueDescription);
+        addAndMakeVisible (valueSelector);
+
+        setSize (200, 26);
+    }
+
+    void UHDEngineConfigurationComponent::SelectionValueComponent::resized ()
+    {
+        auto bounds = getLocalBounds().removeFromTop (3).removeFromBottom (3);
+        valueDescription.setBounds (bounds.removeFromLeft (100));
+        valueSelector   .setBounds (bounds);
+    }
+
+    void UHDEngineConfigurationComponent::SelectionValueComponent::paint (juce::Graphics& g)
+    {
+
+    }
+
+    UHDEngineConfigurationComponent::ValueTreeItem::ValueTreeItem (const juce::ValueTree& v, juce::UndoManager& um) : tree (v), undoManager (um)
+    {
+        tree.addListener (this);
+    }
+
+    juce::String UHDEngineConfigurationComponent::ValueTreeItem::getUniqueName () const
+    {
+        return tree.getType().toString();
+    }
+
+    bool UHDEngineConfigurationComponent::ValueTreeItem::mightContainSubItems ()
+    {
+        return tree.getNumChildren() > 0;
+    }
+
+    int UHDEngineConfigurationComponent::ValueTreeItem::getItemHeight () const
+    {
+        return heightPerProperty * (tree.getNumProperties() + 1);
+    }
+
+    void UHDEngineConfigurationComponent::ValueTreeItem::paintItem (juce::Graphics& g, int width, int height)
+    {
+        g.setColour (juce::Colours::white);
+        g.setFont (15.0f);
+
+        g.drawText (tree.getType().toString().replaceCharacter ('_', ' '),
+                4, 0, width - 4, heightPerProperty,
+                juce::Justification::centredLeft, true);
+
+        int y = heightPerProperty;
+
+        for (int i = 0; i < tree.getNumProperties(); ++i)
+        {
+            auto propertyName = tree.getPropertyName (i);
+            g.drawText (propertyName.toString().replaceCharacter ('_', ' ') + " : " + tree.getProperty (propertyName).toString(),
+                    8, y, width - 8, heightPerProperty,
+                    juce::Justification::centredLeft, true);
+            y += heightPerProperty;
+        }
+    }
+
+    void UHDEngineConfigurationComponent::ValueTreeItem::itemOpennessChanged (bool isNowOpen)
+    {
+        if (isNowOpen && getNumSubItems() == 0)
+            refreshSubItems();
+        else
+            clearSubItems();
+    }
+
+    void UHDEngineConfigurationComponent::ValueTreeItem::refreshSubItems ()
+    {
+        clearSubItems();
+
+        for (int i = 0; i < tree.getNumChildren(); ++i)
+            addSubItem (new ValueTreeItem (tree.getChild (i), undoManager));
+    }
+
+    void UHDEngineConfigurationComponent::ValueTreeItem::valueTreePropertyChanged (juce::ValueTree&, const juce::Identifier&)
+    {
+        repaintItem();
+    }
+
+    void UHDEngineConfigurationComponent::ValueTreeItem::valueTreeChildAdded (juce::ValueTree& parentTree, juce::ValueTree&)
+    {
+        treeChildrenChanged (parentTree);
+    }
+
+    void UHDEngineConfigurationComponent::ValueTreeItem::valueTreeChildRemoved (juce::ValueTree& parentTree, juce::ValueTree&, int)
+    {
+        treeChildrenChanged (parentTree);
+    }
+
+    void UHDEngineConfigurationComponent::ValueTreeItem::valueTreeChildOrderChanged (juce::ValueTree& parentTree, int, int)
+    {
+        treeChildrenChanged (parentTree);
+    }
+
+    void UHDEngineConfigurationComponent::ValueTreeItem::valueTreeParentChanged (juce::ValueTree&) {}
+
+    void UHDEngineConfigurationComponent::ValueTreeItem::treeChildrenChanged (const juce::ValueTree& parentTree)
+    {
+        if (parentTree == tree)
+        {
+            refreshSubItems();
+            treeHasChanged();
+            setOpen (true);
+        }
+    }
+
+#endif
+
     juce::String UHDEngineManager::getEngineName () {return "UHD Engine"; }
 
     juce::Result UHDEngineManager::isEngineAvailable ()
@@ -1785,4 +1993,10 @@ namespace ntlab
     {
         return new UHDEngine (uhdr);
     }
+#if JUCE_MODULE_AVAILABLE_juce_gui_basics
+    std::unique_ptr<juce::Component> UHDEngineManager::createEngineConfigurationComponent (ntlab::SDRIOEngineConfigurationInterface& configurationInterface)
+    {
+        return std::unique_ptr<juce::Component> (new UHDEngineConfigurationComponent (configurationInterface));
+    }
+#endif
 }

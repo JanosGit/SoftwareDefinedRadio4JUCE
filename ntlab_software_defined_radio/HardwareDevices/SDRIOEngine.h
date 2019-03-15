@@ -21,6 +21,10 @@ along with SoftwareDefinedRadio4JUCE. If not, see <http://www.gnu.org/licenses/>
 
 #include <juce_data_structures/juce_data_structures.h>
 
+#if JUCE_MODULE_AVAILABLE_juce_gui_basics
+#include <juce_gui_basics/juce_gui_basics.h>
+#endif
+
 namespace ntlab
 {
     class SDRIOEngineConfigurationInterface
@@ -114,6 +118,7 @@ namespace ntlab
     {
         friend class SDRIODeviceManager;
         friend class juce::ContainerDeletePolicy<SDRIOEngineManager>;
+        friend class MCVFileEngineTest;
     private:
 
         /** Returns an array of all engines that can be created */
@@ -139,6 +144,26 @@ namespace ntlab
          */
         static std::unique_ptr<SDRIOEngine> createEngine (const juce::String& engineName);
 
+#if JUCE_MODULE_AVAILABLE_juce_gui_basics
+        /**
+         * Creates a component that can be used to configure the engine type with this name. You need to pass a
+         * configuration interface, this can be the engine itself for applications where the engine and the GUI run
+         * in the same process. However, it is perfectly possible to create applications with a remote GUI that redirect
+         * the configuration interface over some connection and run the DSP processing and GUI on different devices.
+         * This will invoke the createEngineConfigurationComponent member function of the corresponding
+         * SDRIOEngineManager for the engine type.
+         */
+        static std::unique_ptr<juce::Component> createEngineConfigurationComponent (const juce::String& engineName, SDRIOEngineConfigurationInterface& configurationInterface);
+
+        /**
+         * Creates a component that can be used to configure the engine created by this manager instance. You need to
+         * pass a configuration interface, this can be the engine itself for applications where the engine and the GUI
+         * run in the same process. However, it is perfectly possible to create applications with a remote GUI that
+         * redirect the configuration interface over some connection and run the DSP processing and GUI on different
+         * devices.
+         */
+        virtual std::unique_ptr<juce::Component> createEngineConfigurationComponent (SDRIOEngineConfigurationInterface& configurationInterface) = 0;
+#endif
     protected:
         virtual ~SDRIOEngineManager () {};
 

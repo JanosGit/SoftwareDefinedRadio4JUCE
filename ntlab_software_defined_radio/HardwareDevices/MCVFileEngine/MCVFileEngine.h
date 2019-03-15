@@ -122,7 +122,10 @@ namespace ntlab
 
         juce::Result isEngineAvailable() override;
 
-    protected:
+#if JUCE_MODULE_AVAILABLE_juce_gui_basics
+        std::unique_ptr<juce::Component> createEngineConfigurationComponent (SDRIOEngineConfigurationInterface& configurationInterface) override;
+#endif
+
         SDRIOEngine* createEngine() override;
     };
 

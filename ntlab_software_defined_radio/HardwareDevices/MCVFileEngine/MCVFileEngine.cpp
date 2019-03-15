@@ -334,6 +334,12 @@ namespace ntlab
     {
         return new MCVFileEngine;
     }
+#if JUCE_MODULE_AVAILABLE_juce_gui_basics
+    std::unique_ptr<juce::Component> MCVFileEngineManager::createEngineConfigurationComponent (ntlab::SDRIOEngineConfigurationInterface& configurationInterface)
+    {
+        return nullptr;
+    }
+#endif
 
 #ifdef NTLAB_SOFTWARE_DEFINED_RADIO_UNIT_TESTS
 

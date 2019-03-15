@@ -56,6 +56,26 @@ namespace ntlab
 
     juce::String SDRIODeviceManager::getSelectedEngineName () {return selectedEngineName; }
 
+#if JUCE_MODULE_AVAILABLE_juce_gui_basics
+    std::unique_ptr<juce::Component> SDRIODeviceManager::getConfigurationComponentForSelectedEngine ()
+    {
+        if (selectedEngine == nullptr)
+            return nullptr;
+
+        auto configComponent = SDRIOEngineManager::createEngineConfigurationComponent (selectedEngineName, *selectedEngine.get());
+
+        if (configComponent == nullptr)
+        {
+            auto warningLabel = new juce::Label ("", "Warning: No configuration component implemented for " + selectedEngineName);
+            warningLabel->setColour (juce::Label::ColourIds::textColourId, juce::Colours::red);
+            warningLabel->setSize (200, 50);
+            configComponent.reset (warningLabel);
+        }
+
+        return configComponent;
+    }
+#endif
+
     void SDRIODeviceManager::setCallback (ntlab::SDRIODeviceCallback* callback) {callbackToUse = callback; }
 
     bool SDRIODeviceManager::isReadyToStream ()

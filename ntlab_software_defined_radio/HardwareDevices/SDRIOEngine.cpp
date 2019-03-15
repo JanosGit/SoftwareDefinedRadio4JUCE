@@ -136,4 +136,26 @@ namespace ntlab
 
         return nullptr;
     }
+
+#if JUCE_MODULE_AVAILABLE_juce_gui_basics
+    std::unique_ptr<juce::Component> SDRIOEngineManager::createEngineConfigurationComponent (const juce::String& engineName, ntlab::SDRIOEngineConfigurationInterface& configurationInterface)
+    {
+        for (auto manager : managers)
+        {
+            if (manager->getEngineName() == engineName)
+            {
+                if (manager->isEngineAvailable())
+                {
+                    return manager->createEngineConfigurationComponent (configurationInterface);
+                }
+                else
+                {
+                    return nullptr;
+                }
+            }
+        }
+
+        return nullptr;
+    }
+#endif
 }
