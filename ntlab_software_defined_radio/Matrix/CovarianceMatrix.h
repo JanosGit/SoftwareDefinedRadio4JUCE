@@ -227,6 +227,8 @@ namespace ntlab
             return triangularRowStart[row] + offsetFromTriangularRowStart;
         }
 
+#if NTLAB_USE_AVX2
+
         template <typename ComplexSampleBufferTypeFloat>
         void processNextSampleBlockAVX2AlignedBufferFloat (ComplexSampleBufferTypeFloat& buffer, int startSampleIdx, int numSIMDIterations)
         {
@@ -334,6 +336,7 @@ namespace ntlab
                 ++chanBStart;
             }
         }
+#endif
 
         template <typename ComplexSampleBufferType>
         void processNextSampleBlockNonSIMD (ComplexSampleBufferType& buffer, int startSampleIdx, int numSamplesToProcess)
