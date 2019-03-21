@@ -22,10 +22,16 @@ along with SoftwareDefinedRadio4JUCE. If not, see <http://www.gnu.org/licenses/>
 
 namespace ntlab
 {
-    class UHDEngine : public SDRIOHardwareEngine, private juce::Thread
+
+    class UHDEngine
+#if !JUCE_IOS
+            : public SDRIOHardwareEngine, private juce::Thread
     {
         friend class UHDEngineManager;
         friend class ChannelMapping;
+#else
+    {
+#endif
     public:
 
         /**
@@ -105,6 +111,10 @@ namespace ntlab
         static const juce::Identifier propertyAntennas;
         static const juce::Identifier propertySyncSetup;
         static const juce::Identifier propertySampleRate;
+
+#if JUCE_IOS
+    };
+#else
 
         ~UHDEngine();
 
@@ -335,6 +345,8 @@ namespace ntlab
         juce::IPAddress getIPAddressForMboard (int mboardIdx);
     };
 
+#endif //JUCE_IOS
+
 #if JUCE_MODULE_AVAILABLE_juce_gui_basics
 
     class UHDEngineConfigurationComponent : public juce::Component
@@ -419,6 +431,7 @@ namespace ntlab
     };
 #endif
 
+#if !JUCE_IOS
     class UHDEngineManager : private SDRIOEngineManager
     {
         friend class SDRIOEngineManager;
@@ -435,4 +448,5 @@ namespace ntlab
     private:
         UHDr::Ptr uhdr;
     };
+#endif //!JUCE_IOS
 }

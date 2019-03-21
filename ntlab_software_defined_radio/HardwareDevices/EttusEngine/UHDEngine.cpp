@@ -24,15 +24,18 @@ along with SoftwareDefinedRadio4JUCE. If not, see <http://www.gnu.org/licenses/>
 
 #include <typeinfo> // for std::bad_cast
 
+#if !JUCE_IOS
 template <>
 struct juce::VariantConverter<ntlab::UHDEngine::SynchronizationSetup>
 {
     static ntlab::UHDEngine::SynchronizationSetup fromVar (const juce::var& v)                              { return static_cast<ntlab::UHDEngine::SynchronizationSetup> (static_cast<int> (v)); }
     static juce::var                              toVar   (const ntlab::UHDEngine::SynchronizationSetup& s) { return s; }
 };
+#endif
 
 namespace ntlab
 {
+#if !JUCE_IOS
     using varSyncSetupConverter = juce::VariantConverter<UHDEngine::SynchronizationSetup>;
 
 // ugly solution but makes the NTLAB_RETURN_FAIL_WITH_ERROR_CODE_DESCRIPTION_IN_CASE_OF_ERROR macro work
@@ -41,6 +44,7 @@ namespace ntlab
     const juce::String UHDEngine::defaultCpuFormat ("fc32");
     const juce::String UHDEngine::defaultOtwFormat ("sc16");
     const juce::String UHDEngine::defaultArgs;
+#endif
 
     const juce::Identifier UHDEngine::propertyUSRPDevice       ("USRP_Device");
     const juce::Identifier UHDEngine::propertyUSRPDeviceConfig ("USRP_Device_config");
@@ -70,6 +74,8 @@ namespace ntlab
     const juce::Identifier UHDEngine::propertyAntennas         ("Antennas");
     const juce::Identifier UHDEngine::propertySyncSetup        ("Synchronization_setup");
     const juce::Identifier UHDEngine::propertySampleRate       ("Sample_rate");
+
+#if !JUCE_IOS
 
     const juce::Identifier UHDEngine::ChannelMapping::propertyNumChannels     ("num_channels");
     const juce::Identifier UHDEngine::ChannelMapping::propertyHardwareChannel ("hardware_channel");
@@ -1756,6 +1762,7 @@ namespace ntlab
          */
         return juce::IPAddress ("0.0.0.0");
     }
+#endif //!JUCE_IOS
 
 #if JUCE_MODULE_AVAILABLE_juce_gui_basics
     UHDEngineConfigurationComponent::UHDEngineConfigurationComponent (ntlab::SDRIOEngineConfigurationInterface& configurationInterface) : configInterface (configurationInterface)
@@ -1964,6 +1971,7 @@ namespace ntlab
     }
 
 #endif
+#if !JUCE_IOS
 
     juce::String UHDEngineManager::getEngineName () {return "UHD Engine"; }
 
@@ -1999,4 +2007,5 @@ namespace ntlab
         return std::unique_ptr<juce::Component> (new UHDEngineConfigurationComponent (configurationInterface));
     }
 #endif
+#endif //!JUCE_IOS
 }

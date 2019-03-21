@@ -76,7 +76,9 @@ along with SoftwareDefinedRadio4JUCE. If not, see <http://www.gnu.org/licenses/>
 #define NTLAB_WARN_ABOUT_MISSING_UHD_GAIN_ELEMENTS 1
 #endif
 
+#if !JUCE_IOS
 #include "HardwareDevices/EttusEngine/UHDReplacement.h"
+#endif
 #include "HardwareDevices/EttusEngine/UHDEngine.h"
 #include "HardwareDevices/MCVFileEngine/MCVFileEngine.h"
 #include "HardwareDevices/SDRIODeviceCallback.h"

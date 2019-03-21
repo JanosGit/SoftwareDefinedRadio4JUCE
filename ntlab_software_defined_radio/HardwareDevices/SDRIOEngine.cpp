@@ -97,12 +97,14 @@ namespace ntlab
     {
         auto currentEngines = getAvailableEngines();
 
+#if !JUCE_IOS
         if (!currentEngines.contains ("UHD Engine"))
         {
             std::unique_ptr<UHDEngineManager> uhdEngineManager (new UHDEngineManager);
             if (uhdEngineManager->isEngineAvailable())
                 managers.add (uhdEngineManager.release());
         }
+#endif
 
         if (!currentEngines.contains ("MCV File Engine"))
         {

@@ -15,6 +15,8 @@ You should have received a copy of the GNU General Public License
 along with SoftwareDefinedRadio4JUCE. If not, see <http://www.gnu.org/licenses/>.
 */
 
+#if !JUCE_IOS
+
 #include "UHDReplacement.h"
 #include "../../ErrorHandling/ErrorHandlingMacros.h"
 
@@ -1048,3 +1050,5 @@ namespace ntlab
 
 #endif // NTLAB_SOFTWARE_DEFINED_RADIO_UNIT_TESTS
 }
+
+#endif
