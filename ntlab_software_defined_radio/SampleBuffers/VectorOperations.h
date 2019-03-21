@@ -20,12 +20,20 @@ along with SoftwareDefinedRadio4JUCE. If not, see <http://www.gnu.org/licenses/>
 #include "juce_core/juce_core.h"
 #include <complex>
 
-#if (NTLAB_NO_SIMD == 0)
 
-#ifdef JUCE_INTEL
+// If it runs in the iOS Simulator this will be the case. Don't use simd for this combination to avoid errors due to wrong config
+#if JUCE_IOS && JUCE_INTEL
+#undef NTLAB_NO_SIMD
+#define NTLAB_NO_SIMD 1
+#endif
+
+#if !NTLAB_NO_SIMD
+
+#if JUCE_INTEL
 #define NTLAB_USE_AVX2 1
 #elif JUCE_ARM
-#define NTLAB_USE_NEON 1
+//#define NTLAB_USE_NEON 1 // enable as soon as NEON operations are implemented
+#define NTLAB_NO_SIMD 1
 #else
 #error "Unsupported target architecture for SIMD operations"
 #endif
@@ -148,6 +156,8 @@ namespace ntlab
 
         /** Calculates the absolute values of the complex vector */
         static void abs (const std::complex<float>* complexInVector, float* absOutVector, int length);
+
+        static void multiply (const std::complex<float>* a, const std::complex<float>* b, std::complex<float>* result, int length, bool conjugateA = false, bool conjugateB = false);
 
     private:
 
