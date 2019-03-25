@@ -78,7 +78,7 @@ namespace ntlab
         for (int channel = 0; channel < numChannels; ++channel)
         {
             ifFrequency.set (channel, rfFrequency[channel] - sdrCenterFreq[channel]);
-            auto cyclesPerSample = ifFrequency[channel] / currentSampleRate;
+            auto cyclesPerSample = std::fmod (ifFrequency[channel] / currentSampleRate, 1.0);
             angleDelta.set (channel, cyclesPerSample * juce::MathConstants<double>::twoPi);
         }
     }

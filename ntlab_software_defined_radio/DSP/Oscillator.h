@@ -112,8 +112,11 @@ namespace ntlab
                     }
                     ca += ad;
 
+                    // limit the angle to +/- pi to avoid overflows and performance impacts with big angle values
                     if (ca > juce::MathConstants<double>::pi)
                         ca -= juce::MathConstants<double>::twoPi;
+                    if (ca < -juce::MathConstants<double>::pi)
+                        ca += juce::MathConstants<double>::twoPi;
                 }
             }
         }
