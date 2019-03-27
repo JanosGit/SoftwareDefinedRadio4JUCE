@@ -140,7 +140,7 @@ namespace ntlab
     }
 
 #if JUCE_MODULE_AVAILABLE_juce_gui_basics
-    std::unique_ptr<juce::Component> SDRIOEngineManager::createEngineConfigurationComponent (const juce::String& engineName, ntlab::SDRIOEngineConfigurationInterface& configurationInterface)
+    std::unique_ptr<juce::Component> SDRIOEngineManager::createEngineConfigurationComponent (const juce::String& engineName, ntlab::SDRIOEngineConfigurationInterface& configurationInterface, SDRIOEngineConfigurationInterface::ConfigurationConstraints constraints)
     {
         for (auto manager : managers)
         {
@@ -148,7 +148,7 @@ namespace ntlab
             {
                 if (manager->isEngineAvailable())
                 {
-                    return manager->createEngineConfigurationComponent (configurationInterface);
+                    return manager->createEngineConfigurationComponent (configurationInterface, constraints);
                 }
                 else
                 {

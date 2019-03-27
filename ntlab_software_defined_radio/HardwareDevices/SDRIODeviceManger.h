@@ -49,7 +49,7 @@ namespace ntlab
         juce::String getSelectedEngineName();
 
 #if JUCE_MODULE_AVAILABLE_juce_gui_basics
-        std::unique_ptr<juce::Component> getConfigurationComponentForSelectedEngine();
+        std::unique_ptr<juce::Component> getConfigurationComponentForSelectedEngine (SDRIOEngineConfigurationInterface::ConfigurationConstraints constraints = SDRIOEngineConfigurationInterface::ConfigurationConstraints::unconstrained());
 #endif
 
         void setCallback (SDRIODeviceCallback* callback);

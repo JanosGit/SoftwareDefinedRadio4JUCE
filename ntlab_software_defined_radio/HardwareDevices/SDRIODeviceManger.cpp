@@ -57,12 +57,12 @@ namespace ntlab
     juce::String SDRIODeviceManager::getSelectedEngineName () {return selectedEngineName; }
 
 #if JUCE_MODULE_AVAILABLE_juce_gui_basics
-    std::unique_ptr<juce::Component> SDRIODeviceManager::getConfigurationComponentForSelectedEngine ()
+    std::unique_ptr<juce::Component> SDRIODeviceManager::getConfigurationComponentForSelectedEngine (SDRIOEngineConfigurationInterface::ConfigurationConstraints constraints)
     {
         if (selectedEngine == nullptr)
             return nullptr;
 
-        auto configComponent = SDRIOEngineManager::createEngineConfigurationComponent (selectedEngineName, *selectedEngine.get());
+        auto configComponent = SDRIOEngineManager::createEngineConfigurationComponent (selectedEngineName, *selectedEngine.get(), constraints);
 
         if (configComponent == nullptr)
         {

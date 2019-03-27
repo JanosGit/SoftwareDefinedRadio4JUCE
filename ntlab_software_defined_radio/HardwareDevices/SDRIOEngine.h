@@ -20,6 +20,7 @@ along with SoftwareDefinedRadio4JUCE. If not, see <http://www.gnu.org/licenses/>
 #include "SDRIODeviceCallback.h"
 
 #include <juce_data_structures/juce_data_structures.h>
+#include <array>
 
 #if JUCE_MODULE_AVAILABLE_juce_gui_basics
 #include <juce_gui_basics/juce_gui_basics.h>
@@ -30,6 +31,161 @@ namespace ntlab
     class SDRIOEngineConfigurationInterface
     {
     public:
+        /** Can be passed to the constructor of a ConfigurationComponent to constrain the values that the user can apply */
+        class ConfigurationConstraints
+        {
+        public:
+            enum ConstrainedValue
+            {
+                sampleRate,
+                numRxChannels,
+                numTxChannels,
+                rxCenterFreq,
+                txCenterFreq
+            };
+
+            static ConfigurationConstraints withFixedNumChannels (int fixedNumRxChannels, int fixedNumTxChannels)
+            {
+                jassert (numRxChannels >= 0);
+                jassert (numTxChannels >= 0);
+
+                ConfigurationConstraints constraints;
+                constraints.setFixed (numRxChannels, fixedNumRxChannels);
+                constraints.setFixed (numTxChannels, fixedNumTxChannels);
+
+                return constraints;
+            }
+
+            static ConfigurationConstraints unconstrained() {return ConfigurationConstraints(); }
+
+            template <typename ValueType>
+            void setMin (ConstrainedValue valueToConstrain, ValueType minValue)
+            {
+                jassert (valueTypeAndValueMatch (minValue, valueToConstrain));
+
+                values[valueToConstrain].setStart (static_cast<double> (minValue));
+                minConstrainedValues.set (valueToConstrain);
+            }
+
+            template <typename ValueType>
+            void setMax (ConstrainedValue valueToConstrain, ValueType maxValue)
+            {
+                jassert (valueTypeAndValueMatch (maxValue, valueToConstrain));
+
+                values[valueToConstrain].setEnd (static_cast<double> (maxValue));
+                maxConstrainedValues.set (valueToConstrain);
+            }
+
+            template <typename ValueType>
+            void setFixed (ConstrainedValue valueToConstrain, ValueType fixedValue)
+            {
+                jassert (valueTypeAndValueMatch (fixedValue, valueToConstrain));
+
+                values[valueToConstrain].setStart (static_cast<double> (fixedValue));
+                values[valueToConstrain].setEnd   (static_cast<double> (fixedValue));
+                minConstrainedValues.set (valueToConstrain);
+                maxConstrainedValues.set (valueToConstrain);
+            }
+
+            template <typename ValueType>
+            void setRange (ConstrainedValue valueToConstrain, juce::Range<ValueType> allowedRange)
+            {
+                jassert (valueTypeAndValueMatch (allowedRange.getStart(), valueToConstrain));
+
+                values[valueToConstrain].setStart (static_cast<double> (allowedRange.getStart()));
+                values[valueToConstrain].setEnd   (static_cast<double> (allowedRange.getEnd()));
+                minConstrainedValues.set (valueToConstrain);
+                maxConstrainedValues.set (valueToConstrain);
+            }
+
+            void setUnconstrained (ConstrainedValue valueToSetUnconstrained)
+            {
+                values[valueToSetUnconstrained].setStart (std::numeric_limits<double>::min());
+                values[valueToSetUnconstrained].setEnd   (std::numeric_limits<double>::max());
+                minConstrainedValues.reset (valueToSetUnconstrained);
+                maxConstrainedValues.reset (valueToSetUnconstrained);
+            }
+
+            template <typename ValueType>
+            bool isValidValue (ConstrainedValue targetValue, ValueType possibleValue)
+            {
+                if (hasMinValue (targetValue))
+                {
+                    if (static_cast<double> (possibleValue) < getMinDouble (targetValue))
+                        return false;
+                }
+                if (hasMaxValue (targetValue))
+                {
+                    if (static_cast<double> (possibleValue) > getMaxDouble (targetValue))
+                        return false;
+                }
+
+                return true;
+            }
+
+            template <typename ValueType>
+            ValueType clipToValidValue (ConstrainedValue targetValue, ValueType valueToClip)
+            {
+                if (!isUnconstrained (targetValue))
+                    return static_cast<ValueType> (values[targetValue].clipValue (static_cast<double> (valueToClip)));
+
+                return valueToClip;
+            }
+
+            juce::Range<double> clipToValidRange (ConstrainedValue targetValue, juce::Range<double> rangeToClip)
+            {
+                if (!isUnconstrained (targetValue))
+                    return values[targetValue].constrainRange (rangeToClip);
+
+                return rangeToClip;
+            }
+
+            bool isCompletelyConstrained (ConstrainedValue valueToCheck) { return minConstrainedValues[valueToCheck]  && maxConstrainedValues[valueToCheck]; }
+            bool isUnconstrained (ConstrainedValue valueToCheck)         { return !minConstrainedValues[valueToCheck] && !maxConstrainedValues[valueToCheck]; }
+            bool hasMinValue (ConstrainedValue valueToCheck) { return minConstrainedValues[valueToCheck]; }
+            bool hasMaxValue (ConstrainedValue valueToCheck) { return maxConstrainedValues[valueToCheck]; }
+            bool hasFixedValue (ConstrainedValue valueToCheck) { return !isUnconstrained (valueToCheck) && values[valueToCheck].isEmpty(); }
+
+            double getMinDouble (ConstrainedValue valueToGet) { jassert (hasMinValue (valueToGet)); return values[valueToGet].getStart(); }
+            double getMaxDouble (ConstrainedValue valueToGet) { jassert (hasMaxValue (valueToGet)); return values[valueToGet].getEnd(); }
+            juce::Range<double> getAllowedRangeDouble (ConstrainedValue valueToGet) { jassert (isCompletelyConstrained (valueToGet)); return values[valueToGet]; }
+
+            int getMinInt (ConstrainedValue valueToGet) { return static_cast<int> (getMinDouble (valueToGet)); }
+            int getMaxInt (ConstrainedValue valueToGet) { return static_cast<int> (getMaxDouble (valueToGet)); }
+            juce::Range<int> getAllowedRangeInt (ConstrainedValue valueToGet)
+            {
+                jassert (isCompletelyConstrained (valueToGet));
+                int start = static_cast<int> (values[valueToGet].getStart());
+                int end   = static_cast<int> (values[valueToGet].getEnd());
+                return {start, end};
+            }
+
+        private:
+            ConfigurationConstraints()
+            {
+                for (auto& val : values)
+                    val = juce::Range<double> (std::numeric_limits<double>::min(), std::numeric_limits<double>::max());
+            };
+
+            static const int numValues = 5;
+
+            std::bitset<numValues> minConstrainedValues;
+            std::bitset<numValues> maxConstrainedValues;
+            std::array<juce::Range<double>, numValues> values;
+
+            template <typename ValueType>
+            static constexpr bool valueTypeAndValueMatch (ValueType, ConstrainedValue constrainedValue)
+            {
+                if ((std::is_same<ValueType, int>::value) && ((constrainedValue == numRxChannels) || (constrainedValue == numTxChannels)))
+                    return true;
+
+                if ((std::is_same<ValueType, double>::value) && ((constrainedValue == rxCenterFreq) || (constrainedValue == txCenterFreq)))
+                    return true;
+
+                return false;
+            }
+        };
+
         virtual ~SDRIOEngineConfigurationInterface () {};
 
         /**
@@ -153,7 +309,7 @@ namespace ntlab
          * This will invoke the createEngineConfigurationComponent member function of the corresponding
          * SDRIOEngineManager for the engine type.
          */
-        static std::unique_ptr<juce::Component> createEngineConfigurationComponent (const juce::String& engineName, SDRIOEngineConfigurationInterface& configurationInterface);
+        static std::unique_ptr<juce::Component> createEngineConfigurationComponent (const juce::String& engineName, SDRIOEngineConfigurationInterface& configurationInterface, SDRIOEngineConfigurationInterface::ConfigurationConstraints constraints);
 
         /**
          * Creates a component that can be used to configure the engine created by this manager instance. You need to
@@ -162,7 +318,7 @@ namespace ntlab
          * redirect the configuration interface over some connection and run the DSP processing and GUI on different
          * devices.
          */
-        virtual std::unique_ptr<juce::Component> createEngineConfigurationComponent (SDRIOEngineConfigurationInterface& configurationInterface) = 0;
+        virtual std::unique_ptr<juce::Component> createEngineConfigurationComponent (SDRIOEngineConfigurationInterface& configurationInterface, SDRIOEngineConfigurationInterface::ConfigurationConstraints& constraints) = 0;
 #endif
     protected:
         virtual ~SDRIOEngineManager () {};

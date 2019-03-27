@@ -15,6 +15,10 @@ You should have received a copy of the GNU General Public License
 along with SoftwareDefinedRadio4JUCE. If not, see <http://www.gnu.org/licenses/>.
 */
 
+#ifndef NTLAB_DEBUGPRINT_UHDTREE
+#define NTLAB_DEBUGPRINT_UHDTREE 0
+#endif
+
 #if JUCE_MAC
 #import <Foundation/Foundation.h>
 #endif
@@ -52,6 +56,9 @@ namespace ntlab
     const juce::Identifier UHDEngine::propertyMBoards          ("Mboards");
     const juce::Identifier UHDEngine::propertyTimeSources      ("Time_sources");
     const juce::Identifier UHDEngine::propertyClockSources     ("Clock_sources");
+    const juce::Identifier UHDEngine::propertySensors          ("Sensors");
+    const juce::Identifier UHDEngine::propertyRxDSP            ("RX_DSP");
+    const juce::Identifier UHDEngine::propertyTxDSP            ("TX_DSP");
     const juce::Identifier UHDEngine::propertyRxDboard         ("RX_Dboard");
     const juce::Identifier UHDEngine::propertyTxDboard         ("TX_Dboard");
     const juce::Identifier UHDEngine::propertyRxFrontend       ("RX_Frontend");
@@ -77,24 +84,24 @@ namespace ntlab
 
 #if !JUCE_IOS
 
-    const juce::Identifier UHDEngine::ChannelMapping::propertyNumChannels     ("num_channels");
-    const juce::Identifier UHDEngine::ChannelMapping::propertyHardwareChannel ("hardware_channel");
-    const juce::Identifier UHDEngine::ChannelMapping::propertyMboardIdx       ("mboard_idx");
-    const juce::Identifier UHDEngine::ChannelMapping::propertyDboardSlot      ("dboard_slot");
-    const juce::Identifier UHDEngine::ChannelMapping::propertyFrontendOnDboard("frontend_on_dboard");
-    const juce::Identifier UHDEngine::ChannelMapping::propertyAntennaPort     ("antenna_port");
-    const juce::Identifier UHDEngine::ChannelMapping::propertyAnalogGain      ("analog_gain");
-    const juce::Identifier UHDEngine::ChannelMapping::propertyDigitalGain     ("digital_gain");
-    const juce::Identifier UHDEngine::ChannelMapping::propertyDigitalGainFine ("digital_gain_fine");
-    const juce::Identifier UHDEngine::ChannelMapping::propertyCenterFrequency ("center_frequency");
-    const juce::Identifier UHDEngine::ChannelMapping::propertyAnalogBandwitdh ("analog_bandwidth");
+    const juce::Identifier UHDEngine::ChannelMapping::propertyNumChannels      ("num_channels");
+    const juce::Identifier UHDEngine::ChannelMapping::propertyHardwareChannel  ("hardware_channel");
+    const juce::Identifier UHDEngine::ChannelMapping::propertyMboardIdx        ("mboard_idx");
+    const juce::Identifier UHDEngine::ChannelMapping::propertyDboardSlot       ("dboard_slot");
+    const juce::Identifier UHDEngine::ChannelMapping::propertyFrontendOnDboard ("frontend_on_dboard");
+    const juce::Identifier UHDEngine::ChannelMapping::propertyAntennaPort      ("antenna_port");
+    const juce::Identifier UHDEngine::ChannelMapping::propertyAnalogGain       ("analog_gain");
+    const juce::Identifier UHDEngine::ChannelMapping::propertyDigitalGain      ("digital_gain");
+    const juce::Identifier UHDEngine::ChannelMapping::propertyDigitalGainFine  ("digital_gain_fine");
+    const juce::Identifier UHDEngine::ChannelMapping::propertyCenterFrequency  ("center_frequency");
+    const juce::Identifier UHDEngine::ChannelMapping::propertyAnalogBandwitdh  ("analog_bandwidth");
 
     UHDEngine::~UHDEngine ()
     {
-        if (isStreaming())
-            stopStreaming();
+        if (isStreaming ())
+            stopStreaming ();
 
-        if (threadShouldExit())
+        if (threadShouldExit ())
         {
             waitForThreadToExit (2100);
         }
@@ -173,20 +180,18 @@ namespace ntlab
             return juce::Result::fail ("Could not match device tree and usrp setup");
         }
 
-#if JUCE_DEBUG
+        if ((synchronizationSetup == singleDeviceStandalone) && (numMboardsInUSRP != 1))
+        {
+            usrp = nullptr;
+            return juce::Result::fail ("You cannot use a single device sync setup if you have more than one device in your setup");
 
-        if (synchronizationSetup == singleDeviceStandalone)
-        {
-            // you cannot use a single device clocking setup if you have more than one device in your setup
-            jassert (numMboardsInUSRP == 1);
         }
-        if (synchronizationSetup == twoDevicesMIMOCableMasterSlave)
+        //todo: how to find out if mboards have mimo port??
+        if ((synchronizationSetup == twoDevicesMIMOCableMasterSlave) && (numMboardsInUSRP != 2))
         {
-            //todo: how to find out if mboards have mimo port??
-            // you cannot use a mimo setup with more or less than two devices
-            jassert (numMboardsInUSRP == 2);
+            usrp = nullptr;
+            return juce::Result::fail ("You cannot use a MIMO setup with more or less than two devices");
         }
-#endif
 
         this->synchronizationSetup = synchronizationSetup;
 
@@ -246,14 +251,22 @@ namespace ntlab
         streamArgs.args        = const_cast<char*> (defaultArgs.toRawUTF8());
         rxStream.reset (usrp->makeRxStream (streamArgs, error));
 
-        NTLAB_RETURN_FAIL_WITH_ERROR_CODE_DESCRIPTION_IN_CASE_OF_ERROR_AND_INVOKE_ACTIONS_BEFORE (error, rxStream.reset (nullptr);)
+        if (error)
+        {
+            rxStream.reset (nullptr);
+            return juce::Result::fail ("Error creating Rx Stream: " + usrp->getLastUSRPError ());
+        }
 
         std::vector<juce::StringArray> gainElements;
         for (int c = 0; c < rxChannelMapping->numChannels; ++c)
         {
             gainElements.emplace_back (usrp->getValidRxGainElements (c));
-            error = usrp->setRxAntenna (channelSetup[c].antennaPort.toRawUTF8(), c);
-            NTLAB_RETURN_FAIL_WITH_ERROR_CODE_DESCRIPTION_IN_CASE_OF_ERROR (error);
+            error = usrp->setRxAntenna (channelSetup[c].antennaPort.toRawUTF8 (), c);
+            if (error)
+            {
+                rxStream.reset (nullptr);
+                return juce::Result::fail ("Error setting Rx Antenna: " + usrp->getLastUSRPError ());
+            }
         }
         rxChannelMapping->setGainElements (std::move (gainElements));
 
@@ -287,14 +300,22 @@ namespace ntlab
 
         txStream.reset (usrp->makeTxStream (streamArgs, error));
 
-        NTLAB_RETURN_FAIL_WITH_ERROR_CODE_DESCRIPTION_IN_CASE_OF_ERROR_AND_INVOKE_ACTIONS_BEFORE (error, txStream.reset (nullptr);)
+        if (error)
+        {
+            rxStream.reset (nullptr);
+            return juce::Result::fail ("Error creating Tx Stream: " + usrp->getLastUSRPError ());
+        }
 
         std::vector<juce::StringArray> gainElements;
         for (int c = 0; c < txChannelMapping->numChannels; ++c)
         {
             gainElements.emplace_back (usrp->getValidTxGainElements (c));
-            error = usrp->setTxAntenna (channelSetup[c].antennaPort.toRawUTF8(), c);
-            NTLAB_RETURN_FAIL_WITH_ERROR_CODE_DESCRIPTION_IN_CASE_OF_ERROR (error);
+            error = usrp->setTxAntenna (channelSetup[c].antennaPort.toRawUTF8 (), c);
+            if (error)
+            {
+                rxStream.reset (nullptr);
+                return juce::Result::fail ("Error setting Rx Antenna: " + usrp->getLastUSRPError ());
+            }
         }
         txChannelMapping->setGainElements (std::move (gainElements));
 
@@ -470,9 +491,9 @@ namespace ntlab
 
         for (int m = 0; m < numMboards; ++m)
         {
-            auto ipAddress = mboards.getChild(m).getProperty (propertyIPAddress);
+            auto ipAddress = mboards.getChild (m).getProperty (propertyIPAddress);
             jassert (!ipAddress.isVoid());
-            args.set ("addr" + juce::String(m), ipAddress.toString());
+            args.set ("addr" + juce::String (m), ipAddress.toString ());
         }
 
         auto makingUSRP = makeUSRP (args, varSyncSetupConverter::fromVar (syncSetup));
@@ -482,11 +503,19 @@ namespace ntlab
         auto rxSetup = configToSet.getChildWithName ("Rx_Channel_Setup");
         auto txSetup = configToSet.getChildWithName ("Tx_Channel_Setup");
 
-        if (rxSetup.isValid())
-            ChannelMapping::deserializeSetup (rxSetup, *this);
+        if (rxSetup.isValid ())
+        {
+            auto deserializingRxSetup = ChannelMapping::deserializeSetup (rxSetup, *this);
+            if (deserializingRxSetup.failed ())
+                return deserializingRxSetup;
+        }
 
-        if (txSetup.isValid())
-            ChannelMapping::deserializeSetup (txSetup, *this);
+        if (txSetup.isValid ())
+        {
+            auto deserializingTxSetup = ChannelMapping::deserializeSetup (txSetup, *this);
+            if (deserializingTxSetup.failed ())
+                return deserializingTxSetup;
+        }
 
         if ((rxChannelMapping != nullptr) || (txChannelMapping != nullptr))
         {
@@ -517,7 +546,7 @@ namespace ntlab
         activeCallback = callback;
         startThread (realtimeAudioPriority);
 
-       return true;
+        return true;
     }
 
     void UHDEngine::stopStreaming ()
@@ -783,7 +812,7 @@ namespace ntlab
             {
                 double requiredCoarseGain, requiredFineGain;
                 rxChannelMapping->digitalGainPartition (channel, newGain, requiredCoarseGain, requiredFineGain);
-                auto coarseGainElementString = rxChannelMapping->getGainElementStringIfGainIsInValidRange (channel, ChannelMapping::UHDGainElements::digital,   requiredCoarseGain);
+                auto coarseGainElementString = rxChannelMapping->getGainElementStringIfGainIsInValidRange (channel, ChannelMapping::UHDGainElements::digital, requiredCoarseGain);
                 if (coarseGainElementString == nullptr)
                 {
                     // invalid digital gain value
@@ -801,7 +830,7 @@ namespace ntlab
                 if (error)
                     return false;
 
-                auto fineGainElementString   = rxChannelMapping->getGainElementStringIfGainIsInValidRange (channel, ChannelMapping::UHDGainElements::digitalFine, requiredFineGain);
+                auto fineGainElementString = rxChannelMapping->getGainElementStringIfGainIsInValidRange (channel, ChannelMapping::UHDGainElements::digitalFine, requiredFineGain);
                 if ((fineGainElementString != nullptr) && (*fineGainElementString != 0))
                 {
                     error = usrp->setRxGain (requiredFineGain, rxChannelMapping->getHardwareChannelForBufferChannel (channel), fineGainElementString);
@@ -851,7 +880,7 @@ namespace ntlab
             {
                 double requiredCoarseGain, requiredFineGain;
                 rxChannelMapping->digitalGainPartition (channel, newGain, requiredCoarseGain, requiredFineGain);
-                auto coarseGainElementString = txChannelMapping->getGainElementStringIfGainIsInValidRange (channel, ChannelMapping::UHDGainElements::digital,   requiredCoarseGain);
+                auto coarseGainElementString = txChannelMapping->getGainElementStringIfGainIsInValidRange (channel, ChannelMapping::UHDGainElements::digital, requiredCoarseGain);
                 if (coarseGainElementString == nullptr)
                 {
                     // invalid digital gain value
@@ -869,7 +898,7 @@ namespace ntlab
                 if (error)
                     return false;
 
-                auto fineGainElementString   = txChannelMapping->getGainElementStringIfGainIsInValidRange (channel, ChannelMapping::UHDGainElements::digitalFine, requiredFineGain);
+                auto fineGainElementString = txChannelMapping->getGainElementStringIfGainIsInValidRange (channel, ChannelMapping::UHDGainElements::digitalFine, requiredFineGain);
                 if ((fineGainElementString != nullptr) && (*fineGainElementString != 0))
                 {
                     error = usrp->setTxGain (requiredFineGain, txChannelMapping->getHardwareChannelForBufferChannel (channel), fineGainElementString);
@@ -1286,7 +1315,7 @@ namespace ntlab
         return currentSetup;
     }
 
-    void UHDEngine::ChannelMapping::deserializeSetup (juce::ValueTree& serializedSetup, UHDEngine& engine)
+    juce::Result UHDEngine::ChannelMapping::deserializeSetup (juce::ValueTree& serializedSetup, UHDEngine& engine)
     {
         Direction direction = static_cast<Direction> (serializedSetup.getType().toString()[0]);
 
@@ -1295,7 +1324,7 @@ namespace ntlab
         {
             // num_channels property missing
             jassertfalse;
-            return;
+            return juce::Result::fail ("Invalid config file - num_channels property missing");
         }
         const int numChannelsInt = numChannels;
 
@@ -1321,7 +1350,8 @@ namespace ntlab
 
         if (settingUpChannels.failed())
         {
-
+            channelMapping.reset (nullptr);
+            return settingUpChannels;
         }
 
         for (int c = 0; c < numChannelsInt; ++c)
@@ -1340,37 +1370,35 @@ namespace ntlab
                 if (idxOfAnalogGainElement >= 0)
                 {
                     error = engine.usrp->setRxGain (channelTree.getProperty (propertyAnalogGain), hardwareChannel, channelMapping->gainElements[c][idxOfAnalogGainElement].toRawUTF8());
-                    NTLAB_PRINT_ERROR_TO_DBG_AND_INVOKE_ACTIONS (error, channelMapping.reset (nullptr); engine.rxStream.reset (nullptr); return; );
+                    NTLAB_RETURN_FAIL_WITH_ERROR_CODE_DESCRIPTION_IN_CASE_OF_ERROR_AND_INVOKE_ACTIONS_BEFORE (error, channelMapping.reset (nullptr); engine.rxStream.reset (nullptr););
                 }
 
                 if (idxOfDigitalGainElement >= 0)
                 {
                     error = engine.usrp->setRxGain (channelTree.getProperty (propertyDigitalGain), hardwareChannel, channelMapping->gainElements[c][idxOfDigitalGainElement].toRawUTF8());
-                    NTLAB_PRINT_ERROR_TO_DBG_AND_INVOKE_ACTIONS (error, channelMapping.reset (nullptr); engine.rxStream.reset (nullptr); return; );
+                    NTLAB_RETURN_FAIL_WITH_ERROR_CODE_DESCRIPTION_IN_CASE_OF_ERROR_AND_INVOKE_ACTIONS_BEFORE (error, channelMapping.reset (nullptr); engine.rxStream.reset (nullptr););
                 }
 
                 if (idxOfDigitalFineGainElement >= 0)
                 {
                     error = engine.usrp->setRxGain (channelTree.getProperty (propertyDigitalGainFine), hardwareChannel, channelMapping->gainElements[c][idxOfDigitalFineGainElement].toRawUTF8());
-                    NTLAB_PRINT_ERROR_TO_DBG_AND_INVOKE_ACTIONS (error, channelMapping.reset (nullptr); engine.rxStream.reset (nullptr); return; );
+                    NTLAB_RETURN_FAIL_WITH_ERROR_CODE_DESCRIPTION_IN_CASE_OF_ERROR_AND_INVOKE_ACTIONS_BEFORE (error, channelMapping.reset (nullptr); engine.rxStream.reset (nullptr););
                 }
 
                 auto success = engine.setRxCenterFrequency (channelTree.getProperty (propertyCenterFrequency), c);
                 if (!success)
                 {
-                    DBG ("Error executing " << juce::String (BOOST_CURRENT_FUNCTION) << "\" Continuing...");
                     channelMapping.reset (nullptr);
                     engine.rxStream.reset (nullptr);
-                    return;
+                    return juce::Result::fail ("Error setting Rx center frequency of " + channelTree.getProperty (propertyCenterFrequency).toString () + " for channel " + juce::String (c));
                 }
 
                 success = engine.setRxBandwidth (channelTree.getProperty (propertyAnalogBandwitdh), c);
                 if (!success)
                 {
-                    DBG ("Error executing " << juce::String (BOOST_CURRENT_FUNCTION) << "\" Continuing...");
                     channelMapping.reset (nullptr);
                     engine.rxStream.reset (nullptr);
-                    return;
+                    return juce::Result::fail ("Error setting Rx bandwidth of " + channelTree.getProperty (propertyAnalogBandwitdh).toString () + " for channel " + juce::String (c));
                 }
             }
             else
@@ -1378,41 +1406,39 @@ namespace ntlab
                 if (idxOfAnalogGainElement >= 0)
                 {
                     error = engine.usrp->setTxGain (channelTree.getProperty (propertyAnalogGain), hardwareChannel, channelMapping->gainElements[c][idxOfAnalogGainElement].toRawUTF8());
-                    NTLAB_PRINT_ERROR_TO_DBG_AND_INVOKE_ACTIONS (error, channelMapping.reset (nullptr); engine.txStream.reset (nullptr); return; );
+                    NTLAB_RETURN_FAIL_WITH_ERROR_CODE_DESCRIPTION_IN_CASE_OF_ERROR_AND_INVOKE_ACTIONS_BEFORE (error, channelMapping.reset (nullptr); engine.txStream.reset (nullptr););
                 }
 
                 if (idxOfDigitalGainElement >= 0)
                 {
                     error = engine.usrp->setTxGain (channelTree.getProperty (propertyDigitalGain), hardwareChannel, channelMapping->gainElements[c][idxOfDigitalGainElement].toRawUTF8());
-                    NTLAB_PRINT_ERROR_TO_DBG_AND_INVOKE_ACTIONS (error, channelMapping.reset (nullptr); engine.txStream.reset (nullptr); return; );
+                    NTLAB_RETURN_FAIL_WITH_ERROR_CODE_DESCRIPTION_IN_CASE_OF_ERROR_AND_INVOKE_ACTIONS_BEFORE (error, channelMapping.reset (nullptr); engine.txStream.reset (nullptr););
                 }
 
                 if (idxOfDigitalFineGainElement >= 0)
                 {
                     error = engine.usrp->setTxGain (channelTree.getProperty (propertyDigitalGainFine), hardwareChannel, channelMapping->gainElements[c][idxOfDigitalFineGainElement].toRawUTF8());
-                    NTLAB_PRINT_ERROR_TO_DBG_AND_INVOKE_ACTIONS (error, channelMapping.reset (nullptr); engine.txStream.reset (nullptr); return; );
+                    NTLAB_RETURN_FAIL_WITH_ERROR_CODE_DESCRIPTION_IN_CASE_OF_ERROR_AND_INVOKE_ACTIONS_BEFORE (error, channelMapping.reset (nullptr); engine.txStream.reset (nullptr););
                 }
 
                 auto success = engine.setTxCenterFrequency (channelTree.getProperty (propertyCenterFrequency), c);
                 if (!success)
                 {
-                    DBG ("Error executing " << juce::String (BOOST_CURRENT_FUNCTION) << "\" Continuing...");
                     channelMapping.reset (nullptr);
                     engine.txStream.reset (nullptr);
-                    return;
+                    return juce::Result::fail ("Error setting Tx center frequency of " + channelTree.getProperty (propertyCenterFrequency).toString () + " for channel " + juce::String (c));
                 }
 
                 success = engine.setTxBandwidth (channelTree.getProperty (propertyAnalogBandwitdh), c);
                 if (!success)
                 {
-                    DBG ("Error executing " << juce::String (BOOST_CURRENT_FUNCTION) << "\" Continuing...");
                     channelMapping.reset (nullptr);
                     engine.txStream.reset (nullptr);
-                    return;
+                    return juce::Result::fail ("Error setting Tx bandwith of " + channelTree.getProperty (propertyAnalogBandwitdh).toString () + " for channel " + juce::String (c));
                 }
             }
         }
-
+        return juce::Result::ok ();
     }
 
     const char UHDEngine::ChannelMapping::emptyGainElementString[1] = "";
@@ -1746,6 +1772,9 @@ namespace ntlab
             treeHistory.clearQuick();
             treeHistory.add (tree);
         }
+#if NTLAB_DEBUGPRINT_UHDTREE
+        std::cout << "Parsed UHD tree:\n\n" << tree.toXmlString() << std::endl;
+#endif
 
         return tree;
     }
@@ -1762,218 +1791,16 @@ namespace ntlab
          */
         return juce::IPAddress ("0.0.0.0");
     }
+
 #endif //!JUCE_IOS
 
-#if JUCE_MODULE_AVAILABLE_juce_gui_basics
-    UHDEngineConfigurationComponent::UHDEngineConfigurationComponent (ntlab::SDRIOEngineConfigurationInterface& configurationInterface) : configInterface (configurationInterface)
-    {
-        deviceValueTree = configInterface.getDeviceTree();
 
-        addAndMakeVisible (treeView);
-
-        treeView.setDefaultOpenness (true);
-        treeView.setMultiSelectEnabled (true);
-        rootItem.reset (new ValueTreeItem (deviceValueTree, undoManager));
-        treeView.setRootItem (rootItem.get());
-
-        setSize (500, 500);
-    }
-
-    void UHDEngineConfigurationComponent::paint (juce::Graphics& g)
-    {
-        g.fillAll (getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));
-    }
-
-    void UHDEngineConfigurationComponent::resized ()
-    {
-        treeView.setBounds (getLocalBounds());
-    }
-
-    UHDEngineConfigurationComponent::RangeValueComponent::RangeValueComponent (juce::ValueTree& treeItemToReferTo)
-     : treeItem (treeItemToReferTo),
-       allowedValueRange (treeItem.getProperty (UHDEngine::propertyMin), treeItem.getProperty (UHDEngine::propertyMax)),
-       stepWidth         (treeItem.getProperty (UHDEngine::propertyStepWidth)),
-       scalingFactor     (treeItem.getProperty (UHDEngine::propertyUnitScaling)),
-       unit              (treeItem.getProperty (UHDEngine::propertyUnit).toString())
-    {
-        valueDescription.setText (treeItem.getType().toString().replaceCharacter ('_', ' ') + " in " + unit +
-                                  ". Min: " + juce::String (allowedValueRange.getStart()) + unit +
-                                  " Max: " + juce::String (allowedValueRange.getEnd()) + unit,
-                                  juce::NotificationType::dontSendNotification);
-
-        double currentValue = treeItem.getProperty (UHDEngine::propertyCurrentValue);
-
-        if (std::isnan (currentValue))
-            previousValueEditorText = "Not specified";
-        else
-            previousValueEditorText = juce::String (currentValue) + unit;
-
-        valueEditor.setText (previousValueEditorText, false);
-        valueEditor.onTextChange = [this]()
-        {
-            std::stringstream valueEnteredAsString;
-            double valueEnteredAsDouble;
-
-            valueEnteredAsString << valueEditor.getText();
-
-            if (valueEnteredAsString >> valueEnteredAsDouble)
-            {
-                valueEnteredAsDouble = allowedValueRange.clipValue (valueEnteredAsDouble);
-                treeItem.setProperty (UHDEngine::propertyCurrentValue, valueEnteredAsDouble, nullptr);
-                previousValueEditorText = juce::String (valueEnteredAsDouble) + unit;
-            }
-
-            valueEditor.setText (previousValueEditorText, false);
-        };
-
-        addAndMakeVisible (valueDescription);
-        addAndMakeVisible (valueEditor);
-
-        setSize (200, 26);
-    }
-
-    void UHDEngineConfigurationComponent::RangeValueComponent::paint (juce::Graphics&)
-    {
-
-    }
-
-    void UHDEngineConfigurationComponent::RangeValueComponent::resized ()
-    {
-        auto bounds = getLocalBounds().removeFromTop (3).removeFromBottom (3);
-        valueDescription.setBounds (bounds.removeFromLeft (100));
-        valueEditor     .setBounds (bounds);
-    }
-
-    UHDEngineConfigurationComponent::SelectionValueComponent::SelectionValueComponent (juce::ValueTree& treeItemToReferTo) : treeItem (treeItemToReferTo)
-    {
-        valueDescription.setText (treeItem.getType().toString().replaceCharacter ('_', ' '), juce::NotificationType::dontSendNotification);
-
-        auto arrayValuesAsString = treeItem.getProperty (UHDEngine::propertyArray).toString().replaceCharacter ('_', ' ');
-        auto arrayValues = juce::StringArray::fromTokens (arrayValuesAsString, ";", "\"");
-        valueSelector.addItemList (arrayValues, 1);
-
-        juce::String currentValue = treeItem.getProperty (UHDEngine::propertyCurrentValue);
-
-        if (int id = arrayValues.indexOf (currentValue) != -1)
-            valueSelector.setSelectedItemIndex (id + 1, juce::NotificationType::dontSendNotification);
-
-        valueSelector.onChange = [this]()
-        {
-            auto currentSelection = valueSelector.getText().replaceCharacter (' ', '_');
-            treeItem.setProperty (UHDEngine::propertyCurrentValue, currentSelection, nullptr);
-        };
-
-        addAndMakeVisible (valueDescription);
-        addAndMakeVisible (valueSelector);
-
-        setSize (200, 26);
-    }
-
-    void UHDEngineConfigurationComponent::SelectionValueComponent::resized ()
-    {
-        auto bounds = getLocalBounds().removeFromTop (3).removeFromBottom (3);
-        valueDescription.setBounds (bounds.removeFromLeft (100));
-        valueSelector   .setBounds (bounds);
-    }
-
-    void UHDEngineConfigurationComponent::SelectionValueComponent::paint (juce::Graphics& g)
-    {
-
-    }
-
-    UHDEngineConfigurationComponent::ValueTreeItem::ValueTreeItem (const juce::ValueTree& v, juce::UndoManager& um) : tree (v), undoManager (um)
-    {
-        tree.addListener (this);
-    }
-
-    juce::String UHDEngineConfigurationComponent::ValueTreeItem::getUniqueName () const
-    {
-        return tree.getType().toString();
-    }
-
-    bool UHDEngineConfigurationComponent::ValueTreeItem::mightContainSubItems ()
-    {
-        return tree.getNumChildren() > 0;
-    }
-
-    int UHDEngineConfigurationComponent::ValueTreeItem::getItemHeight () const
-    {
-        return heightPerProperty * (tree.getNumProperties() + 1);
-    }
-
-    void UHDEngineConfigurationComponent::ValueTreeItem::paintItem (juce::Graphics& g, int width, int height)
-    {
-        g.setColour (juce::Colours::white);
-        g.setFont (15.0f);
-
-        g.drawText (tree.getType().toString().replaceCharacter ('_', ' '),
-                4, 0, width - 4, heightPerProperty,
-                juce::Justification::centredLeft, true);
-
-        int y = heightPerProperty;
-
-        for (int i = 0; i < tree.getNumProperties(); ++i)
-        {
-            auto propertyName = tree.getPropertyName (i);
-            g.drawText (propertyName.toString().replaceCharacter ('_', ' ') + " : " + tree.getProperty (propertyName).toString(),
-                    8, y, width - 8, heightPerProperty,
-                    juce::Justification::centredLeft, true);
-            y += heightPerProperty;
-        }
-    }
-
-    void UHDEngineConfigurationComponent::ValueTreeItem::itemOpennessChanged (bool isNowOpen)
-    {
-        if (isNowOpen && getNumSubItems() == 0)
-            refreshSubItems();
-        else
-            clearSubItems();
-    }
-
-    void UHDEngineConfigurationComponent::ValueTreeItem::refreshSubItems ()
-    {
-        clearSubItems();
-
-        for (int i = 0; i < tree.getNumChildren(); ++i)
-            addSubItem (new ValueTreeItem (tree.getChild (i), undoManager));
-    }
-
-    void UHDEngineConfigurationComponent::ValueTreeItem::valueTreePropertyChanged (juce::ValueTree&, const juce::Identifier&)
-    {
-        repaintItem();
-    }
-
-    void UHDEngineConfigurationComponent::ValueTreeItem::valueTreeChildAdded (juce::ValueTree& parentTree, juce::ValueTree&)
-    {
-        treeChildrenChanged (parentTree);
-    }
-
-    void UHDEngineConfigurationComponent::ValueTreeItem::valueTreeChildRemoved (juce::ValueTree& parentTree, juce::ValueTree&, int)
-    {
-        treeChildrenChanged (parentTree);
-    }
-
-    void UHDEngineConfigurationComponent::ValueTreeItem::valueTreeChildOrderChanged (juce::ValueTree& parentTree, int, int)
-    {
-        treeChildrenChanged (parentTree);
-    }
-
-    void UHDEngineConfigurationComponent::ValueTreeItem::valueTreeParentChanged (juce::ValueTree&) {}
-
-    void UHDEngineConfigurationComponent::ValueTreeItem::treeChildrenChanged (const juce::ValueTree& parentTree)
-    {
-        if (parentTree == tree)
-        {
-            refreshSubItems();
-            treeHasChanged();
-            setOpen (true);
-        }
-    }
-
-#endif
 #if !JUCE_IOS
 
-    juce::String UHDEngineManager::getEngineName () {return "UHD Engine"; }
+    juce::String UHDEngineManager::getEngineName ()
+    {
+        return "UHD Engine";
+    }
 
     juce::Result UHDEngineManager::isEngineAvailable ()
     {
@@ -2001,11 +1828,19 @@ namespace ntlab
     {
         return new UHDEngine (uhdr);
     }
+
 #if JUCE_MODULE_AVAILABLE_juce_gui_basics
-    std::unique_ptr<juce::Component> UHDEngineManager::createEngineConfigurationComponent (ntlab::SDRIOEngineConfigurationInterface& configurationInterface)
+}
+
+#include "../../GUI/EttusConfigComponent.h"
+
+namespace ntlab
+{
+
+    std::unique_ptr<juce::Component> UHDEngineManager::createEngineConfigurationComponent (ntlab::SDRIOEngineConfigurationInterface& configurationInterface, SDRIOEngineConfigurationInterface::ConfigurationConstraints& constraints)
     {
-        return std::unique_ptr<juce::Component> (new UHDEngineConfigurationComponent (configurationInterface));
+        return std::unique_ptr<juce::Component> (new UHDEngineConfigurationComponent (configurationInterface, constraints));
     }
-#endif
+#endif //JUCE_MODULE_AVAILABLE_juce_gui_basics
 #endif //!JUCE_IOS
 }

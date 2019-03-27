@@ -792,6 +792,14 @@ namespace ntlab
         return numMboards;
     }
 
+    const std::string& UHDr::USRP::getLastUSRPError ()
+    {
+	    if (usrpHandle != nullptr)
+            return usrpHandle->lastError;
+
+	    static const std::string noUSRP ("Can't display last USRP error - no USRP was created");
+        return noUSRP;
+    }
     UHDr::USRP::RxStream::~RxStream ()
     {
         if (rxMetadataHandle != nullptr)

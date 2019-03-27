@@ -123,7 +123,7 @@ namespace ntlab
         juce::Result isEngineAvailable() override;
 
 #if JUCE_MODULE_AVAILABLE_juce_gui_basics
-        std::unique_ptr<juce::Component> createEngineConfigurationComponent (SDRIOEngineConfigurationInterface& configurationInterface) override;
+        std::unique_ptr<juce::Component> createEngineConfigurationComponent (SDRIOEngineConfigurationInterface& configurationInterface, SDRIOEngineConfigurationInterface::ConfigurationConstraints& constraints) override;
 #endif
 
         SDRIOEngine* createEngine() override;

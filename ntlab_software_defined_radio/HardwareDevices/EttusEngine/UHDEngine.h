@@ -29,6 +29,7 @@ namespace ntlab
     {
         friend class UHDEngineManager;
         friend class ChannelMapping;
+        friend class UHDEngineConfigurationComponent;
 #else
     {
 #endif
@@ -71,16 +72,16 @@ namespace ntlab
         enum SynchronizationSetup
         {
             /** If only one device is running, it can generate its time- and clock base internally */
-            singleDeviceStandalone,
+            singleDeviceStandalone = 0,
 
             /** The usual choice for a multi-USRP setup. One central clock and time source which synchronizes all USRPs */
-            externalSyncAndClock,
+            externalSyncAndClock = 1,
 
             /**
              * Some devices have a MIMO cable port that allows the second device to be a slave to the first one that
              * uses its internal clock
              */
-            twoDevicesMIMOCableMasterSlave
+            twoDevicesMIMOCableMasterSlave = 2
         };
 
         static const juce::Identifier propertyUSRPDevice;
@@ -89,6 +90,9 @@ namespace ntlab
         static const juce::Identifier propertyMBoard;
         static const juce::Identifier propertyTimeSources;
         static const juce::Identifier propertyClockSources;
+        static const juce::Identifier propertySensors;
+        static const juce::Identifier propertyRxDSP;
+        static const juce::Identifier propertyTxDSP;
         static const juce::Identifier propertyRxDboard;
         static const juce::Identifier propertyTxDboard;
         static const juce::Identifier propertyRxFrontend;
@@ -221,6 +225,18 @@ namespace ntlab
         class ChannelMapping
         {
         public:
+            static const juce::Identifier propertyNumChannels;
+            static const juce::Identifier propertyMboardIdx;
+            static const juce::Identifier propertyDboardSlot;
+            static const juce::Identifier propertyFrontendOnDboard;
+            static const juce::Identifier propertyAntennaPort;
+            static const juce::Identifier propertyAnalogGain;
+            static const juce::Identifier propertyDigitalGain;
+            static const juce::Identifier propertyDigitalGainFine;
+            static const juce::Identifier propertyCenterFrequency;
+            static const juce::Identifier propertyAnalogBandwitdh;
+            static const juce::Identifier propertyHardwareChannel;
+
             enum UHDGainElements : size_t {analog, digital, digitalFine, automatic, count};
             friend std::ostream& operator<< (std::ostream& os, UHDEngine::ChannelMapping::UHDGainElements gainElement)
             {
@@ -266,7 +282,7 @@ namespace ntlab
             size_t* getStreamArgsChannelList() const;
 
             juce::ValueTree serializeCurrentSetup (Direction direction);
-            static void deserializeSetup (juce::ValueTree& serializedSetup, UHDEngine& engine);
+            static juce::Result deserializeSetup (juce::ValueTree& serializedSetup, UHDEngine& engine);
 
             const int numChannels;
 
@@ -285,17 +301,10 @@ namespace ntlab
             UHDEngine& uhdEngine;
             static const char emptyGainElementString[1];
 
-            static const juce::Identifier propertyNumChannels;
-            static const juce::Identifier propertyMboardIdx;
-            static const juce::Identifier propertyDboardSlot;
-            static const juce::Identifier propertyFrontendOnDboard;
-            static const juce::Identifier propertyAntennaPort;
-            static const juce::Identifier propertyAnalogGain;
-            static const juce::Identifier propertyDigitalGain;
-            static const juce::Identifier propertyDigitalGainFine;
-            static const juce::Identifier propertyCenterFrequency;
-            static const juce::Identifier propertyAnalogBandwitdh;
-            static const juce::Identifier propertyHardwareChannel;
+            //static const juce::Identifier propertyGainRangeAnalog;
+            //static const juce::Identifier propertyGainRangeDigital;
+            //static const juce::Identifier propertyGainRangeDigitalFine;
+
         };
 
         SDRIODeviceCallback* activeCallback = nullptr;
@@ -347,89 +356,7 @@ namespace ntlab
 
 #endif //JUCE_IOS
 
-#if JUCE_MODULE_AVAILABLE_juce_gui_basics
 
-    class UHDEngineConfigurationComponent : public juce::Component
-    {
-    public:
-        UHDEngineConfigurationComponent (SDRIOEngineConfigurationInterface& configurationInterface);
-
-        void paint (juce::Graphics& g) override;
-
-        void resized() override;
-
-    private:
-        class RangeValueComponent : public juce::Component
-        {
-        public:
-            RangeValueComponent (juce::ValueTree& treeItemToReferTo);
-            void paint (juce::Graphics& g) override;
-            void resized() override;
-        private:
-            juce::ValueTree treeItem;
-            juce::Range<double> allowedValueRange;
-            double stepWidth, scalingFactor;
-            juce::Label valueDescription;
-            juce::TextEditor valueEditor;
-            juce::String unit, previousValueEditorText;
-        };
-
-        class SelectionValueComponent : public juce::Component
-        {
-        public:
-            SelectionValueComponent (juce::ValueTree& treeItemToReferTo);
-            void paint (juce::Graphics& g) override;
-            void resized() override;
-        private:
-            juce::ValueTree treeItem;
-            juce::Label valueDescription;
-            juce::ComboBox valueSelector;
-        };
-
-        class ValueTreeItem  : public juce::TreeViewItem, private juce::ValueTree::Listener
-        {
-        public:
-            ValueTreeItem (const juce::ValueTree& v, juce::UndoManager& um);
-
-            juce::String getUniqueName() const override;
-
-            bool mightContainSubItems() override;
-
-            int getItemHeight() const override;
-
-            void paintItem (juce::Graphics& g, int width, int height) override;
-
-            void itemOpennessChanged (bool isNowOpen) override;
-
-
-        private:
-            juce::ValueTree tree;
-            juce::UndoManager& undoManager;
-
-            static const int heightPerProperty = 20;
-
-            void refreshSubItems();
-
-            void valueTreePropertyChanged (juce::ValueTree&, const juce::Identifier&) override;
-            void valueTreeChildAdded (juce::ValueTree& parentTree, juce::ValueTree&) override;
-            void valueTreeChildRemoved (juce::ValueTree& parentTree, juce::ValueTree&, int) override;
-            void valueTreeChildOrderChanged (juce::ValueTree& parentTree, int, int) override;
-            void valueTreeParentChanged (juce::ValueTree&) override;
-
-            void treeChildrenChanged (const juce::ValueTree& parentTree);
-
-            JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ValueTreeItem)
-        };
-
-        SDRIOEngineConfigurationInterface& configInterface;
-
-        juce::ValueTree deviceValueTree;
-        juce::TreeView treeView;
-
-        std::unique_ptr<ValueTreeItem> rootItem;
-        juce::UndoManager undoManager;
-    };
-#endif
 
 #if !JUCE_IOS
     class UHDEngineManager : private SDRIOEngineManager
@@ -440,7 +367,7 @@ namespace ntlab
 
         juce::Result isEngineAvailable() override;
 #if JUCE_MODULE_AVAILABLE_juce_gui_basics
-        std::unique_ptr<juce::Component> createEngineConfigurationComponent (SDRIOEngineConfigurationInterface& configurationInterface) override;
+        std::unique_ptr<juce::Component> createEngineConfigurationComponent (SDRIOEngineConfigurationInterface& configurationInterface, SDRIOEngineConfigurationInterface::ConfigurationConstraints& constraints) override;
 #endif
 
         SDRIOEngine* createEngine() override;

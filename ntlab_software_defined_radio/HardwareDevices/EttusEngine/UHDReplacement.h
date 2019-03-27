@@ -554,6 +554,9 @@ namespace ntlab
             /** Returns the number of physical motherboards managed by this USRP instance */
             const int getNumMboards();
 
+            /** Returns the content of the lastError string of the underlying USRP handle, if it exists */
+            const std::string& getLastUSRPError();
+
             /**
              * This class wraps the rxStreamer and will be used for actual Rx work. It can only be created through
              * USRP::makeRxStream.
@@ -673,7 +676,7 @@ namespace ntlab
 
             UHDr::Ptr uhd;
 
-            USRPHandle usrpHandle;
+            USRPHandle usrpHandle = nullptr;
             int numInputChannels;
             int numOutputChannels;
             int numMboards;
