@@ -33,7 +33,11 @@ private:
     public:
         EngineConfigWindow (ntlab::SDRIODeviceManager& deviceManager) : DocumentWindow ("Configure Engine", juce::Colours::black, allButtons)
         {
-            engineConfigComponent = deviceManager.getConfigurationComponentForSelectedEngine();
+            auto constraints = ntlab::SDRIOEngineConfigurationInterface::ConfigurationConstraints::withFixedNumChannels (0, 1);
+
+            constraints.setMin (ntlab::SDRIOEngineConfigurationInterface::ConfigurationConstraints::rxCenterFreq, 20e6);
+
+            engineConfigComponent = deviceManager.getConfigurationComponentForSelectedEngine (constraints);
             setContentNonOwned (engineConfigComponent.get(), true);
         };
 
@@ -57,7 +61,9 @@ private:
     juce::Label centerFreqLabel;
     juce::Label oscillatorFreqLabel;
 
-    static const int bandwidth = 10e6;
+    double bandwidth = 10e6;
+
+    static const juce::File settingsFile;
 
     // ntlab::SDRIODeviceCallback member functions =================================
     void prepareForStreaming (double sampleRate, int numActiveChannelsIn, int numActiveChannelsOut, int maxNumSamplesPerBlock) override;
@@ -67,6 +73,7 @@ private:
 
     void setUpEngine();
     void setEngineState (bool engineHasStarted);
+    void setupSliderRanges (double centerFreq);
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)
 };

@@ -1,14 +1,8 @@
-/*
-  ==============================================================================
-
-    This file was auto-generated!
-
-  ==============================================================================
-*/
-
 #include "MainComponent.h"
 
 //==============================================================================
+const juce::File MainComponent::settingsFile (juce::File::getSpecialLocation (juce::File::SpecialLocationType::userApplicationDataDirectory).getChildFile ("ntlabOscillatorDemoSettings.xml"));
+
 MainComponent::MainComponent() : oscillator (1)
 {
     // Initialize our device manager first
@@ -22,6 +16,7 @@ MainComponent::MainComponent() : oscillator (1)
     addAndMakeVisible (oscillatorFreqSlider);
 
     // Fill the combo box with all engines available
+    engineSelectionBox.setTextWhenNothingSelected ("Choose an Engine");
     engineSelectionBox.addItemList (deviceManager.getEngineNames(), 1);
 
     // Style the GUI Components
@@ -54,7 +49,19 @@ MainComponent::MainComponent() : oscillator (1)
         auto selectedEngine = engineSelectionBox.getText();
         if (selectedEngine.isNotEmpty())
         {
-            deviceManager.selectEngine (selectedEngine);
+            if (deviceManager.selectEngine (selectedEngine))
+            {
+                std::unique_ptr<juce::XmlElement> xml (juce::XmlDocument::parse (settingsFile));
+                if (xml != nullptr)
+                {
+                    auto lastConfig = juce::ValueTree::fromXml (*xml);
+                    auto settingConfig = deviceManager.getSelectedEngine()->setConfig (lastConfig);
+                    if (settingConfig.wasOk())
+                        juce::AlertWindow::showMessageBoxAsync (juce::AlertWindow::AlertIconType::InfoIcon, "Restored Engine settings", "Successfully restored engine settings from last session");
+                    else
+                        DBG (settingConfig.getErrorMessage());
+                }
+            }
         }
     };
 
@@ -63,12 +70,13 @@ MainComponent::MainComponent() : oscillator (1)
         if (deviceManager.getSelectedEngine())
         {
             engineConfigWindow = new EngineConfigWindow (deviceManager);
-            engineConfigWindow->setBounds(20, 50, 300, 500);
+            engineConfigWindow->setBounds(20, 50, 600, 600);
             engineConfigWindow->setResizable (true, false);
             engineConfigWindow->setUsingNativeTitleBar (true);
             engineConfigWindow->setVisible (true);
         }
-
+        else
+            juce::AlertWindow::showMessageBoxAsync (juce::AlertWindow::AlertIconType::WarningIcon, "No engine selected", "Select an Engine to configure");
     };
 
     startStopButton.onClick = [this]()
@@ -80,9 +88,9 @@ MainComponent::MainComponent() : oscillator (1)
         else
         {
             if (deviceManager.getSelectedEngine())
-            {
                 setUpEngine();
-            }
+            else
+                juce::AlertWindow::showMessageBoxAsync (juce::AlertWindow::AlertIconType::WarningIcon, "No engine selected", "Select an Engine to start streaming");
         }
     };
 
@@ -108,10 +116,7 @@ MainComponent::MainComponent() : oscillator (1)
     };
 
     const double initialCenterFreq = 1.89e9;
-    centerFreqSlider.setRange (1.87e9, 1.91e9, 1000);
-    centerFreqSlider.setValue (initialCenterFreq, juce::NotificationType::dontSendNotification);
-    oscillatorFreqSlider.setRange (initialCenterFreq, initialCenterFreq + bandwidth, 10);
-    oscillatorFreqSlider.setValue (initialCenterFreq, juce::NotificationType::sendNotification);
+    setupSliderRanges (initialCenterFreq);
 
     setSize (600, 400);
 }
@@ -119,6 +124,10 @@ MainComponent::MainComponent() : oscillator (1)
 MainComponent::~MainComponent()
 {
     deviceManager.stopStreaming();
+    auto activeConfig = deviceManager.getSelectedEngine()->getActiveConfig();
+    std::unique_ptr<juce::XmlElement> xml (activeConfig.createXml());
+    if (xml != nullptr)
+        xml->writeToFile (settingsFile, "");
 }
 
 //==============================================================================
@@ -149,7 +158,7 @@ void MainComponent::resized()
 void MainComponent::prepareForStreaming (double sampleRate, int numActiveChannelsIn, int numActiveChannelsOut, int maxNumSamplesPerBlock)
 {
     oscillator.setSampleRate (sampleRate);
-    DBG ("Starting to stream with " << numActiveChannelsIn << " input channels, " << numActiveChannelsOut << " output channels, block size " << maxNumSamplesPerBlock << " samples");
+    std::cout << "Starting to stream with " << numActiveChannelsIn << " input channels, " << numActiveChannelsOut << " output channels, block size " << maxNumSamplesPerBlock << " samples" << std::endl;
 
     // Enable the center freq slider only if the engine is a hardware device that has a tunable center frequency
     if (dynamic_cast<ntlab::SDRIOHardwareEngine*> (deviceManager.getSelectedEngine()))
@@ -178,58 +187,16 @@ void MainComponent::handleError (const juce::String& errorMessage)
 
 void MainComponent::setUpEngine()
 {
-    if (auto uhdEngine = dynamic_cast<ntlab::UHDEngine*> (deviceManager.getSelectedEngine()))
+    auto* selectedEngine = deviceManager.getSelectedEngine();
+
+    selectedEngine->enableRxTx (false, true);
+
+    if (auto* hardwareEngine = dynamic_cast<ntlab::SDRIOHardwareEngine*> (selectedEngine))
     {
-        auto makeUSRP = uhdEngine->makeUSRP ({"192.168.20.1"}, ntlab::UHDEngine::SynchronizationSetup::singleDeviceStandalone);
-        if (makeUSRP.failed())
-        {
-            std::cerr << makeUSRP.getErrorMessage() << std::endl;
-            return;
-        }
+        hardwareEngine->addTuneChangeListener (&oscillator);
 
-        ntlab::UHDEngine::ChannelSetup channelSetup;
-        channelSetup.mboardIdx               = 0;
-        channelSetup.daughterboardSlot       = "A";
-        channelSetup.frontendOnDaughterboard = "0";
-        channelSetup.antennaPort             = "TX/RX";
-
-        juce::Array<ntlab::UHDEngine::ChannelSetup> outputChannelSetup ({channelSetup});
-        auto setupTxChannels = uhdEngine->setupTxChannels (outputChannelSetup);
-        if (setupTxChannels.failed())
-        {
-            std::cerr << setupTxChannels.getErrorMessage() << std::endl;
-            return;
-        }
-
-        if (!uhdEngine->setSampleRate (bandwidth))
-        {
-            std::cerr << "Could not set desired sample rate" << std::endl;
-            return;
-        }
-
-        if (!uhdEngine->setTxCenterFrequency (centerFreqSlider.getValue(), ntlab::SDRIOEngine::allChannels))
-        {
-            std::cerr << "Could not set desired tx center frequency" << std::endl;
-        }
-
-        if (!uhdEngine->enableRxTx (false, true))
-        {
-            std::cerr << "Could not enable Tx" << std::endl;
-            return;
-        }
-
-        uhdEngine->addTuneChangeListener (&oscillator);
-    }
-    else if (auto mcvEngine = dynamic_cast<ntlab::MCVFileEngine*> (deviceManager.getSelectedEngine()))
-    {
-        auto outFile = juce::File::getSpecialLocation (juce::File::SpecialLocationType::userDesktopDirectory).getChildFile ("OscillatorDemoOutput.mcv");
-        mcvEngine->setOutFile (outFile, 1, true);
-    }
-    else
-    {
-        // unsupported engine
-        jassertfalse;
-        return;
+        bandwidth = hardwareEngine->getSampleRate();
+        setupSliderRanges (hardwareEngine->getTxCenterFrequency (0));
     }
 
     deviceManager.setCallback (this);
@@ -241,7 +208,7 @@ void MainComponent::setUpEngine()
     }
     else
     {
-        std::cerr << "Engine is not ready to stream" << std::endl;
+        juce::AlertWindow::showMessageBoxAsync (juce::AlertWindow::AlertIconType::WarningIcon, "Engine not ready to stream", "Streaming could not be started. Check the engine configuration");
     }
 }
 
@@ -257,4 +224,12 @@ void MainComponent::setEngineState (bool engineHasStarted)
         startStopButton.setButtonText ("Start");
         engineIsRunning = false;
     }
+}
+
+void MainComponent::setupSliderRanges (double centerFreq)
+{
+    centerFreqSlider.setRange (centerFreq - 0.03e9, centerFreq + 0.03e9, 1000);
+    centerFreqSlider.setValue (centerFreq, juce::NotificationType::dontSendNotification);
+    oscillatorFreqSlider.setRange (centerFreq, centerFreq + bandwidth, 10);
+    oscillatorFreqSlider.setValue (centerFreq, juce::NotificationType::dontSendNotification);
 }
