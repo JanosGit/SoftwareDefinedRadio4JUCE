@@ -54,6 +54,14 @@ along with SoftwareDefinedRadio4JUCE. If not, see <http://www.gnu.org/licenses/>
         actionsToInvoke \
     }
 
+/** Prints an the error message of a failed result in debug builds and invokes some user supplied actions afterwards */
+#define NTLAB_PRINT_RESULT_TO_DBG_IF_FAILED_AND_INVOKE_ACTIONS(result, actionsToInvoke) \
+    if (result.failed()) \
+    { \
+        DBG ("Error executing " << juce::String (BOOST_CURRENT_FUNCTION) << ": \"" << result.getErrorMessage() << "\" Continuing..."); \
+        actionsToInvoke \
+    }
+
 /** Returns false if the condition evaluates to true, continues otherwise */
 #define NTLAB_RETURN_FALSE_IF(condition) if (condition) return false;
 
