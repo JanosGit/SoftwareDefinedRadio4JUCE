@@ -1832,7 +1832,7 @@ namespace ntlab
 #if JUCE_MODULE_AVAILABLE_juce_gui_basics
 }
 
-#include "../../GUI/EttusConfigComponent.h"
+#include "../../GUI/UHDConfigComponent.h"
 
 namespace ntlab
 {

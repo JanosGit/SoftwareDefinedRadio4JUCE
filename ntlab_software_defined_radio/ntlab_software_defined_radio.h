@@ -86,7 +86,7 @@ along with SoftwareDefinedRadio4JUCE. If not, see <http://www.gnu.org/licenses/>
 #include "HardwareDevices/SDRIODeviceManger.h"
 
 #if JUCE_MODULE_AVAILABLE_juce_gui_basics
-#include "GUI/EttusConfigComponent.h"
+#include "GUI/UHDConfigComponent.h"
 #endif
 
 #include "DSP/Oscillator.h"

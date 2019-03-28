@@ -15,7 +15,7 @@ You should have received a copy of the GNU General Public License
 along with SoftwareDefinedRadio4JUCE. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "EttusConfigComponent.h"
+#include "UHDConfigComponent.h"
 
 namespace ntlab
 {
