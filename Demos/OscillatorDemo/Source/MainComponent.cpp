@@ -124,10 +124,13 @@ MainComponent::MainComponent() : oscillator (1)
 MainComponent::~MainComponent()
 {
     deviceManager.stopStreaming();
-    auto activeConfig = deviceManager.getSelectedEngine()->getActiveConfig();
-    std::unique_ptr<juce::XmlElement> xml (activeConfig.createXml());
-    if (xml != nullptr)
-        xml->writeToFile (settingsFile, "");
+    if (auto* selectedEngine = deviceManager.getSelectedEngine())
+    {
+        auto activeConfig = selectedEngine->getActiveConfig();
+        std::unique_ptr<juce::XmlElement> xml (activeConfig.createXml());
+        if (xml != nullptr)
+            xml->writeToFile (settingsFile, "");
+    }
 }
 
 //==============================================================================
