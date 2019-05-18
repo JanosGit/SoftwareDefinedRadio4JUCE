@@ -35,6 +35,8 @@ along with SoftwareDefinedRadio4JUCE. If not, see <http://www.gnu.org/licenses/>
 
   dependencies:       juce_dsp, juce_data_structures
 
+  OSXFrameworks:      OpenCL
+
  END_JUCE_MODULE_DECLARATION
 
 *******************************************************************************/
@@ -99,6 +101,8 @@ along with SoftwareDefinedRadio4JUCE. If not, see <http://www.gnu.org/licenses/>
 #include "MCVFileFormat/MCVHeader.h"
 #include "MCVFileFormat/MCVWriter.h"
 #include "MCVFileFormat/MCVReader.h"
+
+#include "OpenCL2/cl2WithVersionChecks.h"
 
 #include "SampleBuffers/VectorOperations.h"
 #include "SampleBuffers/SampleBuffers.h"

@@ -17,10 +17,11 @@ along with SoftwareDefinedRadio4JUCE. If not, see <http://www.gnu.org/licenses/>
 
 #pragma once
 
-//#include <OpenCL/opencl.h>
 #include <complex>
 #include <juce_core/juce_core.h>
 #include "VectorOperations.h"
+
+#include "../OpenCL2/cl2WithVersionChecks.h"
 
 // macros to avoid a lot of boilerplate code
 #define NTLAB_ASSERT_CHANNEL_AND_SAMPLE_COUNTS_PASSED_ARE_VALID jassert (numSamlesToCopy >= 0); \
@@ -32,7 +33,7 @@ along with SoftwareDefinedRadio4JUCE. If not, see <http://www.gnu.org/licenses/>
 
 #define NTLAB_OPERATION_ON_ALL_CHANNELS(functionToInvoke) for (int c = 0; c < numChannelsToCopy; ++c) \
                                                           { \
-                                                              const auto readPtr = channels[sourceStartChannelNumber + c] + sourceStartSample; \
+                                                              const auto readPtr = channelPtrs[sourceStartChannelNumber + c] + sourceStartSample; \
                                                               auto writePtr = otherBuffer.getWritePointer (destinationStartChannelNumber + c) + destinationStartSample; \
                                                               functionToInvoke; \
                                                           }
@@ -72,14 +73,14 @@ namespace ntlab
 
             if (numChannels == 0)
             {
-                channels = nullptr;
+                channelPtrs = nullptr;
                 return;
             }
 
-            channels = new SampleType*[numChannels];
+            channelPtrs = new SampleType*[numChannels];
 
             for (int i = 0; i < numChannels; ++i)
-                channels[i] = ntlab::SIMDHelpers::Allocation<SampleType>::allocateAlignedVector (numSamples);
+                channelPtrs[i] = ntlab::SIMDHelpers::Allocation<SampleType>::allocateAlignedVector (numSamples);
         }
 
         /**
@@ -93,7 +94,7 @@ namespace ntlab
                   numChannelsAllocated (numChannels),
                   numSamplesAllocated  (numSamples),
                   numSamplesUsed       (numSamples),
-                  channels             (bufferToReferTo)
+                  channelPtrs             (bufferToReferTo)
         {
             jassert (numChannels >= 0);
             jassert (numSamples >= 0);
@@ -105,13 +106,13 @@ namespace ntlab
                  numChannelsAllocated (other.numChannelsAllocated),
                  numSamplesAllocated (other.numSamplesAllocated),
                  numSamplesUsed (other.numSamplesUsed),
-                 channels (other.channels)
+                 channelPtrs (other.channelPtrs)
         {
             other.ownsBuffer = false;
             other.numChannelsAllocated = 0;
             other.numSamplesAllocated = 0;
             other.numSamplesUsed = 0;
-            other.channels = nullptr;
+            other.channelPtrs = nullptr;
         }
 
         /** Move assignment */
@@ -121,25 +122,25 @@ namespace ntlab
             numChannelsAllocated = other.numChannelsAllocated;
             numSamplesAllocated = other.numSamplesAllocated;
             numSamplesUsed = other.numSamplesUsed;
-            channels = other.channels;
+            channelPtrs = other.channelPtrs;
 
             other.ownsBuffer = false;
             other.numChannelsAllocated = 0;
             other.numSamplesAllocated = 0;
             other.numSamplesUsed = 0;
-            other.channels = nullptr;
+            other.channelPtrs = nullptr;
         }
 
         ~SampleBufferReal()
         {
             if (ownsBuffer)
             {
-                if (channels != nullptr)
+                if (channelPtrs != nullptr)
                 {
                     for (int c = 0; c < numChannelsAllocated; ++c)
-                        ntlab::SIMDHelpers::Allocation<SampleType>::freeAlignedVector (channels[c]);
+                        ntlab::SIMDHelpers::Allocation<SampleType>::freeAlignedVector (channelPtrs[c]);
 
-                    delete[] (channels);
+                    delete[] (channelPtrs);
                 }
             }
         }
@@ -185,7 +186,7 @@ namespace ntlab
         const SampleType* getReadPointer (int channelNumber) const
         {
             jassert (juce::isPositiveAndBelow (channelNumber, numChannelsAllocated));
-            return channels[channelNumber];
+            return channelPtrs[channelNumber];
         }
 
         /**
@@ -196,20 +197,20 @@ namespace ntlab
         SampleType* getWritePointer (int channelNumber)
         {
             jassert (juce::isPositiveAndBelow (channelNumber, numChannelsAllocated));
-            return channels[channelNumber];
+            return channelPtrs[channelNumber];
         }
 
         /**
          * Returns a read-only array of pointers to the host memory buffers for all channels. Always use this for
          * read-only operations.
          */
-        const SampleType** getArrayOfReadPointers() const {return const_cast<const SampleType**> (channels); }
+        const SampleType** getArrayOfReadPointers() const {return const_cast<const SampleType**> (channelPtrs); }
 
         /**
          * Returns an array of pointers to the host memory buffers for all channels. Use this if you want to write to
          * the buffer, otherwise use getReadPointer.
          */
-        SampleType** getArrayOfWritePointers() {return channels; }
+        SampleType** getArrayOfWritePointers() {return channelPtrs; }
 
         /** Sets all samples in the region to zero. Passing -1 to endOfRegion leads to fill the buffer until its end */
         void clearBufferRegion (int startOfRegion = 0, int endOfRegion = -1)
@@ -218,7 +219,7 @@ namespace ntlab
                 endOfRegion = numSamplesAllocated;
 
             for (int c = 0; c < numChannelsAllocated; ++c)
-                std::fill (channels[c] + startOfRegion, channels[c] + endOfRegion, SampleType (0));
+                std::fill (channelPtrs[c] + startOfRegion, channelPtrs[c] + endOfRegion, SampleType (0));
         }
 
         /**
@@ -243,6 +244,8 @@ namespace ntlab
                 int destinationStartChannelNumber = 0) const
         {
             NTLAB_ASSERT_CHANNEL_AND_SAMPLE_COUNTS_PASSED_ARE_VALID
+            // buffer needs to be mapped to be copied in host memory space
+            jassert (otherBuffer.isMapped);
             NTLAB_OPERATION_ON_ALL_CHANNELS (std::memcpy (writePtr, readPtr, numSamlesToCopy * sizeof (SampleType)))
         }
 
@@ -282,7 +285,7 @@ namespace ntlab
         int numSamplesAllocated;
         int numSamplesUsed;
 
-        SampleType** channels;
+        SampleType** channelPtrs;
 
         JUCE_LEAK_DETECTOR (SampleBufferReal)
     };
@@ -306,14 +309,14 @@ namespace ntlab
 
             if (numChannels == 0)
             {
-                channels = nullptr;
+                channelPtrs = nullptr;
                 return;
             }
 
-            channels = new std::complex<SampleType>*[numChannels];
+            channelPtrs = new std::complex<SampleType>*[numChannels];
 
             for (int i = 0; i < numChannels; ++i)
-                channels[i] = ntlab::SIMDHelpers::Allocation<std::complex<SampleType>>::allocateAlignedVector (numSamples);
+                channelPtrs[i] = ntlab::SIMDHelpers::Allocation<std::complex<SampleType>>::allocateAlignedVector (numSamples);
         }
 
         /**
@@ -327,7 +330,7 @@ namespace ntlab
             numChannelsAllocated (numChannels),
             numSamplesAllocated  (numSamples),
             numSamplesUsed       (numSamples),
-            channels             (bufferToReferTo)
+            channelPtrs             (bufferToReferTo)
         {
             jassert (numChannels >= 0);
             jassert (numSamples >= 0);
@@ -339,13 +342,13 @@ namespace ntlab
                   numChannelsAllocated (other.numChannelsAllocated),
                   numSamplesAllocated (other.numSamplesAllocated),
                   numSamplesUsed (other.numSamplesUsed),
-                  channels (other.channels)
+                  channelPtrs (other.channelPtrs)
         {
             other.ownsBuffer = false;
             other.numChannelsAllocated = 0;
             other.numSamplesAllocated = 0;
             other.numSamplesUsed = 0;
-            other.channels = nullptr;
+            other.channelPtrs = nullptr;
         }
 
         /** Move assignment */
@@ -355,25 +358,25 @@ namespace ntlab
             numChannelsAllocated = other.numChannelsAllocated;
             numSamplesAllocated = other.numSamplesAllocated;
             numSamplesUsed = other.numSamplesUsed;
-            channels = other.channels;
+            channelPtrs = other.channelPtrs;
 
             other.ownsBuffer = false;
             other.numChannelsAllocated = 0;
             other.numSamplesAllocated = 0;
             other.numSamplesUsed = 0;
-            other.channels = nullptr;
+            other.channelPtrs = nullptr;
         }
 
         ~SampleBufferComplex()
         {
             if (ownsBuffer)
             {
-                if (channels != nullptr)
+                if (channelPtrs != nullptr)
                 {
                     for (int c = 0; c < numChannelsAllocated; ++c)
-                        ntlab::SIMDHelpers::Allocation<std::complex<SampleType>>::freeAlignedVector (channels[c]);
+                        ntlab::SIMDHelpers::Allocation<std::complex<SampleType>>::freeAlignedVector (channelPtrs[c]);
 
-                    delete[] (channels);
+                    delete[] (channelPtrs);
                 }
             }
         }
@@ -419,7 +422,7 @@ namespace ntlab
         const std::complex<SampleType>* getReadPointer (int channelNumber) const
         {
             jassert (juce::isPositiveAndBelow (channelNumber, numChannelsAllocated));
-            return channels[channelNumber];
+            return channelPtrs[channelNumber];
         }
 
         /**
@@ -430,20 +433,20 @@ namespace ntlab
         std::complex<SampleType>* getWritePointer (int channelNumber)
         {
             jassert (juce::isPositiveAndBelow (channelNumber, numChannelsAllocated));
-            return channels[channelNumber];
+            return channelPtrs[channelNumber];
         }
 
         /**
          * Returns a read-only array of pointers to the host memory buffers for all channels. Always use this for
          * read-only operations.
          */
-        const std::complex<SampleType>** getArrayOfReadPointers() const {return const_cast<const std::complex<SampleType>**> (channels); }
+        const std::complex<SampleType>** getArrayOfReadPointers() const {return const_cast<const std::complex<SampleType>**> (channelPtrs); }
 
         /**
          * Returns an array of pointers to the host memory buffers for all channels. Use this if you want to write to
          * the buffer, otherwise use getReadPointer.
          */
-        std::complex<SampleType>** getArrayOfWritePointers() {return channels; }
+        std::complex<SampleType>** getArrayOfWritePointers() {return channelPtrs; }
 
         /** Sets all samples in the region to zero. Passing -1 to endOfRegion leads to fill the buffer until its end */
         void clearBufferRegion (int startOfRegion = 0, int endOfRegion = -1)
@@ -452,7 +455,7 @@ namespace ntlab
                 endOfRegion = numSamplesAllocated;
 
             for (int c = 0; c < numChannelsAllocated; ++c)
-                std::fill (channels[c] + startOfRegion, channels[c] + endOfRegion, SampleType (0));
+                std::fill (channelPtrs[c] + startOfRegion, channelPtrs[c] + endOfRegion, SampleType (0));
         }
 
         /**
@@ -477,6 +480,8 @@ namespace ntlab
                 int destinationStartChannelNumber = 0) const
         {
             NTLAB_ASSERT_CHANNEL_AND_SAMPLE_COUNTS_PASSED_ARE_VALID
+            // buffer needs to be mapped to be copied in host memory space
+            jassert (otherBuffer.isMapped);
             NTLAB_OPERATION_ON_ALL_CHANNELS (std::memcpy (writePtr, readPtr, numSamlesToCopy * sizeof (std::complex<SampleType>)))
         }
 
@@ -529,6 +534,10 @@ namespace ntlab
                 bool clearImaginaryPartOfDestinationBuffer = true) const
         {
             NTLAB_ASSERT_CHANNEL_AND_SAMPLE_COUNTS_PASSED_ARE_VALID
+            // buffer needs to be mapped to be copied in host memory space
+            jassert (otherBuffer.isMapped);
+            // todo
+            jassertfalse;
         }
 
         /**
@@ -555,6 +564,8 @@ namespace ntlab
                 bool clearImaginaryPartOfDestinationBuffer = true) const
         {
             NTLAB_ASSERT_CHANNEL_AND_SAMPLE_COUNTS_PASSED_ARE_VALID
+            // todo
+            jassertfalse;
         }
 
         /**
@@ -579,6 +590,8 @@ namespace ntlab
                 int destinationStartChannelNumber = 0) const
         {
             NTLAB_ASSERT_CHANNEL_AND_SAMPLE_COUNTS_PASSED_ARE_VALID
+            // buffer needs to be mapped to be copied in host memory space
+            jassert (otherBuffer.isMapped);
             NTLAB_OPERATION_ON_ALL_CHANNELS (ComplexVectorOperations::extractRealPart (readPtr, writePtr, numSamlesToCopy))
         }
 
@@ -631,6 +644,10 @@ namespace ntlab
                 bool clearRealPartOfDestinationBuffer = true) const
         {
             NTLAB_ASSERT_CHANNEL_AND_SAMPLE_COUNTS_PASSED_ARE_VALID
+            // buffer needs to be mapped to be copied in host memory space
+            jassert (otherBuffer.isMapped);
+            //todo
+            jassertfalse;
         }
 
         /**
@@ -657,6 +674,8 @@ namespace ntlab
                 bool clearRealPartOfDestinationBuffer = true) const
         {
             NTLAB_ASSERT_CHANNEL_AND_SAMPLE_COUNTS_PASSED_ARE_VALID
+            //todo
+            jassertfalse;
         }
 
         /**
@@ -681,6 +700,8 @@ namespace ntlab
                 int destinationStartChannelNumber = 0) const
         {
             NTLAB_ASSERT_CHANNEL_AND_SAMPLE_COUNTS_PASSED_ARE_VALID
+            // buffer needs to be mapped to be copied in host memory space
+            jassert (otherBuffer.isMapped);
             NTLAB_OPERATION_ON_ALL_CHANNELS (ComplexVectorOperations::extractImagPart (readPtr, writePtr, numSamlesToCopy))
         }
 
@@ -730,6 +751,8 @@ namespace ntlab
                 int destinationStartChannelNumber = 0) const
         {
             NTLAB_ASSERT_CHANNEL_AND_SAMPLE_COUNTS_PASSED_ARE_VALID
+            // buffer needs to be mapped to be copied in host memory space
+            jassert (otherBuffer.isMapped);
             NTLAB_OPERATION_ON_ALL_CHANNELS (ComplexVectorOperations::abs (readPtr, writePtr, numSamlesToCopy))
         }
 
@@ -772,7 +795,7 @@ namespace ntlab
         int numSamplesAllocated;
         int numSamplesUsed;
 
-        std::complex<SampleType>** channels;
+        std::complex<SampleType>** channelPtrs;
 
         JUCE_LEAK_DETECTOR (SampleBufferComplex)
     };
@@ -783,10 +806,48 @@ namespace ntlab
     {
     public:
 
-        CLSampleBufferReal()
+        CLSampleBufferReal (const int numChannels,
+                            const int numSamples,
+                            cl::CommandQueue& queueToUse,
+                            cl::Context& contextToUse,
+                            bool initWithZeros = false,
+                            cl_mem_flags clMemAccessFlags = CL_MEM_READ_WRITE,
+                            cl_map_flags clMapFlags = CL_MAP_READ | CL_MAP_WRITE) 
+          : channelPtrs (static_cast<size_t> (numChannels)),
+            queue       (queueToUse), 
+            context     (contextToUse), 
+            mapFlags    (clMapFlags),
+            numChannelsAllocated (numChannels),
+            numSamplesAllocated  (numSamples),
+            numSamplesUsed       (numSamples)
         {
-            // not implemented yet
-            jassertfalse;
+            jassert (numChannels >= 0);
+            jassert (numSamples  >= 0);
+
+            cl_int err;
+            numBytesInBuffer = numSamples * numChannels * sizeof (SampleType);
+
+            clBuffer = cl::Buffer (context, CL_MEM_ALLOC_HOST_PTR | clMemAccessFlags,  numBytesInBuffer);
+            SampleType* mappedBufferStart = queue.enqueueMapBuffer (clBuffer, CL_TRUE, mapFlags, 0, numBytesInBuffer, nullptr, nullptr, &err);
+
+            // Something went wrong when trying to map the CL memory
+            jassert (err == CL_SUCCESS);
+
+            std::vector<cl_int> channelListIdx (numChannels);
+            for (int i = 0; i < numChannels; ++i)
+            {
+                channelPtrs[i]    = mappedBufferStart + (i * numSamples);
+                channelListIdx[i] = (i * numSamples);
+
+                // Please report an issue on GitHub if this assert fires
+                jassert (SIMDHelpers::isPointerAligned (channelPtrs[i]));
+            }
+
+            if (initWithZeros)
+                clearBufferRegion();
+
+            channelList = cl::Buffer (context, CL_MEM_READ_ONLY, 0, numChannels * sizeof (cl_int));
+            queue.enqueueWriteBuffer (channelList, CL_TRUE,      0, numChannels * sizeof (cl_int), channelListIdx.data());
         }
 
         /**
@@ -795,38 +856,66 @@ namespace ntlab
          */
         static constexpr bool isComplex() {return false; }
 
-        /**
-         * Enables access of the buffer for the host processor. This call might block until kernel executions in
-         * progress on the CL device have been finished and might involve a memory copy from the CL device memory space
-         * back to the host processors memory space in case of a non-shared memory architecture.
-         */
-        void enableHostDeviceAccess()
+        /** For FPGA targets with shared memory architecture the memory is always mapped */
+        static constexpr bool isAlwaysMapped()
         {
-
+#ifdef OPEN_CL_INTEL_FPGA
+            return true;
+#else
+            return false;
+#endif
         }
 
         /**
-         * Enables access of the buffer for the host processor only if it is currently not used by any CL kernel.
-         * Returns true if access could be enabled, false otherwise. This call might involve a memory copy from the CL
-         * device memory space back to the host processors memory space in case of a non-shared memory architecture.
+         * Enables access of the buffer for the host. You can chose between a blocking call that waits until the
+         * operation has been finished (which might involve a memory copy between device and host memory on
+         * systems that don't use a shared memory architecture) or a non-blocking call. You can furthermore specify
+         * a vector of events that must have been finished before the mapping takes place and an event that is created
+         * to monitor the execution status of the mapping. Note that on most platforms events and event callbacks lead
+         * to memory allocation so you are better of not using these from any real-time thread.
+         * Return CL_SUCCESS if mapping was successful or an error code in case of no success.
          */
-        bool tryEnableHostDeviceAccess()
+        cl_int mapHostMemory (cl_bool blocking = CL_TRUE, cl::vector<cl::Event>* eventsToWaitFor = nullptr, cl::Event* eventToCreate = nullptr)
         {
+            if constexpr (isAlwaysMapped())
+                return CL_SUCCESS;
 
+            if (isMapped)
+                return CL_SUCCESS;
+
+            cl_int err;
+            SampleType* mappedBufferStart = queue.enqueueMapBuffer (clBuffer, blocking, mapFlags, 0, numBytesInBuffer, eventsToWaitFor, eventToCreate, &err);
+            for (int i = 0; i < numChannelsAllocated; ++i)
+            {
+                channelPtrs[i]    = mappedBufferStart + (i * numSamplesAllocated);
+
+                // Please report an issue on GitHub if this assert fires
+                jassert (SIMDHelpers::isPointerAligned (channelPtrs[i]));
+            }
+
+            return err;
         }
 
         /**
-         * Disables access of the buffer for the host processor to pass it to a CL kernel.
+         * Disables access of the buffer for the host to pass it to a CL kernel. You can specify a vector of events
+         * that must have been finished before the mapping takes place and an event that is created to monitor the
+         * execution status of the mapping. Note that on most platforms events and event callbacks lead to memory
+         * allocation so you are better of not using these from any real-time thread.
+         * Return CL_SUCCESS if unmapping was successful or an error code in case of no success.
          */
-        void enableCLDeviceAccess()
+        cl_int unmapHostMemory (cl::vector<cl::Event>* eventsToWaitFor = nullptr, cl::Event* eventToCreate = nullptr)
         {
+            if constexpr (isAlwaysMapped())
+                return CL_SUCCESS;
 
+            if (!isMapped)
+                return CL_SUCCESS;
+
+            return queue.enqueueUnmapMemObject (clBuffer, channelPtrs[0], eventsToWaitFor, eventToCreate);
         }
 
-        /**
-         * Returns true if host device access is enabled, false if CL device access is enabled.
-         */
-        bool getCurrentAccessMode() const {return isInHostAccessMode; }
+        /** Returns true if host access is enabled, false if CL device access is enabled. */
+        constexpr bool isCurrentlyMapped() const {return isAlwaysMapped() || isMapped; }
 
         /**
          * Returns the number of valid samples per channel currently used. To get the maximum possible numer of samples
@@ -863,7 +952,7 @@ namespace ntlab
         const SampleType* getReadPointer (int channelNumber) const
         {
             jassert (juce::isPositiveAndBelow (channelNumber, numChannelsAllocated));
-            return channels[channelNumber];
+            return channelPtrs[channelNumber];
         }
 
         /**
@@ -874,29 +963,48 @@ namespace ntlab
         SampleType* getWritePointer (int channelNumber)
         {
             jassert (juce::isPositiveAndBelow (channelNumber, numChannelsAllocated));
-            return channels[channelNumber];
+            return channelPtrs[channelNumber];
         }
 
         /**
          * Returns a read-only array of pointers to the host memory buffers for all channels. Always use this for
          * read-only operations.
          */
-        const SampleType** getArrayOfReadPointers() const {return const_cast<const SampleType**> (channels.data()); }
+        const SampleType** getArrayOfReadPointers() const {return const_cast<const SampleType**> (channelPtrs.data()); }
 
         /**
          * Returns an array of pointers to the host memory buffers for all channels. Use this if you want to write to
          * the buffer, otherwise use getReadPointer.
          */
-        SampleType** getArrayOfWritePointers() {return channels.data(); }
+        SampleType** getArrayOfWritePointers() {return channelPtrs.data(); }
+
+        /**
+         * Handy cast operator to pass the buffer to the kernel, for mapping/unmapping you should use mapHostMemory
+         * and unmapHostMemory
+         */
+        operator cl::Buffer&() {return clBuffer; }
+
+        /**
+         * Returns a cl:Buffer object that holds the indexes to the beginning of the single channel regions in the
+         * underlying cl:Buffer containing the samples. This won't change during the whole object lifetime. You might
+         * want to pass this and the number of samples used along with the actual sample buffer to your kernel
+         * @return
+         */
+        const cl::Buffer& getCLChannelList() const {return channelList; }
+
+        /** Get the queue associated with this buffer. You can use this to enqueue your kernel. */
+        cl::CommandQueue& getQueueAssociatedWithThisBuffer() const {return queue; }
 
         /** Sets all samples in the region to zero. Passing -1 to endOfRegion leads to fill the buffer until its end */
         void clearBufferRegion (int startOfRegion = 0, int endOfRegion = -1)
         {
+            jassert (isMapped);
+            
             if (endOfRegion == -1)
                 endOfRegion = numSamplesAllocated;
 
             for (int c = 0; c < numChannelsAllocated; ++c)
-                std::fill (channels[c] + startOfRegion, channels[c] + endOfRegion, SampleType (0));
+                std::fill (channelPtrs[c] + startOfRegion, channelPtrs[c] + endOfRegion, SampleType (0));
         }
 
         /**
@@ -921,6 +1029,9 @@ namespace ntlab
                 int destinationStartChannelNumber = 0) const
         {
             NTLAB_ASSERT_CHANNEL_AND_SAMPLE_COUNTS_PASSED_ARE_VALID
+            // both buffers need to be mapped to be copied in host memory space
+            jassert (isMapped);
+            jassert (otherBuffer.isMapped);
             NTLAB_OPERATION_ON_ALL_CHANNELS (std::memcpy (writePtr, readPtr, numSamlesToCopy * sizeof (SampleType)))
         }
 
@@ -945,6 +1056,8 @@ namespace ntlab
                 int destinationStartChannelNumber = 0) const
         {
             NTLAB_ASSERT_CHANNEL_AND_SAMPLE_COUNTS_PASSED_ARE_VALID
+            // buffer needs to be mapped to be copied in host memory space
+            jassert (isMapped);
             NTLAB_OPERATION_ON_ALL_CHANNELS (std::memcpy (writePtr, readPtr, numSamlesToCopy * sizeof (SampleType)))
         }
 
@@ -957,8 +1070,15 @@ namespace ntlab
         int numSamplesAllocated;
         int numSamplesUsed;
 
-        juce::Array<SampleType*> channels;
-        bool isInHostAccessMode = true;
+        cl::CommandQueue& queue;
+        cl::Context&      context;
+        cl::Buffer        clBuffer;
+        cl::Buffer        channelList;
+        cl_map_flags      mapFlags;
+        size_t            numBytesInBuffer;
+
+        std::vector<SampleType*> channelPtrs;
+        bool isMapped = true;
 
         JUCE_LEAK_DETECTOR (CLSampleBufferReal)
     };
@@ -968,10 +1088,48 @@ namespace ntlab
     {
     public:
 
-        CLSampleBufferComplex()
+        CLSampleBufferComplex (const int numChannels,
+                               const int numSamples,
+                               cl::CommandQueue& queueToUse,
+                               cl::Context& contextToUse,
+                               bool initWithZeros = false,
+                               cl_mem_flags clMemAccessFlags = CL_MEM_READ_WRITE,
+                               cl_map_flags clMapFlags = CL_MAP_READ | CL_MAP_WRITE)
+          : channelPtrs (static_cast<size_t> (numChannels)),
+            queue       (queueToUse),
+            context     (contextToUse),
+            mapFlags    (clMapFlags),
+            numChannelsAllocated (numChannels),
+            numSamplesAllocated  (numSamples),
+            numSamplesUsed       (numSamples)
         {
-            // not implemented yet
-            jassertfalse;
+            jassert (numChannels >= 0);
+            jassert (numSamples  >= 0);
+
+            cl_int err;
+            numBytesInBuffer = numSamples * numChannels * sizeof (std::complex<SampleType>);
+
+            clBuffer = cl::Buffer (context, CL_MEM_ALLOC_HOST_PTR | clMemAccessFlags,  numBytesInBuffer);
+            std::complex<SampleType>* mappedBufferStart = reinterpret_cast<std::complex<SampleType>*> (queue.enqueueMapBuffer (clBuffer, CL_TRUE, mapFlags, 0, numBytesInBuffer, nullptr, nullptr, &err));
+
+            // Something went wrong when trying to map the CL memory
+            jassert (err == CL_SUCCESS);
+
+            std::vector<cl_int> channelListIdx (numChannels);
+            for (int i = 0; i < numChannels; ++i)
+            {
+                channelPtrs[i]    = mappedBufferStart + (i * numSamples);
+                channelListIdx[i] = (i * numSamples);
+
+                // Please report an issue on GitHub if this assert fires
+                jassert (SIMDHelpers::isPointerAligned (channelPtrs[i]));
+            }
+
+            if (initWithZeros)
+                clearBufferRegion();
+
+            channelList = cl::Buffer (context, CL_MEM_READ_ONLY, 0, numChannels * sizeof (cl_int));
+            queue.enqueueWriteBuffer (channelList, CL_TRUE,      0, numChannels * sizeof (cl_int), channelListIdx.data());
         }
 
         /**
@@ -980,38 +1138,68 @@ namespace ntlab
          */
         static constexpr bool isComplex() {return true; }
 
-        /**
-         * Enables access of the buffer for the host processor. This call might block until kernel executions in
-         * progress on the CL device have been finished and might involve a memory copy from the CL device memory space
-         * back to the host processors memory space in case of a non-shared memory architecture.
-         */
-        void enableHostDeviceAccess()
+        /** For FPGA targets with shared memory architecture the memory is always mapped */
+        static constexpr bool isAlwaysMapped()
         {
-
+#ifdef OPEN_CL_INTEL_FPGA
+            return true;
+#else
+            return false;
+#endif
         }
 
         /**
-         * Enables access of the buffer for the host processor only if it is currently not used by any CL kernel.
-         * Returns true if access could be enabled, false otherwise. This call might involve a memory copy from the CL
-         * device memory space back to the host processors memory space in case of a non-shared memory architecture.
+         * Enables access of the buffer for the host. You can chose between a blocking call that waits until the
+         * operation has been finished (which might involve a memory copy between device and host memory on
+         * systems that don't use a shared memory architecture) or a non-blocking call. You can furthermore specify
+         * a vector of events that must have been finished before the mapping takes place and an event that is created
+         * to monitor the execution status of the mapping. Note that on most platforms events and event callbacks lead
+         * to memory allocation so you are better of not using these from any real-time thread.
+         * Return CL_SUCCESS if mapping was successful or an error code in case of no success.
          */
-        bool tryEnableHostDeviceAccess()
+        cl_int mapHostMemory (cl_bool blocking = CL_TRUE, cl::vector<cl::Event>* eventsToWaitFor = nullptr, cl::Event* eventToCreate = nullptr)
         {
+            if constexpr (isAlwaysMapped())
+                return CL_SUCCESS;
 
+            if (isMapped)
+                return CL_SUCCESS;
+
+            cl_int err;
+            SampleType* mappedBufferStart = queue.enqueueMapBuffer (clBuffer, blocking, mapFlags, 0, numBytesInBuffer, eventsToWaitFor, eventToCreate, &err);
+            for (int i = 0; i < numChannelsAllocated; ++i)
+            {
+                channelPtrs[i]    = mappedBufferStart + (i * numSamplesAllocated);
+
+                // Please report an issue on GitHub if this assert fires
+                jassert (SIMDHelpers::isPointerAligned (channelPtrs[i]));
+            }
+
+            return err;
         }
 
         /**
-         * Disables access of the buffer for the host processor to pass it to a CL kernel.
+         * Disables access of the buffer for the host to pass it to a CL kernel. You can specify a vector of events
+         * that must have been finished before the mapping takes place and an event that is created to monitor the
+         * execution status of the mapping. Note that on most platforms events and event callbacks lead to memory
+         * allocation so you are better of not using these from any real-time thread.
+         * Return CL_SUCCESS if unmapping was successful or an error code in case of no success.
          */
-        void enableCLDeviceAccess()
+        cl_int unmapHostMemory (cl::vector<cl::Event>* eventsToWaitFor = nullptr, cl::Event* eventToCreate = nullptr)
         {
+            if constexpr (isAlwaysMapped())
+                return CL_SUCCESS;
 
+            if (!isMapped)
+                return CL_SUCCESS;
+
+            return queue.enqueueUnmapMemObject (clBuffer, channelPtrs[0], eventsToWaitFor, eventToCreate);
         }
 
         /**
          * Returns true if host device access is enabled, false if CL device access is enabled.
          */
-        bool getCurrentAccessMode() const {return isInHostAccessMode; }
+        constexpr bool isCurrentlyMapped() const {return isMapped; }
 
         /**
          * Returns the number of valid samples per channel currently used. To get the maximum possible numer of samples
@@ -1047,7 +1235,8 @@ namespace ntlab
          */
         const std::complex<SampleType>* getReadPointer (int channelNumber) const
         {
-
+            jassert (juce::isPositiveAndBelow (channelNumber, numChannelsAllocated));
+            return channelPtrs[channelNumber];
         }
 
         /**
@@ -1057,7 +1246,8 @@ namespace ntlab
          */
         std::complex<SampleType>* getWritePointer (int channelNumber)
         {
-
+            jassert (juce::isPositiveAndBelow (channelNumber, numChannelsAllocated));
+            return channelPtrs[channelNumber];
         }
 
         /**
@@ -1065,29 +1255,42 @@ namespace ntlab
          * read-only operations. For speed reasons it does not check if host device access is enabled, so be careful
          * when using it.
          */
-        const std::complex<SampleType>** getArrayOfReadPointers() const
-        {
-
-        }
+        const std::complex<SampleType>** getArrayOfReadPointers() const { return const_cast<const std::complex<SampleType>**> (channelPtrs.data()); }
 
         /**
          * Returns an array of pointers to the host memory buffers for all channels. Use this if you want to write to
          * the buffer, otherwise use getReadPointer. For speed reasons it does not check if host device access is
          * enabled, so be careful when using it.
          */
-        std::complex<SampleType>** getArrayOfWritePointers()
-        {
+        std::complex<SampleType>** getArrayOfWritePointers() { return channelPtrs.data(); }
 
-        }
+        /**
+         * Handy cast operator to pass the buffer to the kernel, for mapping/unmapping you should use mapHostMemory
+         * and unmapHostMemory
+         */
+        operator cl::Buffer&() {return clBuffer; }
+
+        /**
+         * Returns a cl:Buffer object that holds the indexes to the beginning of the single channel regions in the
+         * underlying cl:Buffer containing the samples. This won't change during the whole object lifetime. You might
+         * want to pass this and the number of samples used along with the actual sample buffer to your kernel
+         * @return
+         */
+        const cl::Buffer& getCLChannelList() const {return channelList; }
+
+        /** Get the queue associated with this buffer. You can use this to enqueue your kernel. */
+        cl::CommandQueue& getQueueAssociatedWithThisBuffer() const {return queue; }
 
         /** Sets all samples in the region to zero. Passing -1 to endOfRegion leads to fill the buffer until its end */
         void clearBufferRegion (int startOfRegion = 0, int endOfRegion = -1)
         {
+            jassert (isMapped);
+
             if (endOfRegion == -1)
                 endOfRegion = numSamplesAllocated;
 
             for (int c = 0; c < numChannelsAllocated; ++c)
-                std::fill (channels[c] + startOfRegion, channels[c] + endOfRegion, SampleType (0));
+                std::fill (channelPtrs[c] + startOfRegion, channelPtrs[c] + endOfRegion, SampleType (0));
         }
 
         /**
@@ -1112,6 +1315,10 @@ namespace ntlab
                 int destinationStartChannelNumber = 0) const
         {
             NTLAB_ASSERT_CHANNEL_AND_SAMPLE_COUNTS_PASSED_ARE_VALID
+            // both buffers need to be mapped to be copied in host memory space
+            jassert (isMapped);
+            jassert (otherBuffer.isMapped);
+            NTLAB_OPERATION_ON_ALL_CHANNELS (std::memcpy (writePtr, readPtr, numSamlesToCopy * sizeof (std::complex<SampleType>)))
         }
 
         /**
@@ -1135,6 +1342,9 @@ namespace ntlab
                 int destinationStartChannelNumber = 0) const
         {
             NTLAB_ASSERT_CHANNEL_AND_SAMPLE_COUNTS_PASSED_ARE_VALID
+            // buffer needs to be mapped to be copied in host memory space
+            jassert (isMapped);
+            NTLAB_OPERATION_ON_ALL_CHANNELS (std::memcpy (writePtr, readPtr, numSamlesToCopy * sizeof (std::complex<SampleType>)))
         }
 
         /**
@@ -1162,6 +1372,11 @@ namespace ntlab
                 bool clearImaginaryPartOfDestinationBuffer = true) const
         {
             NTLAB_ASSERT_CHANNEL_AND_SAMPLE_COUNTS_PASSED_ARE_VALID
+            // both buffers need to be mapped to be copied in host memory space
+            jassert (isMapped);
+            jassert (otherBuffer.isMapped);
+            // todo
+            jassertfalse;
         }
 
         /**
@@ -1189,6 +1404,10 @@ namespace ntlab
                 bool clearImaginaryPartOfDestinationBuffer = true) const
         {
             NTLAB_ASSERT_CHANNEL_AND_SAMPLE_COUNTS_PASSED_ARE_VALID
+            // buffer needs to be mapped to be copied in host memory space
+            jassert (isMapped);
+            // todo
+            jassertfalse;
         }
 
         /**
@@ -1213,6 +1432,10 @@ namespace ntlab
                 int destinationStartChannelNumber = 0) const
         {
             NTLAB_ASSERT_CHANNEL_AND_SAMPLE_COUNTS_PASSED_ARE_VALID
+            // both buffers need to be mapped to be copied in host memory space
+            jassert (isMapped);
+            jassert (otherBuffer.isMapped);
+            NTLAB_OPERATION_ON_ALL_CHANNELS (ComplexVectorOperations::extractRealPart (readPtr, writePtr, numSamlesToCopy))
         }
 
         /**
@@ -1236,6 +1459,9 @@ namespace ntlab
                 int destinationStartChannelNumber = 0) const
         {
             NTLAB_ASSERT_CHANNEL_AND_SAMPLE_COUNTS_PASSED_ARE_VALID
+            // buffer needs to be mapped to be copied in host memory space
+            jassert (isMapped);
+            NTLAB_OPERATION_ON_ALL_CHANNELS (ComplexVectorOperations::extractRealPart (readPtr, writePtr, numSamlesToCopy))
         }
 
         /**
@@ -1263,6 +1489,11 @@ namespace ntlab
                 bool clearRealPartOfDestinationBuffer = true) const
         {
             NTLAB_ASSERT_CHANNEL_AND_SAMPLE_COUNTS_PASSED_ARE_VALID
+            // both buffers need to be mapped to be copied in host memory space
+            jassert (isMapped);
+            jassert (otherBuffer.isMapped);
+            //todo
+            jassertfalse;
         }
 
         /**
@@ -1290,6 +1521,10 @@ namespace ntlab
                 bool clearRealPartOfDestinationBuffer = true) const
         {
             NTLAB_ASSERT_CHANNEL_AND_SAMPLE_COUNTS_PASSED_ARE_VALID
+            // buffer needs to be mapped to be copied in host memory space
+            jassert (isMapped);
+            //todo
+            jassertfalse;
         }
 
         /**
@@ -1314,6 +1549,10 @@ namespace ntlab
                 int destinationStartChannelNumber = 0) const
         {
             NTLAB_ASSERT_CHANNEL_AND_SAMPLE_COUNTS_PASSED_ARE_VALID
+            // both buffers need to be mapped to be copied in host memory space
+            jassert (isMapped);
+            jassert (otherBuffer.isMapped);
+            NTLAB_OPERATION_ON_ALL_CHANNELS (ComplexVectorOperations::extractImagPart (readPtr, writePtr, numSamlesToCopy))
         }
 
         /**
@@ -1338,6 +1577,9 @@ namespace ntlab
                 int destinationStartChannelNumber = 0) const
         {
             NTLAB_ASSERT_CHANNEL_AND_SAMPLE_COUNTS_PASSED_ARE_VALID
+            // buffer needs to be mapped to be copied in host memory space
+            jassert (isMapped);
+            NTLAB_OPERATION_ON_ALL_CHANNELS (ComplexVectorOperations::extractImagPart (readPtr, writePtr, numSamlesToCopy))
         }
 
         /**
@@ -1362,6 +1604,10 @@ namespace ntlab
                 int destinationStartChannelNumber = 0) const
         {
             NTLAB_ASSERT_CHANNEL_AND_SAMPLE_COUNTS_PASSED_ARE_VALID
+            // both buffers need to be mapped to be copied in host memory space
+            jassert (isMapped);
+            jassert (otherBuffer.isMapped);
+            NTLAB_OPERATION_ON_ALL_CHANNELS (ComplexVectorOperations::abs (readPtr, writePtr, numSamlesToCopy))
         }
 
         /**
@@ -1386,6 +1632,9 @@ namespace ntlab
                 int destinationStartChannelNumber = 0) const
         {
             NTLAB_ASSERT_CHANNEL_AND_SAMPLE_COUNTS_PASSED_ARE_VALID
+            // buffer needs to be mapped to be copied in host memory space
+            jassert (isMapped);
+            NTLAB_OPERATION_ON_ALL_CHANNELS (ComplexVectorOperations::abs (readPtr, writePtr, numSamlesToCopy))
         }
 
         /** Helper to create one Sample of the buffers SampleType in templated code */
@@ -1401,8 +1650,15 @@ namespace ntlab
         int numSamplesAllocated;
         int numSamplesUsed;
 
-        juce::Array<std::complex<SampleType>*> channels;
-        bool isInHostAccessMode = true;
+        cl::CommandQueue& queue;
+        cl::Context&      context;
+        cl::Buffer        clBuffer;
+        cl::Buffer        channelList;
+        cl_map_flags      mapFlags;
+        size_t            numBytesInBuffer;
+
+        std::vector<std::complex<SampleType>*> channelPtrs;
+        bool isMapped = true;
 
         JUCE_LEAK_DETECTOR (CLSampleBufferComplex)
     };
