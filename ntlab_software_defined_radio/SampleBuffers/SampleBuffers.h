@@ -813,13 +813,13 @@ namespace ntlab
                             bool initWithZeros = false,
                             cl_mem_flags clMemAccessFlags = CL_MEM_READ_WRITE,
                             cl_map_flags clMapFlags = CL_MAP_READ | CL_MAP_WRITE) 
-          : channelPtrs (static_cast<size_t> (numChannels)),
-            queue       (queueToUse), 
+          : queue       (queueToUse),
             context     (contextToUse), 
             mapFlags    (clMapFlags),
             numChannelsAllocated (numChannels),
             numSamplesAllocated  (numSamples),
-            numSamplesUsed       (numSamples)
+            numSamplesUsed       (numSamples),
+            channelPtrs (static_cast<size_t> (numChannels))
         {
             jassert (numChannels >= 0);
             jassert (numSamples  >= 0);
@@ -846,8 +846,8 @@ namespace ntlab
             if (initWithZeros)
                 clearBufferRegion();
 
-            channelList = cl::Buffer (context, CL_MEM_READ_ONLY, 0, numChannels * sizeof (cl_int));
-            queue.enqueueWriteBuffer (channelList, CL_TRUE,      0, numChannels * sizeof (cl_int), channelListIdx.data());
+            channelList = cl::Buffer (context, CL_MEM_READ_ONLY, numChannels * sizeof (cl_int));
+            queue.enqueueWriteBuffer (channelList, CL_TRUE,   0, numChannels * sizeof (cl_int), channelListIdx.data());
         }
 
         /**
@@ -1095,13 +1095,13 @@ namespace ntlab
                                bool initWithZeros = false,
                                cl_mem_flags clMemAccessFlags = CL_MEM_READ_WRITE,
                                cl_map_flags clMapFlags = CL_MAP_READ | CL_MAP_WRITE)
-          : channelPtrs (static_cast<size_t> (numChannels)),
-            queue       (queueToUse),
+          : queue       (queueToUse),
             context     (contextToUse),
             mapFlags    (clMapFlags),
             numChannelsAllocated (numChannels),
             numSamplesAllocated  (numSamples),
-            numSamplesUsed       (numSamples)
+            numSamplesUsed       (numSamples),
+            channelPtrs (static_cast<size_t> (numChannels))
         {
             jassert (numChannels >= 0);
             jassert (numSamples  >= 0);
@@ -1109,7 +1109,7 @@ namespace ntlab
             cl_int err;
             numBytesInBuffer = numSamples * numChannels * sizeof (std::complex<SampleType>);
 
-            clBuffer = cl::Buffer (context, CL_MEM_ALLOC_HOST_PTR | clMemAccessFlags,  numBytesInBuffer);
+            clBuffer = cl::Buffer (context, CL_MEM_ALLOC_HOST_PTR | clMemAccessFlags, numBytesInBuffer);
             std::complex<SampleType>* mappedBufferStart = reinterpret_cast<std::complex<SampleType>*> (queue.enqueueMapBuffer (clBuffer, CL_TRUE, mapFlags, 0, numBytesInBuffer, nullptr, nullptr, &err));
 
             // Something went wrong when trying to map the CL memory
@@ -1128,8 +1128,8 @@ namespace ntlab
             if (initWithZeros)
                 clearBufferRegion();
 
-            channelList = cl::Buffer (context, CL_MEM_READ_ONLY, 0, numChannels * sizeof (cl_int));
-            queue.enqueueWriteBuffer (channelList, CL_TRUE,      0, numChannels * sizeof (cl_int), channelListIdx.data());
+            channelList = cl::Buffer (context, CL_MEM_READ_ONLY, numChannels * sizeof (cl_int));
+            queue.enqueueWriteBuffer (channelList, CL_TRUE,   0, numChannels * sizeof (cl_int), channelListIdx.data());
         }
 
         /**
