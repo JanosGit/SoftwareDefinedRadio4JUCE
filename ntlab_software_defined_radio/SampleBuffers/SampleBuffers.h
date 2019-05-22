@@ -1750,6 +1750,24 @@ namespace ntlab
         {
             return real() || complex();
         }
+
+        static constexpr bool cl()
+        {
+            if constexpr (std::is_same<ExpectedSampleType, AllValidSampleTypes>::value)
+            {
+                return  std::is_same<BufferTypeToCheck, CLSampleBufferComplex<float>>::value   ||
+                        std::is_same<BufferTypeToCheck, CLSampleBufferReal<float>>::value      ||
+                        std::is_same<BufferTypeToCheck, CLSampleBufferComplex<double>>::value  ||
+                        std::is_same<BufferTypeToCheck, CLSampleBufferReal<double>>::value     ||
+                        std::is_same<BufferTypeToCheck, CLSampleBufferComplex<int16_t>>::value ||
+                        std::is_same<BufferTypeToCheck, CLSampleBufferReal<int16_t>>::value    ||
+                        std::is_same<BufferTypeToCheck, CLSampleBufferComplex<int32_t>>::value ||
+                        std::is_same<BufferTypeToCheck, CLSampleBufferReal<int32_t>>::value;
+            }
+            return std::is_same<BufferTypeToCheck, CLSampleBufferComplex<ExpectedSampleType>>::value ||
+                   std::is_same<BufferTypeToCheck, CLSampleBufferReal<ExpectedSampleType>>::value;
+        }
+
     };
 }
 
