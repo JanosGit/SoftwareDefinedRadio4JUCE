@@ -78,6 +78,21 @@ along with SoftwareDefinedRadio4JUCE. If not, see <http://www.gnu.org/licenses/>
 #define NTLAB_WARN_ABOUT_MISSING_UHD_GAIN_ELEMENTS 1
 #endif
 
+/** Config: NTLAB_USE_CL_DSP
+    This enables some DSP classes to use OpenCL for DSP processing. Some constructors might chang
+    if this option is enabled
+ */
+#ifndef NTLAB_USE_CL_DSP
+#define NTLAB_USE_CL_DSP 0
+#endif
+
+/** Config: NTLAB_USE_CL_SAMPLE_BUFFER_COMPLEX_FOR_SDR_IO_DEVICE_CALLBACK
+    This enables the SDRIOEngine classes to use OpenCL Buffers for the processing callback
+ */
+#ifndef NTLAB_USE_CL_SAMPLE_BUFFER_COMPLEX_FOR_SDR_IO_DEVICE_CALLBACK
+#define NTLAB_USE_CL_SAMPLE_BUFFER_COMPLEX_FOR_SDR_IO_DEVICE_CALLBACK 0
+#endif
+
 #if !JUCE_IOS
 #include "HardwareDevices/EttusEngine/UHDReplacement.h"
 #endif
@@ -98,11 +113,17 @@ along with SoftwareDefinedRadio4JUCE. If not, see <http://www.gnu.org/licenses/>
 #include "Matrix/CovarianceMatrix.h"
 #endif
 
+#if NTLAB_USE_CL_DSP
+#include "OpenCL2/cl2WithVersionChecks.h"
+#include "OpenCL2/clArray.h"
+#include "Matrix/CLCovarianceMatrix.h"
+#endif
+
 #include "MCVFileFormat/MCVHeader.h"
 #include "MCVFileFormat/MCVWriter.h"
 #include "MCVFileFormat/MCVReader.h"
 
-#include "OpenCL2/cl2WithVersionChecks.h"
+
 
 #include "SampleBuffers/VectorOperations.h"
 #include "SampleBuffers/SampleBuffers.h"

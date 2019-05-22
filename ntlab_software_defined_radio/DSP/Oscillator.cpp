@@ -16,9 +16,47 @@ along with SoftwareDefinedRadio4JUCE. If not, see <http://www.gnu.org/licenses/>
 */
 
 #include "Oscillator.h"
+#include "../OpenCL2/ntlab_OpenCLHelpers.h"
 
 namespace ntlab
 {
+#if NTLAB_USE_CL_DSP
+    Oscillator::Oscillator (const int nChannels, cl::Context& context, cl::CommandQueue& queue)
+     : clQueue       (queue),
+       phaseAndAngle (nChannels, context, queue, CL_MEM_READ_ONLY),
+       numChannels   (nChannels),
+       angleDelta    (nChannels, context, queue, CL_MEM_READ_ONLY),
+       amplitude     (nChannels, context, queue, CL_MEM_READ_ONLY)
+    {
+        rfFrequency  .resize (nChannels);
+        sdrCenterFreq.resize (nChannels);
+        ifFrequency  .resize (nChannels);
+        phase        .resize (nChannels);
+        currentAngle .resize (nChannels);
+
+        rfFrequency  .fill (0.0);
+        sdrCenterFreq.fill (0.0);
+        ifFrequency  .fill (0.0);
+        phase        .fill (0.0);
+        currentAngle .fill (- juce::MathConstants<double>::pi);
+        angleDelta   .fill (0.0);
+        amplitude    .fill (1.0);
+
+        const std::string clSources =
+#include "Oscillator.cl"
+        ;
+
+        cl_int err;
+        clProgram = cl::Program (context, clSources, true, &err);
+        // something went wrong trying to build the cl program
+        jassert (err == CL_SUCCESS);
+
+        complexOscillatorKernel = cl::Kernel (clProgram, "oscillatorFillNextSampleBufferComplex", &err);
+        jassert (err == CL_SUCCESS);
+        realOscillatorKernel    = cl::Kernel (clProgram, "oscillatorFillNextSampleBufferReal", &err);
+        jassert (err == CL_SUCCESS);
+    }
+#else
     Oscillator::Oscillator (const int nChannels) : numChannels (nChannels)
     {
         rfFrequency.resize   (nChannels);
@@ -37,6 +75,7 @@ namespace ntlab
         angleDelta   .fill (0.0);
         amplitude    .fill (1.0);
     }
+#endif
 
     bool Oscillator::setFrequencyHz (double newFrequencyInHz, int channel)
     {

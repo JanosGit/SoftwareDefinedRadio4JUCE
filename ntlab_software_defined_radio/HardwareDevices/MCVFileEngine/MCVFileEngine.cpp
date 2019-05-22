@@ -185,7 +185,7 @@ namespace ntlab
 
     bool MCVFileEngine::isReadyToStream()
     {
-        return rxEnabled || txEnabled;
+        return (rxEnabled && (inSampleBuffer != nullptr)) || (txEnabled && (outSampleBuffer != nullptr));
     }
 
     bool MCVFileEngine::startStreaming (ntlab::SDRIODeviceCallback* callback)
@@ -249,6 +249,14 @@ namespace ntlab
         return true;
     }
 
+#if NTLAB_USE_CL_SAMPLE_BUFFER_COMPLEX_FOR_SDR_IO_DEVICE_CALLBACK
+    void MCVFileEngine::setupOpenCL (cl::Context& contextToUse, cl::CommandQueue& queueToUse)
+    {
+        context = &contextToUse;
+        queue   = &queueToUse;
+    }
+#endif
+
     void MCVFileEngine::hiResTimerCallback ()
     {
         if (!timerThreadIDisValid)
@@ -276,41 +284,71 @@ namespace ntlab
 
         if (mcvWriter != nullptr)
         {
+#if NTLAB_USE_CL_SAMPLE_BUFFER_COMPLEX_FOR_SDR_IO_DEVICE_CALLBACK
+            // todo: This is a quick workaround, need to extend the MCVWriter interface
+            SampleBufferComplex tmp (numOutChannels, outSampleBuffer->getNumSamples(), outSampleBuffer->getArrayOfWritePointers());
+            mcvWriter->appendSampleBuffer (tmp);
+#else
             mcvWriter->appendSampleBuffer (*outSampleBuffer);
+#endif
         }
 
         if (timerShouldStopAfterThisCallback)
-            endStreaming();
+            endStreaming ();
     }
 
     void MCVFileEngine::reallocateBuffers (bool reallocateInBuffer, bool reallocateOutBuffer)
     {
-         if ((mcvReader != nullptr) && reallocateInBuffer)
-         {
-             inSampleBuffer.reset (new OptionalCLSampleBufferComplexFloat (static_cast<int> (mcvReader->getNumColsOrChannels()), blockSize));
-         }
-         else if (mcvReader == nullptr)
-         {
-             inSampleBuffer.reset (new OptionalCLSampleBufferComplexFloat (0, 0));
-         }
+#if NTLAB_USE_CL_SAMPLE_BUFFER_COMPLEX_FOR_SDR_IO_DEVICE_CALLBACK
+        // Make sure that you have set up OpenCL before starting to stream
+        jassert (context != nullptr);
+        jassert (queue   != nullptr);
 
-         if ((mcvWriter != nullptr) && reallocateOutBuffer)
-         {
-             outSampleBuffer.reset (new OptionalCLSampleBufferComplexFloat (numOutChannels, blockSize));
-         }
-         else if (mcvWriter == nullptr)
-         {
-             outSampleBuffer.reset (new OptionalCLSampleBufferComplexFloat (0, 0));
-         }
+        if ((mcvReader != nullptr) && reallocateInBuffer)
+        {
+            inSampleBuffer.reset (new CLSampleBufferComplex<float> (static_cast<int> (mcvReader->getNumColsOrChannels ()), blockSize, *queue, *context, false, CL_MEM_READ_ONLY, CL_MAP_WRITE));
+        }
+        else if (mcvReader == nullptr)
+        {
+            inSampleBuffer.reset (new CLSampleBufferComplex<float> (0, 0, *queue, *context));
+        }
+
+        if ((mcvWriter != nullptr) && reallocateOutBuffer)
+        {
+            outSampleBuffer.reset (new CLSampleBufferComplex<float> (numOutChannels, blockSize, *queue, *context, false, CL_MEM_WRITE_ONLY, CL_MAP_READ));
+        }
+        else if (mcvWriter == nullptr)
+        {
+            outSampleBuffer.reset (new CLSampleBufferComplex<float> (0, 0, *queue, *context));
+        }
+#else
+        if ((mcvReader != nullptr) && reallocateInBuffer)
+        {
+            inSampleBuffer.reset (new SampleBufferComplex<float> (static_cast<int> (mcvReader->getNumColsOrChannels ()), blockSize));
+        }
+        else if (mcvReader == nullptr)
+        {
+            inSampleBuffer.reset (new SampleBufferComplex<float> (0, 0));
+        }
+
+        if ((mcvWriter != nullptr) && reallocateOutBuffer)
+        {
+            outSampleBuffer.reset (new SampleBufferComplex<float> (numOutChannels, blockSize));
+        }
+        else if (mcvWriter == nullptr)
+        {
+            outSampleBuffer.reset (new SampleBufferComplex<float> (0, 0));
+        }
+#endif
     }
 
-    void MCVFileEngine::endStreaming()
+    void MCVFileEngine::endStreaming ()
     {
-        stopTimer();
+        stopTimer ();
         timerThreadIDisValid = false;
 
-        mcvWriter->waitForEmptyFIFO();
-        mcvWriter->updateMetadataHeader();
+        mcvWriter->waitForEmptyFIFO ();
+        mcvWriter->updateMetadataHeader ();
 
         // close files
         mcvWriter.reset (nullptr);
