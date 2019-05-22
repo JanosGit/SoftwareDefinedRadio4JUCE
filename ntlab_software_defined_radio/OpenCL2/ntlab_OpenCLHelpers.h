@@ -6,7 +6,9 @@
 #include <fstream>
 #include <algorithm>
 
-#if defined(__APPLE__) || defined(__MACOSX)
+#ifdef WIN32
+#include <Windows.h>
+#elif defined(__APPLE__) || defined(__MACOSX)
 #include <mach-o/dyld.h>
 #endif
 
@@ -108,7 +110,7 @@ namespace ntlab
 
 #ifdef _WIN32
             char pathBuffer[MAX_PATH];
-            DWORD pathLength = GetModuleFileNameA (NULL, pathBuffer, maxPathLength);
+            DWORD pathLength = GetModuleFileNameA (NULL, pathBuffer, MAX_PATH);
             if (pathLength == 0)
                 return "";
 

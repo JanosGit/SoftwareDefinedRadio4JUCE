@@ -21,6 +21,7 @@ along with SoftwareDefinedRadio4JUCE. If not, see <http://www.gnu.org/licenses/>
 
 #include <juce_data_structures/juce_data_structures.h>
 #include <array>
+#include <bitset>
 
 #if JUCE_MODULE_AVAILABLE_juce_gui_basics
 #include <juce_gui_basics/juce_gui_basics.h>

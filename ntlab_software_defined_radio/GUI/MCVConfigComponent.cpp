@@ -137,7 +137,8 @@ namespace ntlab
 
     juce::Result MCVConfigComponent::applyCurrentSettings()
     {
-        juce::ValueTree settingsToApply;
-
+        // todo: do something here :D
+		juce::ValueTree settingsToApply;
+		return juce::Result::fail ("Not implemented yet");
     }
 }

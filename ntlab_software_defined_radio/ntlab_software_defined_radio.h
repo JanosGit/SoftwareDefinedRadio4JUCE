@@ -36,6 +36,7 @@ along with SoftwareDefinedRadio4JUCE. If not, see <http://www.gnu.org/licenses/>
   dependencies:       juce_dsp, juce_data_structures
 
   OSXFrameworks:      OpenCL
+  windowsLibs:        opencl
 
  END_JUCE_MODULE_DECLARATION
 
@@ -117,7 +118,8 @@ along with SoftwareDefinedRadio4JUCE. If not, see <http://www.gnu.org/licenses/>
 #if NTLAB_USE_CL_DSP
 #include "OpenCL2/cl2WithVersionChecks.h"
 #include "OpenCL2/clArray.h"
-#include "Matrix/CLCovarianceMatrix.h"
+#include "OpenCL2/ntlab_OpenCLHelpers.h"
+//#include "Matrix/CLCovarianceMatrix.h"
 #endif
 
 #include "MCVFileFormat/MCVHeader.h"
