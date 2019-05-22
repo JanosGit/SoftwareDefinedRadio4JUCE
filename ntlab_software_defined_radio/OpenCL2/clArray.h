@@ -19,6 +19,7 @@ along with SoftwareDefinedRadio4JUCE. If not, see <http://www.gnu.org/licenses/>
 #include <juce_core/juce_core.h>
 
 #include "cl2WithVersionChecks.h"
+#include "clException.h"
 
 namespace ntlab
 {
@@ -39,10 +40,15 @@ namespace ntlab
          */
         CLArray (const int numElements, cl::Context& contextToUse, cl::CommandQueue& queueToUse, cl_mem_flags memFlags = CL_MEM_READ_WRITE)
         : sizeInBytes (numElements * sizeof (T)),
-          buffer (contextToUse, CL_MEM_ALLOC_HOST_PTR | memFlags, sizeInBytes),
           queue  (queueToUse)
         {
-            map();
+			cl_int err;
+			buffer = cl::Buffer (contextToUse, CL_MEM_ALLOC_HOST_PTR | memFlags, sizeInBytes, nullptr, &err);
+
+			if (err != CL_SUCCESS)
+				throw CLException ("CL error while creating cl::Buffer object of size" + juce::String (sizeInBytes) + " bytes", err);
+
+			map (CL_TRUE);
         }
 
         T& operator[] (int index) const
@@ -109,7 +115,13 @@ namespace ntlab
         {
             if (!isMapped())
             {
-                ptr = static_cast<T*> (queue.enqueueMapBuffer (buffer, blockingMap, mapFlags, 0, sizeInBytes));
+				cl_int err;
+				ptr = static_cast<T*> (queue.enqueueMapBuffer (buffer, blockingMap, mapFlags, 0, sizeInBytes, nullptr, nullptr, &err));
+				if (err != CL_SUCCESS)
+				{
+					ptr = nullptr;
+					return ptr;
+				}
                 dataEnd = juce::addBytesToPointer (ptr, sizeInBytes);
             }
 
@@ -138,8 +150,8 @@ namespace ntlab
     private:
         const size_t sizeInBytes;
         cl::Buffer   buffer;
-        T*           ptr;
-        T*           dataEnd;
+        T*           ptr     = nullptr;
+        T*           dataEnd = nullptr;
 
         cl::CommandQueue& queue;
     };
