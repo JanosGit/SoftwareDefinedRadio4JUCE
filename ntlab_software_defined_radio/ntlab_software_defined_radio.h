@@ -104,6 +104,7 @@ along with SoftwareDefinedRadio4JUCE. If not, see <http://www.gnu.org/licenses/>
 
 #if JUCE_MODULE_AVAILABLE_juce_gui_basics
 #include "GUI/UHDConfigComponent.h"
+#include "GUI/MCVConfigComponent.h"
 #endif
 
 #include "DSP/Oscillator.h"

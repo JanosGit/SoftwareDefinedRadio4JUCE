@@ -3,7 +3,7 @@
 //==============================================================================
 const juce::File MainComponent::settingsFile (juce::File::getSpecialLocation (juce::File::SpecialLocationType::userApplicationDataDirectory).getChildFile ("ntlabOscillatorDemoSettings.xml"));
 
-MainComponent::MainComponent() : oscillator (1)
+MainComponent::MainComponent()
 {
     // Initialize our device manager first
     deviceManager.addDefaultEngines();
@@ -96,7 +96,7 @@ MainComponent::MainComponent() : oscillator (1)
 
     oscillatorFreqSlider.onValueChange = [this]()
     {
-        oscillator.setFrequencyHz (oscillatorFreqSlider.getValue(), ntlab::SDRIOEngine::allChannels);
+        oscillator->setFrequencyHz (oscillatorFreqSlider.getValue(), ntlab::SDRIOEngine::allChannels);
     };
 
     centerFreqSlider.onValueChange = [this]()
@@ -160,18 +160,19 @@ void MainComponent::resized()
 
 void MainComponent::prepareForStreaming (double sampleRate, int numActiveChannelsIn, int numActiveChannelsOut, int maxNumSamplesPerBlock)
 {
-    oscillator.setSampleRate (sampleRate);
+    oscillator->setSampleRate (sampleRate);
     std::cout << "Starting to stream with " << numActiveChannelsIn << " input channels, " << numActiveChannelsOut << " output channels, block size " << maxNumSamplesPerBlock << " samples" << std::endl;
 
+    auto* selectedEngine = deviceManager.getSelectedEngine();
     // Enable the center freq slider only if the engine is a hardware device that has a tunable center frequency
-    if (dynamic_cast<ntlab::SDRIOHardwareEngine*> (deviceManager.getSelectedEngine()))
+    if (dynamic_cast<ntlab::SDRIOHardwareEngine*> (selectedEngine))
         juce::MessageManager::callAsync ([this]() { centerFreqSlider.setEnabled (true); });
 }
 
 void MainComponent::processRFSampleBlock (ntlab::OptionalCLSampleBufferComplexFloat& rxSamples, ntlab::OptionalCLSampleBufferComplexFloat& txSamples)
 {
     juce::ScopedNoDenormals noDenormals;
-    oscillator.fillNextSampleBuffer (txSamples);
+    oscillator->fillNextSampleBuffer (txSamples);
 }
 
 void MainComponent::streamingHasStopped ()
@@ -196,7 +197,7 @@ void MainComponent::setUpEngine()
 
     if (auto* hardwareEngine = dynamic_cast<ntlab::SDRIOHardwareEngine*> (selectedEngine))
     {
-        hardwareEngine->addTuneChangeListener (&oscillator);
+        hardwareEngine->addTuneChangeListener (oscillator.get());
 
         bandwidth = hardwareEngine->getSampleRate();
         setupSliderRanges (hardwareEngine->getTxCenterFrequency (0));
