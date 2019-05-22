@@ -43,6 +43,13 @@ MainComponent::MainComponent()
 
     centerFreqSlider.setEnabled (false);
 
+#if NTLAB_USE_CL_DSP
+    setUpCL();
+    oscillator.reset (new ntlab::Oscillator (1, context, queue));
+#else
+    oscillator.reset (new ntlab::Oscillator (1));
+#endif
+
     // Assign callbacks
     engineSelectionBox.onChange = [this]()
     {
@@ -158,12 +165,24 @@ void MainComponent::resized()
     oscillatorFreqSlider.setBounds (lowerArea.removeFromRight (lowerWidth));
 }
 
+void MainComponent::setUpCL ()
+{
+    platform = cl::Platform::getDefault();
+    device   = cl::Device::getDefault();
+    context  = cl::Context (device);
+    queue    = cl::CommandQueue (context);
+
+    std::cout << "Using CL platform " << platform.getInfo<CL_PLATFORM_NAME>() << ", device " << device.getInfo<CL_DEVICE_NAME>() << std::endl;
+}
+
 void MainComponent::prepareForStreaming (double sampleRate, int numActiveChannelsIn, int numActiveChannelsOut, int maxNumSamplesPerBlock)
 {
     oscillator->setSampleRate (sampleRate);
     std::cout << "Starting to stream with " << numActiveChannelsIn << " input channels, " << numActiveChannelsOut << " output channels, block size " << maxNumSamplesPerBlock << " samples" << std::endl;
 
     auto* selectedEngine = deviceManager.getSelectedEngine();
+    selectedEngine->setupOpenCL (context, queue);
+
     // Enable the center freq slider only if the engine is a hardware device that has a tunable center frequency
     if (dynamic_cast<ntlab::SDRIOHardwareEngine*> (selectedEngine))
         juce::MessageManager::callAsync ([this]() { centerFreqSlider.setEnabled (true); });
