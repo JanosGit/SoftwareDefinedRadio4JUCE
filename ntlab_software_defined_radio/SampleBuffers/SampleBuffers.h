@@ -824,8 +824,11 @@ namespace ntlab
             jassert (numChannels >= 0);
             jassert (numSamples  >= 0);
 
-            cl_int err;
             numBytesInBuffer = numSamples * numChannels * sizeof (SampleType);
+			if (numBytesInBuffer == 0)
+				return;
+
+			cl_int err;
 
             clBuffer = cl::Buffer (context, CL_MEM_ALLOC_HOST_PTR | clMemAccessFlags,  numBytesInBuffer);
             SampleType* mappedBufferStart = queue.enqueueMapBuffer (clBuffer, CL_TRUE, mapFlags, 0, numBytesInBuffer, nullptr, nullptr, &err);
@@ -1106,10 +1109,16 @@ namespace ntlab
             jassert (numChannels >= 0);
             jassert (numSamples  >= 0);
 
-            cl_int err;
             numBytesInBuffer = numSamples * numChannels * sizeof (std::complex<SampleType>);
+			if (numBytesInBuffer == 0)
+				return;
 
-            clBuffer = cl::Buffer (context, CL_MEM_ALLOC_HOST_PTR | clMemAccessFlags, numBytesInBuffer);
+			cl_int err;
+
+            clBuffer = cl::Buffer (context, CL_MEM_ALLOC_HOST_PTR | clMemAccessFlags, numBytesInBuffer, nullptr, &err);
+			// Something went wrong when trying to create the CL Buffer
+			jassert(err == CL_SUCCESS);
+
             std::complex<SampleType>* mappedBufferStart = reinterpret_cast<std::complex<SampleType>*> (queue.enqueueMapBuffer (clBuffer, CL_TRUE, mapFlags, 0, numBytesInBuffer, nullptr, nullptr, &err));
 
             // Something went wrong when trying to map the CL memory
