@@ -1829,18 +1829,5 @@ namespace ntlab
         return new UHDEngine (uhdr);
     }
 
-#if JUCE_MODULE_AVAILABLE_juce_gui_basics
-}
-
-#include "../../GUI/UHDConfigComponent.h"
-
-namespace ntlab
-{
-
-    std::unique_ptr<juce::Component> UHDEngineManager::createEngineConfigurationComponent (ntlab::SDRIOEngineConfigurationInterface& configurationInterface, SDRIOEngineConfigurationInterface::ConfigurationConstraints& constraints)
-    {
-        return std::unique_ptr<juce::Component> (new UHDEngineConfigurationComponent (configurationInterface, constraints));
-    }
-#endif //JUCE_MODULE_AVAILABLE_juce_gui_basics
 #endif //!JUCE_IOS
 }
