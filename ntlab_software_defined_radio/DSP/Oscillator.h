@@ -80,13 +80,24 @@ namespace ntlab
         double getAmplitude (int channel);
 
 #if NTLAB_USE_CL_DSP
+		/**
+		 * Fills a sample buffer with the next block of continuous samples. This is meant to be called on a regular
+		 * basis from within SDRIODeviceCallback::processRFSampleBlock.
+		 *
+		 * The supported buffer types are CLSampleBufferRealx or CLSampleBufferComplex with float samples.
+		 * 
+		 * !!Attention: This function expects the buffer passed to be in an unmapped state!!
+		 */
         template <typename BufferType>
         void fillNextSampleBuffer (BufferType& buffer)
         {
-            static_assert (IsSampleBuffer<BufferType>::cl(), "Oscillator: Unsupported buffer type");
+            static_assert (IsSampleBuffer<BufferType, float>::cl(), "Oscillator: Unsupported buffer type");
             // you should set the sampleRate through setSampleRate or by passing an SDREngine to the constructor
             jassert (currentSampleRate > 0);
             jassert (buffer.getNumChannels() == numChannels);
+
+			// This function expects the buffer passed to be in an unmapped state
+			jassert(buffer.isCurrentlyMapped() == false);
 
             const int numSamples  = buffer.getNumSamples();
 
