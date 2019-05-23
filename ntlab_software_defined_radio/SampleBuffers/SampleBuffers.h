@@ -831,7 +831,7 @@ namespace ntlab
 			cl_int err;
 
             clBuffer = cl::Buffer (context, CL_MEM_ALLOC_HOST_PTR | clMemAccessFlags,  numBytesInBuffer);
-            SampleType* mappedBufferStart = queue.enqueueMapBuffer (clBuffer, CL_TRUE, mapFlags, 0, numBytesInBuffer, nullptr, nullptr, &err);
+			auto* mappedBufferStart = reinterpret_cast<SampleType*> (queue.enqueueMapBuffer (clBuffer, CL_TRUE, mapFlags, 0, numBytesInBuffer, nullptr, nullptr, &err));
 
             // Something went wrong when trying to map the CL memory
             jassert (err == CL_SUCCESS);
@@ -887,7 +887,7 @@ namespace ntlab
                 return CL_SUCCESS;
 
             cl_int err;
-            SampleType* mappedBufferStart = queue.enqueueMapBuffer (clBuffer, blocking, mapFlags, 0, numBytesInBuffer, eventsToWaitFor, eventToCreate, &err);
+			auto* mappedBufferStart = reinterpret_cast<SampleType*> (queue.enqueueMapBuffer (clBuffer, blocking, mapFlags, 0, numBytesInBuffer, eventsToWaitFor, eventToCreate, &err));
             for (int i = 0; i < numChannelsAllocated; ++i)
             {
                 channelPtrs[i]    = mappedBufferStart + (i * numSamplesAllocated);
@@ -895,6 +895,9 @@ namespace ntlab
                 // Please report an issue on GitHub if this assert fires
                 jassert (SIMDHelpers::isPointerAligned (channelPtrs[i]));
             }
+
+			if (err == CL_SUCCESS)
+				isMapped = true;
 
             return err;
         }
@@ -914,7 +917,12 @@ namespace ntlab
             if (!isMapped)
                 return CL_SUCCESS;
 
-            return queue.enqueueUnmapMemObject (clBuffer, channelPtrs[0], eventsToWaitFor, eventToCreate);
+			cl_int err = queue.enqueueUnmapMemObject(clBuffer, channelPtrs[0], eventsToWaitFor, eventToCreate);
+
+			if (err == CL_SUCCESS)
+				isMapped = false;
+
+			return err;
         }
 
         /** Returns true if host access is enabled, false if CL device access is enabled. */
@@ -1119,7 +1127,7 @@ namespace ntlab
 			// Something went wrong when trying to create the CL Buffer
 			jassert(err == CL_SUCCESS);
 
-            std::complex<SampleType>* mappedBufferStart = reinterpret_cast<std::complex<SampleType>*> (queue.enqueueMapBuffer (clBuffer, CL_TRUE, mapFlags, 0, numBytesInBuffer, nullptr, nullptr, &err));
+            auto* mappedBufferStart = reinterpret_cast<std::complex<SampleType>*> (queue.enqueueMapBuffer (clBuffer, CL_TRUE, mapFlags, 0, numBytesInBuffer, nullptr, nullptr, &err));
 
             // Something went wrong when trying to map the CL memory
             jassert (err == CL_SUCCESS);
@@ -1175,7 +1183,7 @@ namespace ntlab
                 return CL_SUCCESS;
 
             cl_int err;
-            SampleType* mappedBufferStart = queue.enqueueMapBuffer (clBuffer, blocking, mapFlags, 0, numBytesInBuffer, eventsToWaitFor, eventToCreate, &err);
+			auto* mappedBufferStart = reinterpret_cast<std::complex<SampleType>*> (queue.enqueueMapBuffer (clBuffer, blocking, mapFlags, 0, numBytesInBuffer, eventsToWaitFor, eventToCreate, &err));
             for (int i = 0; i < numChannelsAllocated; ++i)
             {
                 channelPtrs[i]    = mappedBufferStart + (i * numSamplesAllocated);
@@ -1183,6 +1191,9 @@ namespace ntlab
                 // Please report an issue on GitHub if this assert fires
                 jassert (SIMDHelpers::isPointerAligned (channelPtrs[i]));
             }
+
+			if (err == CL_SUCCESS)
+				isMapped = true;
 
             return err;
         }
@@ -1202,7 +1213,12 @@ namespace ntlab
             if (!isMapped)
                 return CL_SUCCESS;
 
-            return queue.enqueueUnmapMemObject (clBuffer, channelPtrs[0], eventsToWaitFor, eventToCreate);
+            cl_int err = queue.enqueueUnmapMemObject (clBuffer, channelPtrs[0], eventsToWaitFor, eventToCreate);
+
+			if (err == CL_SUCCESS)
+				isMapped = false;
+
+			return err;
         }
 
         /**
