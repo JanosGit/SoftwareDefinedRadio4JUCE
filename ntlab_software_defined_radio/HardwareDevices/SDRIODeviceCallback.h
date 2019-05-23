@@ -22,7 +22,7 @@ along with SoftwareDefinedRadio4JUCE. If not, see <http://www.gnu.org/licenses/>
 namespace ntlab
 {
 
-#ifdef NTLAB_USE_CL_SAMPLE_BUFFER_COMPLEX_FOR_SDR_IO_DEVICE_CALLBACK
+#if NTLAB_USE_CL_SAMPLE_BUFFER_COMPLEX_FOR_SDR_IO_DEVICE_CALLBACK
     using OptionalCLSampleBufferComplexFloat = CLSampleBufferComplex<float>;
 #else
     using OptionalCLSampleBufferComplexFloat = SampleBufferComplex<float>;

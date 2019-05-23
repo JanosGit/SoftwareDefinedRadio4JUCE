@@ -19,6 +19,11 @@ along with SoftwareDefinedRadio4JUCE. If not, see <http://www.gnu.org/licenses/>
 
 namespace ntlab
 {
+    std::unique_ptr<juce::Component> UHDEngineManager::createEngineConfigurationComponent (ntlab::SDRIOEngineConfigurationInterface& configurationInterface, SDRIOEngineConfigurationInterface::ConfigurationConstraints& constraints)
+    {
+        return std::unique_ptr<juce::Component> (new UHDEngineConfigurationComponent (configurationInterface, constraints));
+    }
+
     const juce::Identifier UHDEngineConfigurationComponent::numRxChannels ("numRxChannels");
     const juce::Identifier UHDEngineConfigurationComponent::numTxChannels ("numTxChannels");
     const juce::Identifier UHDEngineConfigurationComponent::rxChannelsAssigned ("rxChannelsAssigned");
