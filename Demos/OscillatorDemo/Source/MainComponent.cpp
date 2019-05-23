@@ -207,7 +207,16 @@ void MainComponent::prepareForStreaming (double sampleRate, int numActiveChannel
 void MainComponent::processRFSampleBlock (ntlab::OptionalCLSampleBufferComplexFloat& rxSamples, ntlab::OptionalCLSampleBufferComplexFloat& txSamples)
 {
     juce::ScopedNoDenormals noDenormals;
+
+#if NTLAB_USE_CL_DSP
+	txSamples.unmapHostMemory();
+#endif
+
     oscillator->fillNextSampleBuffer (txSamples);
+
+#if NTLAB_USE_CL_DSP
+	txSamples.mapHostMemory();
+#endif
 }
 
 void MainComponent::streamingHasStopped ()
