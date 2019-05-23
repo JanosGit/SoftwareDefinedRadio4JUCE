@@ -1571,6 +1571,12 @@ namespace ntlab
 
             activeCallback->processRFSampleBlock (*rxBuffer, *txBuffer);
 
+#if NTLAB_USE_CL_SAMPLE_BUFFER_COMPLEX_FOR_SDR_IO_DEVICE_CALLBACK
+			// Always map buffers at the end of the processRFSampleBlock callback!
+			jassert (rxBuffer->isCurrentlyMapped());
+			jassert (txBuffer->isCurrentlyMapped());
+#endif
+
             if (txWasEnabled)
             {
                 UHDr::Error error;
