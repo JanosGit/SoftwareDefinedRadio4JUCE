@@ -72,7 +72,7 @@ private:
     cl::CommandQueue queue;
     cl::Program      program;
 
-    void setUpCL();
+	juce::Result setUpCL();
 
     // ntlab::SDRIODeviceCallback member functions =================================
     void prepareForStreaming (double sampleRate, int numActiveChannelsIn, int numActiveChannelsOut, int maxNumSamplesPerBlock) override;

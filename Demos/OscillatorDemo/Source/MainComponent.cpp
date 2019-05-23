@@ -44,7 +44,11 @@ MainComponent::MainComponent()
     centerFreqSlider.setEnabled (false);
 
 #if NTLAB_USE_CL_DSP
-    setUpCL();
+    auto settingUpCL = setUpCL();
+	if (settingUpCL.failed())
+	{
+		std::cout << settingUpCL.getErrorMessage();
+	}
     oscillator.reset (new ntlab::Oscillator (1, context, queue));
 #else
     oscillator.reset (new ntlab::Oscillator (1));
@@ -165,14 +169,26 @@ void MainComponent::resized()
     oscillatorFreqSlider.setBounds (lowerArea.removeFromRight (lowerWidth));
 }
 
-void MainComponent::setUpCL ()
+juce::Result MainComponent::setUpCL ()
 {
-    platform = cl::Platform::getDefault();
-    device   = cl::Device::getDefault();
-    context  = cl::Context (device);
-    queue    = cl::CommandQueue (context);
+	cl_int err;
+	platform = cl::Platform::getDefault (&err);
+	if (err != CL_SUCCESS)
+		return juce::Result::fail("Error getting default platform: " + juce::String (ntlab::OpenCLHelpers::getErrorString (err)));
+    device   = cl::Device::getDefault (&err);
+	if (err != CL_SUCCESS)
+		return juce::Result::fail("Error getting default device: " + juce::String(ntlab::OpenCLHelpers::getErrorString(err)));
+    context  = cl::Context (device, nullptr, nullptr, nullptr, &err);
+	if (err != CL_SUCCESS)
+		return juce::Result::fail("Error creating CL context: " + juce::String(ntlab::OpenCLHelpers::getErrorString(err)));
+    queue    = cl::CommandQueue (context, 0, &err);
+	if (err != CL_SUCCESS)
+		return juce::Result::fail("Error creating CL CommandQueue: " + juce::String(ntlab::OpenCLHelpers::getErrorString(err)));
 
-    std::cout << "Using CL platform " << platform.getInfo<CL_PLATFORM_NAME>() << ", device " << device.getInfo<CL_DEVICE_NAME>() << std::endl;
+    std::string info ("Using CL platform " + platform.getInfo<CL_PLATFORM_NAME>() + ", device " + device.getInfo<CL_DEVICE_NAME>());
+	std::cout << info << std::endl;
+
+	return juce::Result::ok();
 }
 
 void MainComponent::prepareForStreaming (double sampleRate, int numActiveChannelsIn, int numActiveChannelsOut, int maxNumSamplesPerBlock)
