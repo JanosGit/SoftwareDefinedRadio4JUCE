@@ -925,7 +925,13 @@ namespace ntlab
 			return err;
         }
 
-        /** Returns true if host access is enabled, false if CL device access is enabled. */
+        /**
+         * Returns true if host device access is enabled, false if CL device access is enabled.
+         *
+         * !! Attention: This will also return true if a non-blocking map operation was enqueued. Please verify that
+         * the mapping has finished either by calling cl::CommandQueue::finish on the queue associated with this
+         * buffer or with the help of an event.
+         */
         constexpr bool isCurrentlyMapped() const {return isAlwaysMapped() || isMapped; }
 
         /**
@@ -1223,8 +1229,12 @@ namespace ntlab
 
         /**
          * Returns true if host device access is enabled, false if CL device access is enabled.
+         *
+         * !! Attention: This will also return true if a non-blocking map operation was enqueued. Please verify that
+         * the mapping has finished either by calling cl::CommandQueue::finish on the queue associated with this
+         * buffer or with the help of an event.
          */
-        constexpr bool isCurrentlyMapped() const {return isMapped; }
+        constexpr bool isCurrentlyMapped() const {return isAlwaysMapped() || isMapped; }
 
         /**
          * Returns the number of valid samples per channel currently used. To get the maximum possible numer of samples
