@@ -16,6 +16,11 @@ along with SoftwareDefinedRadio4JUCE. If not, see <http://www.gnu.org/licenses/>
 */
 
 #include "UnitTestHelpers.h"
+#include <limits>
+
+// Microsoft - really???
+#undef min
+#undef max
 
 namespace ntlab
 {

@@ -43,6 +43,17 @@ MainComponent::MainComponent()
 
     centerFreqSlider.setEnabled (false);
 
+#if NTLAB_USE_CL_DSP
+    auto settingUpCL = setUpCL();
+	if (settingUpCL.failed())
+	{
+		std::cout << settingUpCL.getErrorMessage();
+	}
+    oscillator.reset (new ntlab::Oscillator (1, context, queue));
+#else
+    oscillator.reset (new ntlab::Oscillator (1));
+#endif
+
     // Assign callbacks
     engineSelectionBox.onChange = [this]()
     {
@@ -158,12 +169,36 @@ void MainComponent::resized()
     oscillatorFreqSlider.setBounds (lowerArea.removeFromRight (lowerWidth));
 }
 
+juce::Result MainComponent::setUpCL ()
+{
+	cl_int err;
+	platform = cl::Platform::getDefault (&err);
+	if (err != CL_SUCCESS)
+		return juce::Result::fail("Error getting default platform: " + juce::String (ntlab::OpenCLHelpers::getErrorString (err)));
+    device   = cl::Device::getDefault (&err);
+	if (err != CL_SUCCESS)
+		return juce::Result::fail("Error getting default device: " + juce::String(ntlab::OpenCLHelpers::getErrorString(err)));
+    context  = cl::Context (device, nullptr, nullptr, nullptr, &err);
+	if (err != CL_SUCCESS)
+		return juce::Result::fail("Error creating CL context: " + juce::String(ntlab::OpenCLHelpers::getErrorString(err)));
+    queue    = cl::CommandQueue (context, 0, &err);
+	if (err != CL_SUCCESS)
+		return juce::Result::fail("Error creating CL CommandQueue: " + juce::String(ntlab::OpenCLHelpers::getErrorString(err)));
+
+    std::string info ("Using CL platform " + platform.getInfo<CL_PLATFORM_NAME>() + ", device " + device.getInfo<CL_DEVICE_NAME>());
+	std::cout << info << std::endl;
+
+	return juce::Result::ok();
+}
+
 void MainComponent::prepareForStreaming (double sampleRate, int numActiveChannelsIn, int numActiveChannelsOut, int maxNumSamplesPerBlock)
 {
     oscillator->setSampleRate (sampleRate);
     std::cout << "Starting to stream with " << numActiveChannelsIn << " input channels, " << numActiveChannelsOut << " output channels, block size " << maxNumSamplesPerBlock << " samples" << std::endl;
 
     auto* selectedEngine = deviceManager.getSelectedEngine();
+    selectedEngine->setupOpenCL (context, queue);
+
     // Enable the center freq slider only if the engine is a hardware device that has a tunable center frequency
     if (dynamic_cast<ntlab::SDRIOHardwareEngine*> (selectedEngine))
         juce::MessageManager::callAsync ([this]() { centerFreqSlider.setEnabled (true); });
@@ -172,7 +207,16 @@ void MainComponent::prepareForStreaming (double sampleRate, int numActiveChannel
 void MainComponent::processRFSampleBlock (ntlab::OptionalCLSampleBufferComplexFloat& rxSamples, ntlab::OptionalCLSampleBufferComplexFloat& txSamples)
 {
     juce::ScopedNoDenormals noDenormals;
+
+#if NTLAB_USE_CL_DSP
+	txSamples.unmapHostMemory();
+#endif
+
     oscillator->fillNextSampleBuffer (txSamples);
+
+#if NTLAB_USE_CL_DSP
+	txSamples.mapHostMemory();
+#endif
 }
 
 void MainComponent::streamingHasStopped ()

@@ -65,6 +65,15 @@ private:
 
     static const juce::File settingsFile;
 
+    // CL stuff
+    cl::Platform     platform;
+    cl::Device       device;
+    cl::Context      context;
+    cl::CommandQueue queue;
+    cl::Program      program;
+
+	juce::Result setUpCL();
+
     // ntlab::SDRIODeviceCallback member functions =================================
     void prepareForStreaming (double sampleRate, int numActiveChannelsIn, int numActiveChannelsOut, int maxNumSamplesPerBlock) override;
     void processRFSampleBlock (ntlab::OptionalCLSampleBufferComplexFloat& rxSamples, ntlab::OptionalCLSampleBufferComplexFloat& txSamples) override;
