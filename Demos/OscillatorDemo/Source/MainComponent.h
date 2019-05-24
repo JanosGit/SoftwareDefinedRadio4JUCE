@@ -65,6 +65,7 @@ private:
 
     static const juce::File settingsFile;
 
+#if NTLAB_USE_CL_DSP
     // CL stuff
     cl::Platform     platform;
     cl::Device       device;
@@ -73,6 +74,7 @@ private:
     cl::Program      program;
 
 	juce::Result setUpCL();
+#endif
 
     // ntlab::SDRIODeviceCallback member functions =================================
     void prepareForStreaming (double sampleRate, int numActiveChannelsIn, int numActiveChannelsOut, int maxNumSamplesPerBlock) override;

@@ -57,20 +57,31 @@ MainComponent::MainComponent()
     // Assign callbacks
     engineSelectionBox.onChange = [this]()
     {
-        auto selectedEngine = engineSelectionBox.getText();
-        if (selectedEngine.isNotEmpty())
+        auto selectedEngineName = engineSelectionBox.getText();
+        if (selectedEngineName.isNotEmpty())
         {
-            if (deviceManager.selectEngine (selectedEngine))
+            if (deviceManager.selectEngine (selectedEngineName))
             {
+                auto* selectedEngine = deviceManager.getSelectedEngine();
+#if NTLAB_USE_CL_DSP
+                selectedEngine->setupOpenCL (context, queue);
+#endif
+
                 std::unique_ptr<juce::XmlElement> xml (juce::XmlDocument::parse (settingsFile));
                 if (xml != nullptr)
                 {
                     auto lastConfig = juce::ValueTree::fromXml (*xml);
-                    auto settingConfig = deviceManager.getSelectedEngine()->setConfig (lastConfig);
+                    auto settingConfig = selectedEngine->setConfig (lastConfig);
                     if (settingConfig.wasOk())
                         juce::AlertWindow::showMessageBoxAsync (juce::AlertWindow::AlertIconType::InfoIcon, "Restored Engine settings", "Successfully restored engine settings from last session");
                     else
                         DBG (settingConfig.getErrorMessage());
+                }
+
+                if (auto* mcvEngine = dynamic_cast<ntlab::MCVFileEngine*> (selectedEngine))
+                {
+                    mcvEngine->setSampleRate (oscillatorFreqSlider.getMaximum() * 1.001);
+                    mcvEngine->setDesiredBlockSize (4096);
                 }
             }
         }
@@ -169,6 +180,7 @@ void MainComponent::resized()
     oscillatorFreqSlider.setBounds (lowerArea.removeFromRight (lowerWidth));
 }
 
+#if NTLAB_USE_CL_DSP
 juce::Result MainComponent::setUpCL ()
 {
 	cl_int err;
@@ -190,17 +202,15 @@ juce::Result MainComponent::setUpCL ()
 
 	return juce::Result::ok();
 }
+#endif
 
 void MainComponent::prepareForStreaming (double sampleRate, int numActiveChannelsIn, int numActiveChannelsOut, int maxNumSamplesPerBlock)
 {
     oscillator->setSampleRate (sampleRate);
     std::cout << "Starting to stream with " << numActiveChannelsIn << " input channels, " << numActiveChannelsOut << " output channels, block size " << maxNumSamplesPerBlock << " samples" << std::endl;
 
-    auto* selectedEngine = deviceManager.getSelectedEngine();
-    selectedEngine->setupOpenCL (context, queue);
-
     // Enable the center freq slider only if the engine is a hardware device that has a tunable center frequency
-    if (dynamic_cast<ntlab::SDRIOHardwareEngine*> (selectedEngine))
+    if (dynamic_cast<ntlab::SDRIOHardwareEngine*> (deviceManager.getSelectedEngine()))
         juce::MessageManager::callAsync ([this]() { centerFreqSlider.setEnabled (true); });
 }
 
@@ -245,6 +255,10 @@ void MainComponent::setUpEngine()
 
         bandwidth = hardwareEngine->getSampleRate();
         setupSliderRanges (hardwareEngine->getTxCenterFrequency (0));
+    }
+    else
+    {
+        oscillator->setFrequencyHz (oscillatorFreqSlider.getValue(), ntlab::SDRIOEngine::allChannels);
     }
 
     deviceManager.setCallback (this);
