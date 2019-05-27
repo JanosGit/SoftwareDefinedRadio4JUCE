@@ -232,15 +232,30 @@ void MainComponent::processRFSampleBlock (ntlab::OptionalCLSampleBufferComplexFl
 {
     juce::ScopedNoDenormals noDenormals;
 
+	auto startTime = juce::Time::getHighResolutionTicks();
+
 #if NTLAB_USE_CL_DSP
 	txSamples.unmapHostMemory();
+	auto unmapFinishedTime = juce::Time::getHighResolutionTicks();
 #endif
 
     oscillator->fillNextSampleBuffer (txSamples);
 
 #if NTLAB_USE_CL_DSP
+	auto oscillatorFinishedTime = juce::Time::getHighResolutionTicks();
 	txSamples.mapHostMemory();
 #endif
+
+	auto endTime = juce::Time::getHighResolutionTicks();
+
+#if NTLAB_USE_CL_DSP
+	timeForUnmapping  += unmapFinishedTime - startTime;
+	timeForOscillator += oscillatorFinishedTime - unmapFinishedTime;
+	timeForMapping    += endTime - oscillatorFinishedTime;
+#endif
+
+	timeInCallback += endTime - startTime;
+	++numCallbacks;
 }
 
 void MainComponent::streamingHasStopped ()
@@ -250,6 +265,24 @@ void MainComponent::streamingHasStopped ()
         centerFreqSlider.setEnabled (false);
         setEngineState (false);
     });
+
+	auto timePerBlock = juce::String(juce::Time::highResolutionTicksToSeconds(timeInCallback / numCallbacks));
+	juce::Logger::writeToLog("Spent " + timePerBlock + "sec per block");
+
+#if NTLAB_USE_CL_DSP
+	auto timePerUnmap = juce::String(juce::Time::highResolutionTicksToSeconds(timeForUnmapping / numCallbacks));
+	auto timePerOsc   = juce::String(juce::Time::highResolutionTicksToSeconds(timeForOscillator / numCallbacks));
+	auto timePerMap   = juce::String(juce::Time::highResolutionTicksToSeconds(timeForMapping / numCallbacks));
+	juce::Logger::writeToLog(timePerUnmap + "sec per unmap, " + timePerOsc + "sec per osc callback, " + timePerMap + "sec per map");
+	oscillator->printTimeResults (numCallbacks);
+	timeForMapping = 0;
+	timeForOscillator = 0;
+	timeForUnmapping = 0;
+#endif
+	
+	timeInCallback = 0;
+	numCallbacks = 0;
+	
 }
 
 void MainComponent::handleError (const juce::String& errorMessage)
