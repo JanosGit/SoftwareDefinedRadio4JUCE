@@ -813,12 +813,12 @@ namespace ntlab
                             bool initWithZeros = false,
                             cl_mem_flags clMemAccessFlags = CL_MEM_READ_WRITE,
                             cl_map_flags clMapFlags = CL_MAP_READ | CL_MAP_WRITE) 
-          : queue       (queueToUse),
-            context     (contextToUse), 
-            mapFlags    (clMapFlags),
-            numChannelsAllocated (numChannels),
+          : numChannelsAllocated (numChannels),
             numSamplesAllocated  (numSamples),
             numSamplesUsed       (numSamples),
+            queue       (queueToUse),
+            context     (contextToUse),
+            mapFlags    (clMapFlags),
             channelPtrs (static_cast<size_t> (numChannels))
         {
             jassert (numChannels >= 0);
@@ -996,10 +996,10 @@ namespace ntlab
         SampleType** getArrayOfWritePointers() {return channelPtrs.data(); }
 
         /**
-         * Handy cast operator to pass the buffer to the kernel, for mapping/unmapping you should use mapHostMemory
-         * and unmapHostMemory
+         * Returns a reference to the underlying cl::Buffer object that holds the samples. Never map or unmap the
+         * buffer through this as this would break the tracking of the buffer state managed by this class
          */
-        operator cl::Buffer&() {return clBuffer; }
+        const cl::Buffer& getCLBuffer() const { return clBuffer; }
 
         /**
          * Returns a cl:Buffer object that holds the indexes to the beginning of the single channel regions in the
@@ -1112,12 +1112,12 @@ namespace ntlab
                                bool initWithZeros = false,
                                cl_mem_flags clMemAccessFlags = CL_MEM_READ_WRITE,
                                cl_map_flags clMapFlags = CL_MAP_READ | CL_MAP_WRITE)
-          : queue       (queueToUse),
-            context     (contextToUse),
-            mapFlags    (clMapFlags),
-            numChannelsAllocated (numChannels),
+          : numChannelsAllocated (numChannels),
             numSamplesAllocated  (numSamples),
             numSamplesUsed       (numSamples),
+            queue       (queueToUse),
+            context     (contextToUse),
+            mapFlags    (clMapFlags),
             channelPtrs (static_cast<size_t> (numChannels))
         {
             jassert (numChannels >= 0);
@@ -1300,16 +1300,15 @@ namespace ntlab
         std::complex<SampleType>** getArrayOfWritePointers() { return channelPtrs.data(); }
 
         /**
-         * Handy cast operator to pass the buffer to the kernel, for mapping/unmapping you should use mapHostMemory
-         * and unmapHostMemory
+         * Returns a reference to the underlying cl::Buffer object that holds the samples. Never map or unmap the
+         * buffer through this as this would break the tracking of the buffer state managed by this class
          */
-        operator cl::Buffer&() {return clBuffer; }
+        const cl::Buffer& getCLBuffer() const { return clBuffer; }
 
         /**
          * Returns a cl:Buffer object that holds the indexes to the beginning of the single channel regions in the
          * underlying cl:Buffer containing the samples. This won't change during the whole object lifetime. You might
          * want to pass this and the number of samples used along with the actual sample buffer to your kernel
-         * @return
          */
         const cl::Buffer& getCLChannelList() const {return channelList; }
 

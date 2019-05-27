@@ -118,7 +118,7 @@ namespace ntlab
 
             auto& ad   = angleDelta.unmap();
 
-            complexOscillatorKernel.setArg (0, buffer);
+            complexOscillatorKernel.setArg (0, buffer.getCLBuffer());
             complexOscillatorKernel.setArg (1, buffer.getCLChannelList());
             complexOscillatorKernel.setArg (2, paa);
             complexOscillatorKernel.setArg (3, ad);
