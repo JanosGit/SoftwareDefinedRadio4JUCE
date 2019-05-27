@@ -187,9 +187,24 @@ juce::Result MainComponent::setUpCL ()
 	platform = cl::Platform::getDefault (&err);
 	if (err != CL_SUCCESS)
 		return juce::Result::fail("Error getting default platform: " + juce::String (ntlab::OpenCLHelpers::getErrorString (err)));
-    device   = cl::Device::getDefault (&err);
+
+	std::vector<cl::Device> allDevices;
+	err = platform.getDevices (CL_DEVICE_TYPE_CPU, &allDevices);
 	if (err != CL_SUCCESS)
-		return juce::Result::fail("Error getting default device: " + juce::String(ntlab::OpenCLHelpers::getErrorString(err)));
+		return juce::Result::fail("Error getting CPU device: " + juce::String(ntlab::OpenCLHelpers::getErrorString(err)));
+
+	if (allDevices.size() > 0)
+	{
+		device = allDevices[0];
+	}
+	else
+	{
+		juce::Logger::writeToLog ("Could not find CPU device, using default device instead");
+		device = cl::Device::getDefault(&err);
+		if (err != CL_SUCCESS)
+			return juce::Result::fail("Error getting default device: " + juce::String(ntlab::OpenCLHelpers::getErrorString(err)));
+	}
+
     context  = cl::Context (device, nullptr, nullptr, nullptr, &err);
 	if (err != CL_SUCCESS)
 		return juce::Result::fail("Error creating CL context: " + juce::String(ntlab::OpenCLHelpers::getErrorString(err)));
@@ -197,8 +212,7 @@ juce::Result MainComponent::setUpCL ()
 	if (err != CL_SUCCESS)
 		return juce::Result::fail("Error creating CL CommandQueue: " + juce::String(ntlab::OpenCLHelpers::getErrorString(err)));
 
-    std::string info ("Using CL platform " + platform.getInfo<CL_PLATFORM_NAME>() + ", device " + device.getInfo<CL_DEVICE_NAME>());
-	std::cout << info << std::endl;
+    juce::Logger::writeToLog ("Using CL platform " + platform.getInfo<CL_PLATFORM_NAME>() + ", device " + device.getInfo<CL_DEVICE_NAME>());
 
 	return juce::Result::ok();
 }
