@@ -28,7 +28,7 @@ namespace ntlab
      * operations. Note that trying to access elements in an unmapped state will lead to a runtime error
      * @tparam T
      */
-    template <typename T>
+    template <typename T, typename TypeOfCriticalSectionToUse = juce::DummyCriticalSection>
     class CLArray
     {
     public:
@@ -51,8 +51,23 @@ namespace ntlab
 			map (CL_TRUE);
         }
 
+        /** Returns the current number of elements in the array. */
+        inline int size() const noexcept
+        {
+            const ScopedLockType lock (criticalSection);
+            return static_cast<int> (sizeInBytes / sizeof (T));
+        }
+
+        /** Returns true if the array is empty, false otherwise. */
+        inline bool isEmpty() const noexcept
+        {
+            return size() == 0;
+        }
+
         T& operator[] (int index) const
         {
+            const ScopedLockType lock (criticalSection);
+
             // You are trying to access the array in an unmapped state
             jassert (ptr != nullptr);
             return ptr[index];
@@ -61,12 +76,14 @@ namespace ntlab
         /** Set the value of a single element in the array */
         inline void set (int index, T newValue) const
         {
+            const ScopedLockType lock (criticalSection);
+
             // You are trying to access the array in an unmapped state
             jassert (ptr != nullptr);
             ptr[index] = newValue;
         }
 
-        /** For stl and range-based-loop compatibility */
+        /** For stl and range-based-loop compatibility. Not thread safe, lock the array through getLock if needed. */
         inline T* begin() const noexcept
         {
             // You are trying to access the array in an unmapped state
@@ -74,7 +91,7 @@ namespace ntlab
             return ptr;
         }
 
-        /** For stl and range-based-loop compatibility */
+        /** For stl and range-based-loop compatibility. Not thread safe, lock the array through getLock if needed. */
         inline T* end() const noexcept
         {
             // You are trying to access the array in an unmapped state
@@ -82,7 +99,7 @@ namespace ntlab
             return dataEnd;
         }
 
-        /** For stl and range-based-loop compatibility */
+        /** For stl and range-based-loop compatibility. Not thread safe, lock the array through getLock if needed. */
         inline T* data() const noexcept
         {
             // You are trying to access the array in an unmapped state
@@ -93,6 +110,8 @@ namespace ntlab
         /** For juce::Array compatibility */
         inline T getUnchecked (int index) const
         {
+            ScopedLockType lock (criticalSection);
+
             // You are trying to access the array in an unmapped state
             jassert (ptr != nullptr);
             return ptr[index];
@@ -101,6 +120,8 @@ namespace ntlab
         /** Fills all elements in the array with the same value */
         void fill (T valueToFillIn)
         {
+            ScopedLockType lock (criticalSection);
+
             // You are trying to access the array in an unmapped state
             jassert (ptr != nullptr);
             for (T* element = ptr; element != dataEnd; ++element)
@@ -123,6 +144,7 @@ namespace ntlab
 					return ptr;
 				}
                 dataEnd = juce::addBytesToPointer (ptr, sizeInBytes);
+				criticalSection.exit();
             }
 
             return ptr;
@@ -137,6 +159,7 @@ namespace ntlab
         {
             if (isMapped())
             {
+                criticalSection.enter();
                 queue.enqueueUnmapMemObject (buffer, ptr);
                 ptr     = nullptr;
                 dataEnd = nullptr;
@@ -145,15 +168,26 @@ namespace ntlab
             return buffer;
         }
 
+        /**
+         * Returns true if the array is currently mapped to the host memory space and therefore is accessible by the
+         * various access-options provided
+         */
         bool isMapped() const { return ptr != nullptr; }
 
+        /** Returns the critical section to lock access to this array. */
+        const TypeOfCriticalSectionToUse& getLock() { return criticalSection; }
+
     private:
-        const size_t sizeInBytes;
-        cl::Buffer   buffer;
+        using ScopedLockType = typename TypeOfCriticalSectionToUse::ScopedLockType;
+
+        const size_t      sizeInBytes;
+        cl::CommandQueue& queue;
+
         T*           ptr     = nullptr;
         T*           dataEnd = nullptr;
+        cl::Buffer   buffer;
 
-        cl::CommandQueue& queue;
+        TypeOfCriticalSectionToUse criticalSection;
     };
 }
 

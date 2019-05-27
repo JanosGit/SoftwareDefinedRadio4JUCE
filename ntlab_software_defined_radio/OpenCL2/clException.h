@@ -19,7 +19,7 @@ namespace ntlab
 		 */
 		CLException (const juce::String& description, cl_int errorCode) : message (description + ": " + juce::String(OpenCLHelpers::getErrorString(errorCode))) {};
 
-		const char* what() const override
+		const char* what() const noexcept override
 		{
 			return message.toRawUTF8();
 		}

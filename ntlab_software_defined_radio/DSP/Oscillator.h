@@ -111,11 +111,7 @@ namespace ntlab
             for (int channel = 0; channel < numChannels; ++channel)
             {
                 double newAngle = currentAngle[channel] + numSamples * angleDelta[channel];
-
-                while (newAngle > juce::MathConstants<double>::pi)
-                    newAngle -= juce::MathConstants<double>::twoPi;
-                while (newAngle < -juce::MathConstants<double>::pi)
-                    newAngle += juce::MathConstants<double>::twoPi;
+                newAngle = std::fmod (newAngle, juce::MathConstants<double>::twoPi);
 
                 currentAngle.set (channel, newAngle);
             }
@@ -205,15 +201,15 @@ namespace ntlab
 
         /** TuneChangeListener member function, you won't need to call it yourself */
         void txBandwidthChanged (double newBandwidth, int channel) override;
-        
+
     private:
 #if NTLAB_USE_CL_DSP
-        using ArrayType = CLArray<double>;
+        using ArrayType = CLArray<cl_float, juce::CriticalSection>;
         cl::CommandQueue& clQueue;
         cl::Program       clProgram;
         cl::Kernel        complexOscillatorKernel;
         cl::Kernel        realOscillatorKernel;
-        ArrayType         phaseAndAngle;
+        CLArray<cl_float> phaseAndAngle;
 #else
         using ArrayType = juce::Array<double>;
 #endif
