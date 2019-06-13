@@ -1242,7 +1242,7 @@ namespace ntlab
         requiredFineGain = (ratioCoarse - nStepsCoarse) * coarseStepWidth;
     }
 
-    size_t* UHDEngine::ChannelMapping::getStreamArgsChannelList() const {return bufferOrderToHardwareOrder.data(); }
+    size_t* UHDEngine::ChannelMapping::getStreamArgsChannelList() {return bufferOrderToHardwareOrder.data(); }
 
     juce::ValueTree UHDEngine::ChannelMapping::serializeCurrentSetup (ntlab::UHDEngine::ChannelMapping::Direction direction)
     {

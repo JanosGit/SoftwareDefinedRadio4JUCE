@@ -10,6 +10,8 @@
 #include <Windows.h>
 #elif defined(__APPLE__) || defined(__MACOSX)
 #include <mach-o/dyld.h>
+#else
+#include <unistd.h>
 #endif
 
 #include "cl2WithVersionChecks.h"
@@ -128,11 +130,11 @@ namespace ntlab
 #else // Linux
 
             char executablePathBuffer[PATH_MAX];
-            ssizte_t pathLength = readlink ("/proc/self/exe", executablePathBuffer, PATH_MAX - 1);
+            ssize_t pathLength = readlink ("/proc/self/exe", executablePathBuffer, PATH_MAX - 1);
             if (pathLength == -1)
                 return "";
 
-            executablePathBuffer[pathLength] = '/0';
+            executablePathBuffer[pathLength] = '\0';
             pathToCurrentExecutable = executablePathBuffer;
 #endif
 

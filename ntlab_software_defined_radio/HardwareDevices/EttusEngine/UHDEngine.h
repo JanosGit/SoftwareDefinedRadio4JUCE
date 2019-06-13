@@ -242,6 +242,7 @@ namespace ntlab
             static const juce::Identifier propertyHardwareChannel;
 
             enum UHDGainElements : size_t {analog, digital, digitalFine, automatic, count};
+            /*
             friend std::ostream& operator<< (std::ostream& os, UHDEngine::ChannelMapping::UHDGainElements gainElement)
             {
                 switch (gainElement)
@@ -252,6 +253,7 @@ namespace ntlab
                     default : return os << static_cast<size_t>(gainElement);
                 };
             }
+             */
 
             enum Direction : juce::juce_wchar {rx = 'R', tx = 'T' };
 
@@ -283,7 +285,7 @@ namespace ntlab
 
             void digitalGainPartition (const int bufferChannel, const double desiredGain, double& requiredCoarseGain, double& requiredFineGain);
 
-            size_t* getStreamArgsChannelList() const;
+            size_t* getStreamArgsChannelList();
 
             juce::ValueTree serializeCurrentSetup (Direction direction);
             static juce::Result deserializeSetup (juce::ValueTree& serializedSetup, UHDEngine& engine);

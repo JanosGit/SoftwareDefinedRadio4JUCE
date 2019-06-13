@@ -27,7 +27,7 @@ namespace ntlab
 #elif JUCE_WINDOWS
 	const juce::String UHDr::uhdLibName ("C:\\Program Files\\UHD\\bin\\uhd.dll");
 #else
-#error "No uhd library path specified for this operating system"
+	const juce::String UHDr::uhdLibName ("libuhd.so");
 #endif
 	
 	UHDr::UHDSetter::UHDSetter () : numArguments (0) {}
