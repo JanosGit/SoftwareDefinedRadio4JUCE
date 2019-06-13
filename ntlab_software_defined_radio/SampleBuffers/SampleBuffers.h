@@ -813,22 +813,25 @@ namespace ntlab
                             bool initWithZeros = false,
                             cl_mem_flags clMemAccessFlags = CL_MEM_READ_WRITE,
                             cl_map_flags clMapFlags = CL_MAP_READ | CL_MAP_WRITE) 
-          : queue       (queueToUse),
-            context     (contextToUse), 
-            mapFlags    (clMapFlags),
-            numChannelsAllocated (numChannels),
+          : numChannelsAllocated (numChannels),
             numSamplesAllocated  (numSamples),
             numSamplesUsed       (numSamples),
+            queue       (queueToUse),
+            context     (contextToUse),
+            mapFlags    (clMapFlags),
             channelPtrs (static_cast<size_t> (numChannels))
         {
             jassert (numChannels >= 0);
             jassert (numSamples  >= 0);
 
-            cl_int err;
             numBytesInBuffer = numSamples * numChannels * sizeof (SampleType);
+			if (numBytesInBuffer == 0)
+				return;
+
+			cl_int err;
 
             clBuffer = cl::Buffer (context, CL_MEM_ALLOC_HOST_PTR | clMemAccessFlags,  numBytesInBuffer);
-            SampleType* mappedBufferStart = queue.enqueueMapBuffer (clBuffer, CL_TRUE, mapFlags, 0, numBytesInBuffer, nullptr, nullptr, &err);
+			auto* mappedBufferStart = reinterpret_cast<SampleType*> (queue.enqueueMapBuffer (clBuffer, CL_TRUE, mapFlags, 0, numBytesInBuffer, nullptr, nullptr, &err));
 
             // Something went wrong when trying to map the CL memory
             jassert (err == CL_SUCCESS);
@@ -884,7 +887,7 @@ namespace ntlab
                 return CL_SUCCESS;
 
             cl_int err;
-            SampleType* mappedBufferStart = queue.enqueueMapBuffer (clBuffer, blocking, mapFlags, 0, numBytesInBuffer, eventsToWaitFor, eventToCreate, &err);
+			auto* mappedBufferStart = reinterpret_cast<SampleType*> (queue.enqueueMapBuffer (clBuffer, blocking, mapFlags, 0, numBytesInBuffer, eventsToWaitFor, eventToCreate, &err));
             for (int i = 0; i < numChannelsAllocated; ++i)
             {
                 channelPtrs[i]    = mappedBufferStart + (i * numSamplesAllocated);
@@ -892,6 +895,9 @@ namespace ntlab
                 // Please report an issue on GitHub if this assert fires
                 jassert (SIMDHelpers::isPointerAligned (channelPtrs[i]));
             }
+
+			if (err == CL_SUCCESS)
+				isMapped = true;
 
             return err;
         }
@@ -911,10 +917,21 @@ namespace ntlab
             if (!isMapped)
                 return CL_SUCCESS;
 
-            return queue.enqueueUnmapMemObject (clBuffer, channelPtrs[0], eventsToWaitFor, eventToCreate);
+			cl_int err = queue.enqueueUnmapMemObject(clBuffer, channelPtrs[0], eventsToWaitFor, eventToCreate);
+
+			if (err == CL_SUCCESS)
+				isMapped = false;
+
+			return err;
         }
 
-        /** Returns true if host access is enabled, false if CL device access is enabled. */
+        /**
+         * Returns true if host device access is enabled, false if CL device access is enabled.
+         *
+         * !! Attention: This will also return true if a non-blocking map operation was enqueued. Please verify that
+         * the mapping has finished either by calling cl::CommandQueue::finish on the queue associated with this
+         * buffer or with the help of an event.
+         */
         constexpr bool isCurrentlyMapped() const {return isAlwaysMapped() || isMapped; }
 
         /**
@@ -979,10 +996,10 @@ namespace ntlab
         SampleType** getArrayOfWritePointers() {return channelPtrs.data(); }
 
         /**
-         * Handy cast operator to pass the buffer to the kernel, for mapping/unmapping you should use mapHostMemory
-         * and unmapHostMemory
+         * Returns a reference to the underlying cl::Buffer object that holds the samples. Never map or unmap the
+         * buffer through this as this would break the tracking of the buffer state managed by this class
          */
-        operator cl::Buffer&() {return clBuffer; }
+        const cl::Buffer& getCLBuffer() const { return clBuffer; }
 
         /**
          * Returns a cl:Buffer object that holds the indexes to the beginning of the single channel regions in the
@@ -1095,22 +1112,28 @@ namespace ntlab
                                bool initWithZeros = false,
                                cl_mem_flags clMemAccessFlags = CL_MEM_READ_WRITE,
                                cl_map_flags clMapFlags = CL_MAP_READ | CL_MAP_WRITE)
-          : queue       (queueToUse),
-            context     (contextToUse),
-            mapFlags    (clMapFlags),
-            numChannelsAllocated (numChannels),
+          : numChannelsAllocated (numChannels),
             numSamplesAllocated  (numSamples),
             numSamplesUsed       (numSamples),
+            queue       (queueToUse),
+            context     (contextToUse),
+            mapFlags    (clMapFlags),
             channelPtrs (static_cast<size_t> (numChannels))
         {
             jassert (numChannels >= 0);
             jassert (numSamples  >= 0);
 
-            cl_int err;
             numBytesInBuffer = numSamples * numChannels * sizeof (std::complex<SampleType>);
+			if (numBytesInBuffer == 0)
+				return;
 
-            clBuffer = cl::Buffer (context, CL_MEM_ALLOC_HOST_PTR | clMemAccessFlags, numBytesInBuffer);
-            std::complex<SampleType>* mappedBufferStart = reinterpret_cast<std::complex<SampleType>*> (queue.enqueueMapBuffer (clBuffer, CL_TRUE, mapFlags, 0, numBytesInBuffer, nullptr, nullptr, &err));
+			cl_int err;
+
+            clBuffer = cl::Buffer (context, CL_MEM_ALLOC_HOST_PTR | clMemAccessFlags, numBytesInBuffer, nullptr, &err);
+			// Something went wrong when trying to create the CL Buffer
+			jassert(err == CL_SUCCESS);
+
+            auto* mappedBufferStart = reinterpret_cast<std::complex<SampleType>*> (queue.enqueueMapBuffer (clBuffer, CL_TRUE, mapFlags, 0, numBytesInBuffer, nullptr, nullptr, &err));
 
             // Something went wrong when trying to map the CL memory
             jassert (err == CL_SUCCESS);
@@ -1166,7 +1189,7 @@ namespace ntlab
                 return CL_SUCCESS;
 
             cl_int err;
-            SampleType* mappedBufferStart = queue.enqueueMapBuffer (clBuffer, blocking, mapFlags, 0, numBytesInBuffer, eventsToWaitFor, eventToCreate, &err);
+			auto* mappedBufferStart = reinterpret_cast<std::complex<SampleType>*> (queue.enqueueMapBuffer (clBuffer, blocking, mapFlags, 0, numBytesInBuffer, eventsToWaitFor, eventToCreate, &err));
             for (int i = 0; i < numChannelsAllocated; ++i)
             {
                 channelPtrs[i]    = mappedBufferStart + (i * numSamplesAllocated);
@@ -1174,6 +1197,9 @@ namespace ntlab
                 // Please report an issue on GitHub if this assert fires
                 jassert (SIMDHelpers::isPointerAligned (channelPtrs[i]));
             }
+
+			if (err == CL_SUCCESS)
+				isMapped = true;
 
             return err;
         }
@@ -1193,13 +1219,22 @@ namespace ntlab
             if (!isMapped)
                 return CL_SUCCESS;
 
-            return queue.enqueueUnmapMemObject (clBuffer, channelPtrs[0], eventsToWaitFor, eventToCreate);
+            cl_int err = queue.enqueueUnmapMemObject (clBuffer, channelPtrs[0], eventsToWaitFor, eventToCreate);
+
+			if (err == CL_SUCCESS)
+				isMapped = false;
+
+			return err;
         }
 
         /**
          * Returns true if host device access is enabled, false if CL device access is enabled.
+         *
+         * !! Attention: This will also return true if a non-blocking map operation was enqueued. Please verify that
+         * the mapping has finished either by calling cl::CommandQueue::finish on the queue associated with this
+         * buffer or with the help of an event.
          */
-        constexpr bool isCurrentlyMapped() const {return isMapped; }
+        constexpr bool isCurrentlyMapped() const {return isAlwaysMapped() || isMapped; }
 
         /**
          * Returns the number of valid samples per channel currently used. To get the maximum possible numer of samples
@@ -1265,16 +1300,15 @@ namespace ntlab
         std::complex<SampleType>** getArrayOfWritePointers() { return channelPtrs.data(); }
 
         /**
-         * Handy cast operator to pass the buffer to the kernel, for mapping/unmapping you should use mapHostMemory
-         * and unmapHostMemory
+         * Returns a reference to the underlying cl::Buffer object that holds the samples. Never map or unmap the
+         * buffer through this as this would break the tracking of the buffer state managed by this class
          */
-        operator cl::Buffer&() {return clBuffer; }
+        const cl::Buffer& getCLBuffer() const { return clBuffer; }
 
         /**
          * Returns a cl:Buffer object that holds the indexes to the beginning of the single channel regions in the
          * underlying cl:Buffer containing the samples. This won't change during the whole object lifetime. You might
          * want to pass this and the number of samples used along with the actual sample buffer to your kernel
-         * @return
          */
         const cl::Buffer& getCLChannelList() const {return channelList; }
 
@@ -1750,6 +1784,24 @@ namespace ntlab
         {
             return real() || complex();
         }
+
+        static constexpr bool cl()
+        {
+            if constexpr (std::is_same<ExpectedSampleType, AllValidSampleTypes>::value)
+            {
+                return  std::is_same<BufferTypeToCheck, CLSampleBufferComplex<float>>::value   ||
+                        std::is_same<BufferTypeToCheck, CLSampleBufferReal<float>>::value      ||
+                        std::is_same<BufferTypeToCheck, CLSampleBufferComplex<double>>::value  ||
+                        std::is_same<BufferTypeToCheck, CLSampleBufferReal<double>>::value     ||
+                        std::is_same<BufferTypeToCheck, CLSampleBufferComplex<int16_t>>::value ||
+                        std::is_same<BufferTypeToCheck, CLSampleBufferReal<int16_t>>::value    ||
+                        std::is_same<BufferTypeToCheck, CLSampleBufferComplex<int32_t>>::value ||
+                        std::is_same<BufferTypeToCheck, CLSampleBufferReal<int32_t>>::value;
+            }
+            return std::is_same<BufferTypeToCheck, CLSampleBufferComplex<ExpectedSampleType>>::value ||
+                   std::is_same<BufferTypeToCheck, CLSampleBufferReal<ExpectedSampleType>>::value;
+        }
+
     };
 }
 

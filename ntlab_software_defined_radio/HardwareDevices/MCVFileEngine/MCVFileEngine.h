@@ -79,6 +79,10 @@ namespace ntlab
 
         bool enableRxTx (bool enableRx, bool enableTx) override;
 
+#if NTLAB_USE_CL_SAMPLE_BUFFER_COMPLEX_FOR_SDR_IO_DEVICE_CALLBACK
+        void setupOpenCL (cl::Context& contextToUse, cl::CommandQueue& queueToUse) override;
+#endif
+
     private:
 
         MCVFileEngine();
@@ -97,6 +101,9 @@ namespace ntlab
 
         bool rxEnabled = false;
         bool txEnabled = false;
+
+        cl::Context*      context = nullptr;
+        cl::CommandQueue* queue   = nullptr;
 
         juce::ThreadPool streamingControlThread;
         SDRIODeviceCallback* activeCallback = nullptr;

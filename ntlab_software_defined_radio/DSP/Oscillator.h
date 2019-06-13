@@ -17,6 +17,8 @@ along with SoftwareDefinedRadio4JUCE. If not, see <http://www.gnu.org/licenses/>
 
 #pragma once
 
+#include "../OpenCL2/clArray.h"
+
 namespace ntlab
 {
     /**
@@ -30,11 +32,15 @@ namespace ntlab
     {
 
     public:
+#if NTLAB_USE_CL_DSP
+        Oscillator (const int nChannels, cl::Context& context, cl::CommandQueue& queue);
+#else
         /**
          * Creates an Oscillator instance. The number of channels passed must match the number of channels of the buffer
          * passed to fillNextSampleBuffer. Each channel can have its own frequency, phase shift, etc.
          */
         Oscillator (const int numChannels);
+#endif
 
         /**
          * Sets the frequency the oscillator outputs. If you attached it as a tune change listener to an
@@ -73,6 +79,87 @@ namespace ntlab
         /** Returns the amplitude for this channel as linear gain value */
         double getAmplitude (int channel);
 
+#if NTLAB_USE_CL_DSP
+		/**
+		 * Fills a sample buffer with the next block of continuous samples. This is meant to be called on a regular
+		 * basis from within SDRIODeviceCallback::processRFSampleBlock.
+		 *
+		 * The supported buffer types are CLSampleBufferRealx or CLSampleBufferComplex with float samples.
+		 * 
+		 * !!Attention: This function expects the buffer passed to be in an unmapped state!!
+		 */
+        template <typename BufferType>
+        void fillNextSampleBuffer (BufferType& buffer)
+        {
+            static_assert (IsSampleBuffer<BufferType, float>::cl(), "Oscillator: Unsupported buffer type");
+            // you should set the sampleRate through setSampleRate or by passing an SDREngine to the constructor
+            jassert (currentSampleRate > 0);
+            jassert (buffer.getNumChannels() == numChannels);
+
+			// This function expects the buffer passed to be in an unmapped state
+			jassert(buffer.isCurrentlyMapped() == false);
+
+            const int numSamples  = buffer.getNumSamples();
+
+            auto& ampl = amplitude.unmap();
+
+            for (int channel = 0; channel < numChannels; ++channel)
+                phaseAndAngle[channel] = phase[channel] + currentAngle[channel];
+
+            auto& paa = phaseAndAngle.unmap();
+
+            for (int channel = 0; channel < numChannels; ++channel)
+            {
+                double newAngle = currentAngle[channel] + numSamples * angleDelta[channel];
+                newAngle = std::fmod (newAngle, juce::MathConstants<double>::twoPi);
+
+                currentAngle.set (channel, newAngle);
+            }
+
+            auto& ad   = angleDelta.unmap();
+
+            complexOscillatorKernel.setArg (0, buffer.getCLBuffer());
+            complexOscillatorKernel.setArg (1, buffer.getCLChannelList());
+            complexOscillatorKernel.setArg (2, paa);
+            complexOscillatorKernel.setArg (3, ad);
+            complexOscillatorKernel.setArg (4, ampl);
+
+            // wait for unmap operations to finish
+            clQueue.finish();
+
+			auto kernelStartTime = juce::Time::getHighResolutionTicks();
+
+            if constexpr (BufferType::isComplex())
+            {
+                clQueue.enqueueNDRangeKernel (complexOscillatorKernel, cl::NullRange, cl::NDRange (numChannels, numSamples));
+            }
+            else
+            {
+                clQueue.enqueueNDRangeKernel (realOscillatorKernel, cl::NullRange, cl::NDRange (numChannels, numSamples));
+            }
+
+            // wait for kernel to finish
+            clQueue.finish();
+
+			auto kernelFinishTime = juce::Time::getHighResolutionTicks();
+
+            amplitude    .map();
+            phaseAndAngle.map();
+            angleDelta   .map();
+
+			kernelTime += kernelFinishTime - kernelStartTime;
+
+            // wait for the map operations to finish
+            clQueue.finish();
+        }
+
+		void printTimeResults(juce::int64 numCallbacks)
+		{
+			auto timePerKernel = juce::String(juce::Time::highResolutionTicksToSeconds(kernelTime / numCallbacks));
+			juce::Logger::writeToLog("Time per Kernel: " + timePerKernel + "sec");
+			kernelTime = 0;
+		}
+#else
         /**
          * Fills a sample buffer with the next block of continuous samples. This is meant to be called on a regular
          * basis from within SDRIODeviceCallback::processRFSampleBlock.
@@ -90,7 +177,7 @@ namespace ntlab
             jassert (currentSampleRate > 0);
             jassert (buffer.getNumChannels() == numChannels);
 
-            const int numSamples  = buffer.getNumSamples();
+            const int numSamples = buffer.getNumSamples();
             auto bufferWritePtrs = buffer.getArrayOfWritePointers();
 
             for (int channel = 0; channel < numChannels; ++channel)
@@ -120,14 +207,28 @@ namespace ntlab
                 }
             }
         }
+#endif
 
         /** TuneChangeListener member function, you won't need to call it yourself */
         void txCenterFreqChanged (double newTxCenterFreq, int channel) override;
 
         /** TuneChangeListener member function, you won't need to call it yourself */
         void txBandwidthChanged (double newBandwidth, int channel) override;
-        
+
     private:
+#if NTLAB_USE_CL_DSP
+        using ArrayType = CLArray<cl_float, juce::CriticalSection>;
+        cl::CommandQueue& clQueue;
+        cl::Program       clProgram;
+        cl::Kernel        complexOscillatorKernel;
+        cl::Kernel        realOscillatorKernel;
+        CLArray<cl_float> phaseAndAngle;
+
+		juce::int64 kernelTime = 0;
+#else
+        using ArrayType = juce::Array<double>;
+#endif
+
         const int numChannels;
         double currentSampleRate = 0.0;
 
@@ -137,8 +238,8 @@ namespace ntlab
 
         juce::Array<double> phase;
         juce::Array<double> currentAngle;
-        juce::Array<double> angleDelta;
-        juce::Array<double> amplitude;
+        ArrayType angleDelta;
+        ArrayType amplitude;
 
         void updateAngleDelta();
     };

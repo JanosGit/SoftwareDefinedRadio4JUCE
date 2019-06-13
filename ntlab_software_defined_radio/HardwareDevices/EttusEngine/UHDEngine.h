@@ -176,6 +176,10 @@ namespace ntlab
 
         bool enableRxTx (bool enableRx, bool enableTx) override;
 
+#if NTLAB_USE_CL_SAMPLE_BUFFER_COMPLEX_FOR_SDR_IO_DEVICE_CALLBACK
+        void setupOpenCL (cl::Context& contextToUse, cl::CommandQueue& queueToUse) override;
+#endif
+
         bool setRxCenterFrequency (double newCenterFrequency, int channel) override;
 
         double getRxCenterFrequency (int channel) override;
@@ -238,6 +242,7 @@ namespace ntlab
             static const juce::Identifier propertyHardwareChannel;
 
             enum UHDGainElements : size_t {analog, digital, digitalFine, automatic, count};
+            /*
             friend std::ostream& operator<< (std::ostream& os, UHDEngine::ChannelMapping::UHDGainElements gainElement)
             {
                 switch (gainElement)
@@ -248,6 +253,7 @@ namespace ntlab
                     default : return os << static_cast<size_t>(gainElement);
                 };
             }
+             */
 
             enum Direction : juce::juce_wchar {rx = 'R', tx = 'T' };
 
@@ -279,7 +285,7 @@ namespace ntlab
 
             void digitalGainPartition (const int bufferChannel, const double desiredGain, double& requiredCoarseGain, double& requiredFineGain);
 
-            size_t* getStreamArgsChannelList() const;
+            size_t* getStreamArgsChannelList();
 
             juce::ValueTree serializeCurrentSetup (Direction direction);
             static juce::Result deserializeSetup (juce::ValueTree& serializedSetup, UHDEngine& engine);
@@ -346,6 +352,11 @@ namespace ntlab
         static const juce::String defaultArgs;
 
         juce::String lastError;
+
+#if NTLAB_USE_CL_SAMPLE_BUFFER_COMPLEX_FOR_SDR_IO_DEVICE_CALLBACK
+        cl::Context*      context = nullptr;
+        cl::CommandQueue* queue   = nullptr;
+#endif
 
         void run() override;
 

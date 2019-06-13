@@ -36,8 +36,6 @@ namespace ntlab
 
         void resized() override;
 
-        juce::Result applyCurrentSettings();
-
         // we use a std::bitset to manage the used channels flags and its to_ulong member function to store it as
         // int64 into a var. Therefore the maximum number of channels to be set through this component is limited.
         // However it seems unrealistic that any sdr setup might contain more channels
@@ -154,6 +152,7 @@ namespace ntlab
         std::unique_ptr<ValueTreeItem> rootItem;
         juce::UndoManager undoManager;
 
+        juce::Result applyCurrentSettings();
         void createChannelSetupTree (juce::ValueTree& channelSetup, juce::Identifier propertyDboard, juce::Identifier propertyFrontend, juce::ValueTree& mboardsInSetup, int& mboardIdx);
         void constrainCenterFrequencyInTree (juce::ValueTree& tree);
     };

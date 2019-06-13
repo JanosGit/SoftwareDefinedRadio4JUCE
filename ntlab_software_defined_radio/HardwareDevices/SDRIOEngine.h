@@ -21,6 +21,7 @@ along with SoftwareDefinedRadio4JUCE. If not, see <http://www.gnu.org/licenses/>
 
 #include <juce_data_structures/juce_data_structures.h>
 #include <array>
+#include <bitset>
 
 #if JUCE_MODULE_AVAILABLE_juce_gui_basics
 #include <juce_gui_basics/juce_gui_basics.h>
@@ -262,6 +263,10 @@ namespace ntlab
          * in the next callback.
          */
         virtual bool enableRxTx (bool enableRx, bool enableTx) = 0;
+
+#if NTLAB_USE_CL_SAMPLE_BUFFER_COMPLEX_FOR_SDR_IO_DEVICE_CALLBACK
+        virtual void setupOpenCL (cl::Context& contextToUse, cl::CommandQueue& queueToUse) = 0;
+#endif
     };
 
     /**

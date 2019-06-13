@@ -49,7 +49,7 @@ private:
     SafePointer<EngineConfigWindow> engineConfigWindow;
 
     ntlab::SDRIODeviceManager deviceManager;
-    ntlab::Oscillator oscillator;
+    std::unique_ptr<ntlab::Oscillator> oscillator;
     bool engineIsRunning = false;
 
     juce::ComboBox engineSelectionBox;
@@ -63,7 +63,23 @@ private:
 
     double bandwidth = 10e6;
 
+	juce::int64 timeInCallback = 0;
+	juce::int64 numCallbacks = 0;
+
     static const juce::File settingsFile;
+
+#if NTLAB_USE_CL_DSP
+	juce::int64 timeForUnmapping = 0, timeForOscillator = 0, timeForMapping = 0;
+
+    // CL stuff
+    cl::Platform     platform;
+    cl::Device       device;
+    cl::Context      context;
+    cl::CommandQueue queue;
+    cl::Program      program;
+
+	juce::Result setUpCL();
+#endif
 
     // ntlab::SDRIODeviceCallback member functions =================================
     void prepareForStreaming (double sampleRate, int numActiveChannelsIn, int numActiveChannelsOut, int maxNumSamplesPerBlock) override;
