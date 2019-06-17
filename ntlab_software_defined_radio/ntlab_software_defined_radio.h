@@ -36,6 +36,7 @@ along with SoftwareDefinedRadio4JUCE. If not, see <http://www.gnu.org/licenses/>
   dependencies:       juce_dsp, juce_data_structures
 
   OSXFrameworks:      OpenCL
+  linuxLibs:          OpenCL
   windowsLibs:        opencl
 
  END_JUCE_MODULE_DECLARATION
