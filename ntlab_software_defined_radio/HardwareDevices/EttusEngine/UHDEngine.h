@@ -145,14 +145,14 @@ namespace ntlab
          * for a more detailed information.
          * @see ChannelSetup
          */
-        juce::Result setupRxChannels (juce::Array<ChannelSetup>& channelSetup);
+        juce::Result setupRxChannels (const juce::Array<ChannelSetup>& channelSetup);
 
         /**
          * To receive samples, any UHD setup needs some initial channel mapping. See the comment above ChannelSetup
          * for a more detailed information.
          * @see ChannelSetup
          */
-        juce::Result setupTxChannels (juce::Array<ChannelSetup>& channelSetup);
+        juce::Result setupTxChannels (const juce::Array<ChannelSetup>& channelSetup);
 
         bool setSampleRate (double newSampleRate) override;
 
@@ -253,7 +253,7 @@ namespace ntlab
 
             enum Direction : juce::juce_wchar {rx = 'R', tx = 'T' };
 
-            ChannelMapping (juce::Array<ChannelSetup>& channelSetup, UHDEngine& engine, Direction direction);
+            ChannelMapping (const juce::Array<ChannelSetup>& channelSetup, UHDEngine& engine, Direction direction);
 
             void setGainElements (std::vector<juce::StringArray>&& newGainElements);
 

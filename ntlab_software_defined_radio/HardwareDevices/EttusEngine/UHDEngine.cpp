@@ -227,7 +227,7 @@ namespace ntlab
         return txChannelMapping->numChannels;
     }
 
-    juce::Result UHDEngine::setupRxChannels (juce::Array<ntlab::UHDEngine::ChannelSetup>& channelSetup)
+    juce::Result UHDEngine::setupRxChannels (const juce::Array<ntlab::UHDEngine::ChannelSetup>& channelSetup)
     {
         if (numMboardsInUSRP == 0)
             return juce::Result::fail ("No motherboards found");
@@ -275,7 +275,7 @@ namespace ntlab
         return juce::Result::ok();
     }
 
-    juce::Result UHDEngine::setupTxChannels (juce::Array<ntlab::UHDEngine::ChannelSetup>& channelSetup)
+    juce::Result UHDEngine::setupTxChannels (const juce::Array<ntlab::UHDEngine::ChannelSetup>& channelSetup)
     {
         if (numMboardsInUSRP == 0)
             return juce::Result::fail ("No motherboards found");
@@ -979,7 +979,7 @@ namespace ntlab
         return character;
     }
 
-    UHDEngine::ChannelMapping::ChannelMapping (juce::Array<ntlab::UHDEngine::ChannelSetup>& channelSetup, UHDEngine& engine, ChannelMapping::Direction direction)
+    UHDEngine::ChannelMapping::ChannelMapping (const juce::Array<ntlab::UHDEngine::ChannelSetup>& channelSetup, UHDEngine& engine, ChannelMapping::Direction direction)
       : numChannels (channelSetup.size()),
         channelSetupHardwareOrder (channelSetup),
         gainElementSubtree (static_cast<size_t> (numChannels)),
