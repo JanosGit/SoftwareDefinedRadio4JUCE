@@ -17,16 +17,18 @@ along with SoftwareDefinedRadio4JUCE. If not, see <http://www.gnu.org/licenses/>
 
 #include "Oscillator.h"
 #include "../OpenCL2/ntlab_OpenCLHelpers.h"
+#include "../OpenCL2/SharedCLDevice.h"
 
 namespace ntlab
 {
 #if NTLAB_USE_CL_DSP
-    Oscillator::Oscillator (const int nChannels, cl::Context& context, cl::CommandQueue& queue)
-     : clQueue       (queue),
-       phaseAndAngle (nChannels, context, queue, CL_MEM_READ_ONLY),
+    Oscillator::Oscillator (const int nChannels)
+     : clContext     (SharedCLDevice::getInstance()->getContext()),
+       clQueue       (SharedCLDevice::getInstance()->getCommandQueue()),
+       phaseAndAngle (nChannels, clContext, clQueue, CL_MEM_READ_ONLY),
        numChannels   (nChannels),
-       angleDelta    (nChannels, context, queue, CL_MEM_READ_ONLY),
-       amplitude     (nChannels, context, queue, CL_MEM_READ_ONLY)
+       angleDelta    (nChannels, clContext, clQueue, CL_MEM_READ_ONLY),
+       amplitude     (nChannels, clContext, clQueue, CL_MEM_READ_ONLY)
     {
         rfFrequency  .resize (nChannels);
         sdrCenterFreq.resize (nChannels);
@@ -42,21 +44,30 @@ namespace ntlab
         angleDelta   .fill (0.0);
         amplitude    .fill (1.0);
 
+        auto* clDevice = SharedCLDevice::getInstance();
+
+#ifndef OPENCL_INTEL_FPGA
         const std::string clSources =
 #include "Oscillator.cl"
         ;
 
-        cl_int err;
-        clProgram = cl::Program (context, clSources, true, &err);
-        // something went wrong trying to build the cl program
-        jassert (err == CL_SUCCESS);
-
-        complexOscillatorKernel = cl::Kernel (clProgram, "oscillatorFillNextSampleBufferComplex", &err);
-        jassert (err == CL_SUCCESS);
-        realOscillatorKernel    = cl::Kernel (clProgram, "oscillatorFillNextSampleBufferReal", &err);
-        jassert (err == CL_SUCCESS);
-    }
+        clProgram = clDevice->createProgramForDevice (clSources);
 #else
+        clProgram = clDevice->getFPGABinaryProgram();
+#endif
+
+        cl_int err;
+        complexOscillatorKernel = cl::Kernel (clProgram, "oscillatorFillNextSampleBufferComplex", &err);
+        if (err != CL_SUCCESS)
+            throw CLException ("Error creating complex valued oscillator kernel", err);
+
+        realOscillatorKernel    = cl::Kernel (clProgram, "oscillatorFillNextSampleBufferReal", &err);
+        if (err != CL_SUCCESS)
+            throw CLException ("Error creating real oscillator kernel", err);
+    }
+
+#else
+
     Oscillator::Oscillator (const int nChannels) : numChannels (nChannels)
     {
         rfFrequency.resize   (nChannels);

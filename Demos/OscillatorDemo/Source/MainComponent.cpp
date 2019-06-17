@@ -3,7 +3,7 @@
 //==============================================================================
 const juce::File MainComponent::settingsFile (juce::File::getSpecialLocation (juce::File::SpecialLocationType::userApplicationDataDirectory).getChildFile ("ntlabOscillatorDemoSettings.xml"));
 
-MainComponent::MainComponent()
+MainComponent::MainComponent() : oscillator (1)
 {
     // Initialize our device manager first
     deviceManager.addDefaultEngines();
@@ -43,17 +43,6 @@ MainComponent::MainComponent()
 
     centerFreqSlider.setEnabled (false);
 
-#if NTLAB_USE_CL_DSP
-    auto settingUpCL = setUpCL();
-	if (settingUpCL.failed())
-	{
-		std::cout << settingUpCL.getErrorMessage();
-	}
-    oscillator.reset (new ntlab::Oscillator (1, context, queue));
-#else
-    oscillator.reset (new ntlab::Oscillator (1));
-#endif
-
     // Assign callbacks
     engineSelectionBox.onChange = [this]()
     {
@@ -63,9 +52,6 @@ MainComponent::MainComponent()
             if (deviceManager.selectEngine (selectedEngineName))
             {
                 auto* selectedEngine = deviceManager.getSelectedEngine();
-#if NTLAB_USE_CL_DSP
-                selectedEngine->setupOpenCL (context, queue);
-#endif
 
                 std::unique_ptr<juce::XmlElement> xml (juce::XmlDocument::parse (settingsFile));
                 if (xml != nullptr)
@@ -118,7 +104,7 @@ MainComponent::MainComponent()
 
     oscillatorFreqSlider.onValueChange = [this]()
     {
-        oscillator->setFrequencyHz (oscillatorFreqSlider.getValue(), ntlab::SDRIOEngine::allChannels);
+        oscillator.setFrequencyHz (oscillatorFreqSlider.getValue(), ntlab::SDRIOEngine::allChannels);
     };
 
     centerFreqSlider.onValueChange = [this]()
@@ -180,47 +166,9 @@ void MainComponent::resized()
     oscillatorFreqSlider.setBounds (lowerArea.removeFromRight (lowerWidth));
 }
 
-#if NTLAB_USE_CL_DSP
-juce::Result MainComponent::setUpCL ()
-{
-	cl_int err;
-	platform = cl::Platform::getDefault (&err);
-	if (err != CL_SUCCESS)
-		return juce::Result::fail("Error getting default platform: " + juce::String (ntlab::OpenCLHelpers::getErrorString (err)));
-
-	std::vector<cl::Device> allDevices;
-	err = platform.getDevices (CL_DEVICE_TYPE_CPU, &allDevices);
-	if (err != CL_SUCCESS)
-		return juce::Result::fail("Error getting CPU device: " + juce::String(ntlab::OpenCLHelpers::getErrorString(err)));
-
-	if (allDevices.size() > 0)
-	{
-		device = allDevices[0];
-	}
-	else
-	{
-		juce::Logger::writeToLog ("Could not find CPU device, using default device instead");
-		device = cl::Device::getDefault(&err);
-		if (err != CL_SUCCESS)
-			return juce::Result::fail("Error getting default device: " + juce::String(ntlab::OpenCLHelpers::getErrorString(err)));
-	}
-
-    context  = cl::Context (device, nullptr, nullptr, nullptr, &err);
-	if (err != CL_SUCCESS)
-		return juce::Result::fail("Error creating CL context: " + juce::String(ntlab::OpenCLHelpers::getErrorString(err)));
-    queue    = cl::CommandQueue (context, 0, &err);
-	if (err != CL_SUCCESS)
-		return juce::Result::fail("Error creating CL CommandQueue: " + juce::String(ntlab::OpenCLHelpers::getErrorString(err)));
-
-    juce::Logger::writeToLog ("Using CL platform " + platform.getInfo<CL_PLATFORM_NAME>() + ", device " + device.getInfo<CL_DEVICE_NAME>());
-
-	return juce::Result::ok();
-}
-#endif
-
 void MainComponent::prepareForStreaming (double sampleRate, int numActiveChannelsIn, int numActiveChannelsOut, int maxNumSamplesPerBlock)
 {
-    oscillator->setSampleRate (sampleRate);
+    oscillator.setSampleRate (sampleRate);
     std::cout << "Starting to stream with " << numActiveChannelsIn << " input channels, " << numActiveChannelsOut << " output channels, block size " << maxNumSamplesPerBlock << " samples" << std::endl;
 
     // Enable the center freq slider only if the engine is a hardware device that has a tunable center frequency
@@ -239,7 +187,7 @@ void MainComponent::processRFSampleBlock (ntlab::OptionalCLSampleBufferComplexFl
 	auto unmapFinishedTime = juce::Time::getHighResolutionTicks();
 #endif
 
-    oscillator->fillNextSampleBuffer (txSamples);
+    oscillator.fillNextSampleBuffer (txSamples);
 
 #if NTLAB_USE_CL_DSP
 	auto oscillatorFinishedTime = juce::Time::getHighResolutionTicks();
@@ -274,7 +222,7 @@ void MainComponent::streamingHasStopped ()
 	auto timePerOsc   = juce::String(juce::Time::highResolutionTicksToSeconds(timeForOscillator / numCallbacks));
 	auto timePerMap   = juce::String(juce::Time::highResolutionTicksToSeconds(timeForMapping / numCallbacks));
 	juce::Logger::writeToLog(timePerUnmap + "sec per unmap, " + timePerOsc + "sec per osc callback, " + timePerMap + "sec per map");
-	oscillator->printTimeResults (numCallbacks);
+	oscillator.printTimeResults (numCallbacks);
 	timeForMapping = 0;
 	timeForOscillator = 0;
 	timeForUnmapping = 0;
@@ -298,14 +246,14 @@ void MainComponent::setUpEngine()
 
     if (auto* hardwareEngine = dynamic_cast<ntlab::SDRIOHardwareEngine*> (selectedEngine))
     {
-        hardwareEngine->addTuneChangeListener (oscillator.get());
+        hardwareEngine->addTuneChangeListener (&oscillator);
 
         bandwidth = hardwareEngine->getSampleRate();
         setupSliderRanges (hardwareEngine->getTxCenterFrequency (0));
     }
     else
     {
-        oscillator->setFrequencyHz (oscillatorFreqSlider.getValue(), ntlab::SDRIOEngine::allChannels);
+        oscillator.setFrequencyHz (oscillatorFreqSlider.getValue(), ntlab::SDRIOEngine::allChannels);
     }
 
     deviceManager.setCallback (this);

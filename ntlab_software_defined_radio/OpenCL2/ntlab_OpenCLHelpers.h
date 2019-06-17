@@ -19,7 +19,7 @@
 
 namespace ntlab
 {
-    struct OpenCLHelpers
+    namespace OpenCLHelpers
     {
 
         /** Extracts all names from a vector of e.g. Platform or Device objects and optionally prints them */
@@ -180,7 +180,7 @@ namespace ntlab
          * Returns a string representation of all CL error codes.
          * Found here: https://stackoverflow.com/questions/24326432/convenient-way-to-show-opencl-error-codes
          */
-        static const char *getErrorString (cl_int error)
+        static const juce::String getErrorString (cl_int error)
         {
             switch(error)
             {
@@ -259,7 +259,7 @@ namespace ntlab
         }
 
 
-        static const char *getEventCommandExecutionStatusString (cl_int status)
+        static const juce::String getEventCommandExecutionStatusString (cl_int status)
         {
             if (status < 0)
                 return getErrorString (status);

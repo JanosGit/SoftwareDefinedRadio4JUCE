@@ -32,15 +32,11 @@ namespace ntlab
     {
 
     public:
-#if NTLAB_USE_CL_DSP
-        Oscillator (const int nChannels, cl::Context& context, cl::CommandQueue& queue);
-#else
         /**
          * Creates an Oscillator instance. The number of channels passed must match the number of channels of the buffer
          * passed to fillNextSampleBuffer. Each channel can have its own frequency, phase shift, etc.
          */
         Oscillator (const int numChannels);
-#endif
 
         /**
          * Sets the frequency the oscillator outputs. If you attached it as a tune change listener to an
@@ -218,8 +214,13 @@ namespace ntlab
     private:
 #if NTLAB_USE_CL_DSP
         using ArrayType = CLArray<cl_float, juce::CriticalSection>;
-        cl::CommandQueue& clQueue;
+        const cl::Context&      clContext;
+        const cl::CommandQueue& clQueue;
+#ifdef OPEN_CL_INTEL_FPGA
+        cl::Program&      clProgram;
+#else
         cl::Program       clProgram;
+#endif
         cl::Kernel        complexOscillatorKernel;
         cl::Kernel        realOscillatorKernel;
         CLArray<cl_float> phaseAndAngle;

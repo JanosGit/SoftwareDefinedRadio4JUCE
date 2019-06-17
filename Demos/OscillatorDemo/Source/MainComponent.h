@@ -49,7 +49,7 @@ private:
     SafePointer<EngineConfigWindow> engineConfigWindow;
 
     ntlab::SDRIODeviceManager deviceManager;
-    std::unique_ptr<ntlab::Oscillator> oscillator;
+    ntlab::Oscillator oscillator;
     bool engineIsRunning = false;
 
     juce::ComboBox engineSelectionBox;

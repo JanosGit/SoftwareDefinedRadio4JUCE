@@ -249,14 +249,6 @@ namespace ntlab
         return true;
     }
 
-#if NTLAB_USE_CL_SAMPLE_BUFFER_COMPLEX_FOR_SDR_IO_DEVICE_CALLBACK
-    void MCVFileEngine::setupOpenCL (cl::Context& contextToUse, cl::CommandQueue& queueToUse)
-    {
-        context = &contextToUse;
-        queue   = &queueToUse;
-    }
-#endif
-
     void MCVFileEngine::hiResTimerCallback ()
     {
         if (!timerThreadIDisValid)
@@ -300,26 +292,23 @@ namespace ntlab
     void MCVFileEngine::reallocateBuffers (bool reallocateInBuffer, bool reallocateOutBuffer)
     {
 #if NTLAB_USE_CL_SAMPLE_BUFFER_COMPLEX_FOR_SDR_IO_DEVICE_CALLBACK
-        // Make sure that you have set up OpenCL before starting to stream
-        jassert (context != nullptr);
-        jassert (queue   != nullptr);
 
         if ((mcvReader != nullptr) && reallocateInBuffer)
         {
-            inSampleBuffer.reset (new CLSampleBufferComplex<float> (static_cast<int> (mcvReader->getNumColsOrChannels ()), blockSize, *queue, *context, false, CL_MEM_READ_ONLY, CL_MAP_WRITE));
+            inSampleBuffer.reset (new CLSampleBufferComplex<float> (static_cast<int> (mcvReader->getNumColsOrChannels ()), blockSize, clQueue, clContext, false, CL_MEM_READ_ONLY, CL_MAP_WRITE));
         }
         else if (mcvReader == nullptr)
         {
-            inSampleBuffer.reset (new CLSampleBufferComplex<float> (0, 0, *queue, *context));
+            inSampleBuffer.reset (new CLSampleBufferComplex<float> (0, 0, clQueue, clContext));
         }
 
         if ((mcvWriter != nullptr) && reallocateOutBuffer)
         {
-            outSampleBuffer.reset (new CLSampleBufferComplex<float> (numOutChannels, blockSize, *queue, *context, false, CL_MEM_WRITE_ONLY, CL_MAP_READ));
+            outSampleBuffer.reset (new CLSampleBufferComplex<float> (numOutChannels, blockSize, clQueue, clContext, false, CL_MEM_WRITE_ONLY, CL_MAP_READ));
         }
         else if (mcvWriter == nullptr)
         {
-            outSampleBuffer.reset (new CLSampleBufferComplex<float> (0, 0, *queue, *context));
+            outSampleBuffer.reset (new CLSampleBufferComplex<float> (0, 0, clQueue, clContext));
         }
 #else
         if ((mcvReader != nullptr) && reallocateInBuffer)

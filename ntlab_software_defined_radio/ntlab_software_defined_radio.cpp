@@ -38,3 +38,7 @@ along with SoftwareDefinedRadio4JUCE. If not, see <http://www.gnu.org/licenses/>
 #include "Matrix/CovarianceMatrix.cpp"
 
 #include "UnitTestHelpers/UnitTestHelpers.cpp"
+
+#if NTLAB_USE_CL_DSP
+#include "OpenCL2/SharedCLDevice.cpp"
+#endif

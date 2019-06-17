@@ -38,7 +38,7 @@ namespace ntlab
          * you to specify how the array should be used from the kernel side, default is CL_MEM_READ_WRITE, however
          * adjusting it to the use-case can lead to performance enhancements.
          */
-        CLArray (const int numElements, cl::Context& contextToUse, cl::CommandQueue& queueToUse, cl_mem_flags memFlags = CL_MEM_READ_WRITE)
+        CLArray (const int numElements, const cl::Context& contextToUse, const cl::CommandQueue& queueToUse, cl_mem_flags memFlags = CL_MEM_READ_WRITE)
         : sizeInBytes (numElements * sizeof (T)),
           queue  (queueToUse)
         {
@@ -180,8 +180,8 @@ namespace ntlab
     private:
         using ScopedLockType = typename TypeOfCriticalSectionToUse::ScopedLockType;
 
-        const size_t      sizeInBytes;
-        cl::CommandQueue& queue;
+        const size_t            sizeInBytes;
+        const cl::CommandQueue& queue;
 
         T*           ptr     = nullptr;
         T*           dataEnd = nullptr;

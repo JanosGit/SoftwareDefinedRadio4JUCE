@@ -576,14 +576,6 @@ namespace ntlab
         return true;
     }
 
-#if NTLAB_USE_CL_SAMPLE_BUFFER_COMPLEX_FOR_SDR_IO_DEVICE_CALLBACK
-    void UHDEngine::setupOpenCL (cl::Context& contextToUse, cl::CommandQueue& queueToUse)
-    {
-        context = &contextToUse;
-        queue   = &queueToUse;
-    }
-#endif
-
     bool UHDEngine::setRxCenterFrequency (double newCenterFrequency, int channel)
     {
         NTLAB_RETURN_FALSE_AND_ASSERT_IF (usrp == nullptr);
@@ -1476,19 +1468,16 @@ namespace ntlab
         activeCallback->prepareForStreaming (getSampleRate(), numRxChannels, numTxChannels, maxBlockSize);
 
 #if NTLAB_USE_CL_SAMPLE_BUFFER_COMPLEX_FOR_SDR_IO_DEVICE_CALLBACK
-        // Make sure that you have set up OpenCL before starting to stream
-        jassert (context != nullptr);
-        jassert (queue   != nullptr);
 
         if (rxStream != nullptr)
-            rxBuffer.reset (new CLSampleBufferComplex<float> (numRxChannels, maxBlockSize, *queue, *context, false, CL_MEM_READ_ONLY, CL_MAP_WRITE));
+            rxBuffer.reset (new CLSampleBufferComplex<float> (numRxChannels, maxBlockSize, clQueue, clContext, false, CL_MEM_READ_ONLY, CL_MAP_WRITE));
         else
-            rxBuffer.reset (new CLSampleBufferComplex<float> (0, 0, *queue, *context));
+            rxBuffer.reset (new CLSampleBufferComplex<float> (0, 0, clQueue, clContext));
 
         if (txStream != nullptr)
-            txBuffer.reset (new CLSampleBufferComplex<float> (numTxChannels, maxBlockSize, *queue, *context, false, CL_MEM_WRITE_ONLY, CL_MAP_READ));
+            txBuffer.reset (new CLSampleBufferComplex<float> (numTxChannels, maxBlockSize, clQueue, clContext, false, CL_MEM_WRITE_ONLY, CL_MAP_READ));
         else
-            txBuffer.reset (new CLSampleBufferComplex<float> (0, 0, *queue, *context));
+            txBuffer.reset (new CLSampleBufferComplex<float> (0, 0, clQueue, clContext));
 #else
         if (rxStream != nullptr)
             rxBuffer.reset (new SampleBufferComplex<float> (numRxChannels, maxBlockSize));

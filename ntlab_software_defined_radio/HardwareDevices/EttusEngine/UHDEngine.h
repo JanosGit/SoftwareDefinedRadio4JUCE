@@ -176,10 +176,6 @@ namespace ntlab
 
         bool enableRxTx (bool enableRx, bool enableTx) override;
 
-#if NTLAB_USE_CL_SAMPLE_BUFFER_COMPLEX_FOR_SDR_IO_DEVICE_CALLBACK
-        void setupOpenCL (cl::Context& contextToUse, cl::CommandQueue& queueToUse) override;
-#endif
-
         bool setRxCenterFrequency (double newCenterFrequency, int channel) override;
 
         double getRxCenterFrequency (int channel) override;
@@ -306,11 +302,6 @@ namespace ntlab
             std::vector<std::array<int, UHDGainElements::count>> gainElementsMap; // Maps the gain element enum values to the strings in the gainElements array
             UHDEngine& uhdEngine;
             static const char emptyGainElementString[1];
-
-            //static const juce::Identifier propertyGainRangeAnalog;
-            //static const juce::Identifier propertyGainRangeDigital;
-            //static const juce::Identifier propertyGainRangeDigitalFine;
-
         };
 
         SDRIODeviceCallback* activeCallback = nullptr;
@@ -352,11 +343,6 @@ namespace ntlab
         static const juce::String defaultArgs;
 
         juce::String lastError;
-
-#if NTLAB_USE_CL_SAMPLE_BUFFER_COMPLEX_FOR_SDR_IO_DEVICE_CALLBACK
-        cl::Context*      context = nullptr;
-        cl::CommandQueue* queue   = nullptr;
-#endif
 
         void run() override;
 

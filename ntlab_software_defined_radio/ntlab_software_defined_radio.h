@@ -119,6 +119,7 @@ along with SoftwareDefinedRadio4JUCE. If not, see <http://www.gnu.org/licenses/>
 #include "OpenCL2/cl2WithVersionChecks.h"
 #include "OpenCL2/clArray.h"
 #include "OpenCL2/ntlab_OpenCLHelpers.h"
+#include "OpenCL2/SharedCLDevice.h"
 //#include "Matrix/CLCovarianceMatrix.h"
 #endif
 

@@ -808,8 +808,8 @@ namespace ntlab
 
         CLSampleBufferReal (const int numChannels,
                             const int numSamples,
-                            cl::CommandQueue& queueToUse,
-                            cl::Context& contextToUse,
+                            const cl::CommandQueue& queueToUse,
+                            const cl::Context& contextToUse,
                             bool initWithZeros = false,
                             cl_mem_flags clMemAccessFlags = CL_MEM_READ_WRITE,
                             cl_map_flags clMapFlags = CL_MAP_READ | CL_MAP_WRITE) 
@@ -1087,12 +1087,12 @@ namespace ntlab
         int numSamplesAllocated;
         int numSamplesUsed;
 
-        cl::CommandQueue& queue;
-        cl::Context&      context;
-        cl::Buffer        clBuffer;
-        cl::Buffer        channelList;
-        cl_map_flags      mapFlags;
-        size_t            numBytesInBuffer;
+        const cl::CommandQueue& queue;
+        const cl::Context&      context;
+        cl::Buffer              clBuffer;
+        cl::Buffer              channelList;
+        cl_map_flags            mapFlags;
+        size_t                  numBytesInBuffer;
 
         std::vector<SampleType*> channelPtrs;
         bool isMapped = true;
@@ -1107,8 +1107,8 @@ namespace ntlab
 
         CLSampleBufferComplex (const int numChannels,
                                const int numSamples,
-                               cl::CommandQueue& queueToUse,
-                               cl::Context& contextToUse,
+                               const cl::CommandQueue& queueToUse,
+                               const cl::Context& contextToUse,
                                bool initWithZeros = false,
                                cl_mem_flags clMemAccessFlags = CL_MEM_READ_WRITE,
                                cl_map_flags clMapFlags = CL_MAP_READ | CL_MAP_WRITE)
@@ -1684,12 +1684,12 @@ namespace ntlab
         int numSamplesAllocated;
         int numSamplesUsed;
 
-        cl::CommandQueue& queue;
-        cl::Context&      context;
-        cl::Buffer        clBuffer;
-        cl::Buffer        channelList;
-        cl_map_flags      mapFlags;
-        size_t            numBytesInBuffer;
+        const cl::CommandQueue& queue;
+        const cl::Context&      context;
+        cl::Buffer              clBuffer;
+        cl::Buffer              channelList;
+        cl_map_flags            mapFlags;
+        size_t                  numBytesInBuffer;
 
         std::vector<std::complex<SampleType>*> channelPtrs;
         bool isMapped = true;

@@ -23,6 +23,10 @@ along with SoftwareDefinedRadio4JUCE. If not, see <http://www.gnu.org/licenses/>
 #include <array>
 #include <bitset>
 
+#if NTLAB_USE_CL_DSP
+#include "../OpenCL2/SharedCLDevice.h"
+#endif
+
 #if JUCE_MODULE_AVAILABLE_juce_gui_basics
 #include <juce_gui_basics/juce_gui_basics.h>
 #endif
@@ -264,8 +268,14 @@ namespace ntlab
          */
         virtual bool enableRxTx (bool enableRx, bool enableTx) = 0;
 
+    protected:
 #if NTLAB_USE_CL_SAMPLE_BUFFER_COMPLEX_FOR_SDR_IO_DEVICE_CALLBACK
-        virtual void setupOpenCL (cl::Context& contextToUse, cl::CommandQueue& queueToUse) = 0;
+        SDRIOEngine()
+        : clContext (SharedCLDevice::getInstance()->getContext()),
+          clQueue   (SharedCLDevice::getInstance()->getCommandQueue()) {};
+
+        const cl::Context&      clContext;
+        const cl::CommandQueue& clQueue;
 #endif
     };
 
