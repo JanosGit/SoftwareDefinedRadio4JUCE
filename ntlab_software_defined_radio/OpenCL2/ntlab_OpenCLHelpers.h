@@ -11,6 +11,7 @@
 #elif defined(__APPLE__) || defined(__MACOSX)
 #include <mach-o/dyld.h>
 #else
+#include <linux/limits.h>
 #include <unistd.h>
 #endif
 
