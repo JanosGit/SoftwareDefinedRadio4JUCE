@@ -1010,7 +1010,7 @@ namespace ntlab
         const cl::Buffer& getCLChannelList() const {return channelList; }
 
         /** Get the queue associated with this buffer. You can use this to enqueue your kernel. */
-        cl::CommandQueue& getQueueAssociatedWithThisBuffer() const {return queue; }
+        const cl::CommandQueue& getQueueAssociatedWithThisBuffer() const {return queue; }
 
         /** Sets all samples in the region to zero. Passing -1 to endOfRegion leads to fill the buffer until its end */
         void clearBufferRegion (int startOfRegion = 0, int endOfRegion = -1)
@@ -1313,7 +1313,7 @@ namespace ntlab
         const cl::Buffer& getCLChannelList() const {return channelList; }
 
         /** Get the queue associated with this buffer. You can use this to enqueue your kernel. */
-        cl::CommandQueue& getQueueAssociatedWithThisBuffer() const {return queue; }
+        const cl::CommandQueue& getQueueAssociatedWithThisBuffer() const {return queue; }
 
         /** Sets all samples in the region to zero. Passing -1 to endOfRegion leads to fill the buffer until its end */
         void clearBufferRegion (int startOfRegion = 0, int endOfRegion = -1)
