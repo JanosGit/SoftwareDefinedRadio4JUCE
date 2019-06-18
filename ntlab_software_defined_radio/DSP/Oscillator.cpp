@@ -25,6 +25,9 @@ namespace ntlab
     Oscillator::Oscillator (const int nChannels)
      : clContext     (SharedCLDevice::getInstance()->getContext()),
        clQueue       (SharedCLDevice::getInstance()->getCommandQueue()),
+#ifdef OPEN_CL_INTEL_FPGA
+       clProgram (SharedCLDevice::getInstance()->getFPGABinaryProgram()),
+#endif
        phaseAndAngle (nChannels, clContext, clQueue, CL_MEM_READ_ONLY),
        numChannels   (nChannels),
        angleDelta    (nChannels, clContext, clQueue, CL_MEM_READ_ONLY),
@@ -44,16 +47,12 @@ namespace ntlab
         angleDelta   .fill (0.0);
         amplitude    .fill (1.0);
 
-        auto* clDevice = SharedCLDevice::getInstance();
-
-#ifndef OPENCL_INTEL_FPGA
+#ifndef OPEN_CL_INTEL_FPGA
         const std::string clSources =
 #include "Oscillator.cl"
         ;
 
-        clProgram = clDevice->createProgramForDevice (clSources);
-#else
-        clProgram = clDevice->getFPGABinaryProgram();
+        clProgram = SharedCLDevice::getInstance()->createProgramForDevice (clSources);
 #endif
 
         cl_int err;

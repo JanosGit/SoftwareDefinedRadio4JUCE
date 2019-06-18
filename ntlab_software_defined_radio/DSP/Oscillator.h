@@ -217,7 +217,7 @@ namespace ntlab
         const cl::Context&      clContext;
         const cl::CommandQueue& clQueue;
 #ifdef OPEN_CL_INTEL_FPGA
-        cl::Program&      clProgram;
+        const cl::Program&      clProgram;
 #else
         cl::Program       clProgram;
 #endif
