@@ -314,7 +314,7 @@ namespace ntlab
             if (error)
             {
                 rxStream.reset (nullptr);
-                return juce::Result::fail ("Error setting Rx Antenna: " + usrp->getLastUSRPError ());
+                return juce::Result::fail ("Error setting Tx Antenna: " + usrp->getLastUSRPError ());
             }
         }
         txChannelMapping->setGainElements (std::move (gainElements));
@@ -614,15 +614,14 @@ namespace ntlab
 
             notifyListenersRxCenterFreqChanged (result.actualRfFreq, channel);
 
-            //if (!((result.actualRfFreq == result.targetRfFreq) && (result.actualDspFreq == result.targetDspFreq)))
             if (!juce::approximatelyEqual (result.actualRfFreq, result.targetRfFreq))
             {
-                DBG (lastError = "Error setting exact Rx center frequency. Target Rf frequency: "
-                        + juce::String (result.targetRfFreq)  + "Hz, actual Rf frequency: "
-                        + juce::String (result.actualRfFreq)  + "Hz, target DSP frequency: "
-                        + juce::String (result.targetDspFreq) + "Hz, actual DSP frequency: "
-                        + juce::String (result.actualDspFreq) + "Hz");
-                return false;
+                juce::Logger::writeToLog (lastError = "Error setting exact Rx center frequency. Target Rf frequency: "
+                                        + juce::String (result.targetRfFreq)  + "Hz, actual Rf frequency: "
+                                        + juce::String (result.actualRfFreq)  + "Hz, target DSP frequency: "
+                                        + juce::String (result.targetDspFreq) + "Hz, actual DSP frequency: "
+                                        + juce::String (result.actualDspFreq) + "Hz");
+                //return false;
             }
         }
         return true;
@@ -666,15 +665,14 @@ namespace ntlab
 
             notifyListenersTxCenterFreqChanged (result.actualRfFreq, channel);
 
-            //if (!((result.actualRfFreq == result.targetRfFreq) && (result.actualDspFreq == result.targetDspFreq)))
             if (!juce::approximatelyEqual (result.actualRfFreq, result.targetRfFreq))
             {
-                DBG (lastError = "Error setting exact Tx center frequency. Target Rf frequency: "
-                        + juce::String (result.targetRfFreq) + "Hz, actual Rf frequency: "
-                        + juce::String (result.actualRfFreq) + "Hz, target DSP frequency: "
-                        + juce::String (result.targetDspFreq) + "Hz, actual DSP frequency: "
-                        + juce::String (result.actualDspFreq) + "Hz");
-                return false;
+                juce::Logger::writeToLog (lastError = "Error setting exact Tx center frequency. Target Rf frequency: "
+                                        + juce::String (result.targetRfFreq) + "Hz, actual Rf frequency: "
+                                        + juce::String (result.actualRfFreq) + "Hz, target DSP frequency: "
+                                        + juce::String (result.targetDspFreq) + "Hz, actual DSP frequency: "
+                                        + juce::String (result.actualDspFreq) + "Hz");
+                //return false;
             }
         }
         return true;
