@@ -124,11 +124,14 @@ namespace ntlab
 
     void Oscillator::updateAngleDelta()
     {
+        std::cout << "\nOscillator update. Current sample rate: " << currentSampleRate;
         for (int channel = 0; channel < numChannels; ++channel)
         {
             ifFrequency.set (channel, rfFrequency[channel] - sdrCenterFreq[channel]);
             auto cyclesPerSample = std::fmod (ifFrequency[channel] / currentSampleRate, 1.0);
             angleDelta.set (channel, cyclesPerSample * juce::MathConstants<double>::twoPi);
+
+            std::cout << ". Channel " << channel << " updated. IF Freq: " << ifFrequency[channel] << "Hz, Cycles per Sample: " << cyclesPerSample << ", angle delta " << angleDelta[channel] << std::endl;
         }
     }
 
