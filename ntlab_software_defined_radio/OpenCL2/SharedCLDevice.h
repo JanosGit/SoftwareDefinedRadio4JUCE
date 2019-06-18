@@ -29,7 +29,8 @@ namespace ntlab
         SharedCLDevice()
         {
 #ifdef NTLAB_CL_FPGA_BINARY_FILE
-            const juce::File fpgaBinaryFile (juce::File::getSpecialLocation (juce::File::SpecialLocationType::currentExecutableFile).getSiblingFile (NTLAB_CL_FPGA_BINARY_FILE))
+            const juce::String fpgaBinaryFileName (NTLAB_CL_FPGA_BINARY_FILE);
+            const juce::File fpgaBinaryFile (juce::File::getSpecialLocation (juce::File::SpecialLocationType::currentExecutableFile).getSiblingFile (fpgaBinaryFileName));
             setUpFPGADevice (fpgaBinaryFile);
 #else
 
@@ -39,8 +40,9 @@ namespace ntlab
             cl_device_type preferredDeviceType = CL_DEVICE_TYPE_GPU;
     #endif
             getDeviceOnDefaultPlatform (preferredDeviceType);
-#endif
+
             setupContextAndQueue();
+#endif
         }
 
         ~SharedCLDevice() { clearSingletonInstance(); }
@@ -142,6 +144,8 @@ namespace ntlab
                 throw CLException ("Invalid fpga binary file " + fpgaBinaryFile.getFullPathName ());
 
             getDeviceOnDefaultPlatform (CL_DEVICE_TYPE_ACCELERATOR, false);
+
+            setupContextAndQueue();
 
             juce::FileInputStream fpgaBinaryFileStream (fpgaBinaryFile);
 
