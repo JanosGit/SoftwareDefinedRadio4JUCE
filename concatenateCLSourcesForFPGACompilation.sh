@@ -6,18 +6,26 @@
 # headers that are found in the single files to include them as strings
 # in non-fpga builds.
 #
-# Pass the desired paths of the cl sourcefiles relative to the 
-# ntlab_software_defined_radio base folder as arguments to the script.
-# The resulting output file concatenatedCLSources.cl will be placed in
-# this folder
+# Pass an absolute path to the output file to generate, followed by the 
+# desired cl sourcefiles relative to the ntlab_software_defined_radio
+# base folder as arguments to the script.
 
-outputFile="`dirname "$0"`/concatenatedCLSources.cl"
 sourceBaseDir="`dirname "$0"`/ntlab_software_defined_radio"
 
-rm $outputFile
+argcount=1
 
 for clSource in "$@"
 do	
-    head -n -1 "$sourceBaseDir/$clSource" | tail -n +18 >> $outputFile
+    if [ $argcount -eq 1 ]
+    then
+        outputFile=$clSource;
+        rm $outputFile
+    else
+        head -n -1 "$sourceBaseDir/$clSource" | tail -n +18 >> $outputFile
+    fi
+
+    argcount=$((argcount + 1))
 done
+
+echo "File written to $outputFile"
 
