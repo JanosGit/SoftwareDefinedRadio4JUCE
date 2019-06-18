@@ -123,8 +123,6 @@ namespace ntlab
             // wait for unmap operations to finish
             clQueue.finish();
 
-			auto kernelStartTime = juce::Time::getHighResolutionTicks();
-
             if constexpr (BufferType::isComplex())
             {
                 clQueue.enqueueNDRangeKernel (complexOscillatorKernel, cl::NullRange, cl::NDRange (numChannels, numSamples));
@@ -137,24 +135,13 @@ namespace ntlab
             // wait for kernel to finish
             clQueue.finish();
 
-			auto kernelFinishTime = juce::Time::getHighResolutionTicks();
-
             amplitude    .map();
             phaseAndAngle.map();
             angleDelta   .map();
 
-			kernelTime += kernelFinishTime - kernelStartTime;
-
             // wait for the map operations to finish
             clQueue.finish();
         }
-
-		void printTimeResults(juce::int64 numCallbacks)
-		{
-			auto timePerKernel = juce::String(juce::Time::highResolutionTicksToSeconds(kernelTime / numCallbacks));
-			juce::Logger::writeToLog("Time per Kernel: " + timePerKernel + "sec");
-			kernelTime = 0;
-		}
 #else
         /**
          * Fills a sample buffer with the next block of continuous samples. This is meant to be called on a regular
@@ -224,8 +211,6 @@ namespace ntlab
         cl::Kernel        complexOscillatorKernel;
         cl::Kernel        realOscillatorKernel;
         CLArray<cl_float> phaseAndAngle;
-
-		juce::int64 kernelTime = 0;
 #else
         using ArrayType = juce::Array<double>;
 #endif
