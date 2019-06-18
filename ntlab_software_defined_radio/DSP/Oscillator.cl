@@ -22,12 +22,12 @@ kernel void oscillatorFillNextSampleBufferComplex (global float2*      restrict 
                                                    global const float* restrict angleDelta,
                                                    global const float* restrict amplitude)
 {
-    const int channel = get_global_id (0);
-    const int sample  = get_global_id (1);
+    const int chan   = get_global_id (0);
+    const int sample = get_global_id (1);
     
-    global float2* channelPtr = bufferToFill + channelList[channel];
-    const float currentAngle  = angle[channel] + angleDelta[channel] * sample;
-    const float currentAmpl   = amplitude[channel];
+    global float2* channelPtr = bufferToFill + channelList[chan];
+    const float currentAngle  = angle[chan] + angleDelta[chan] * sample;
+    const float currentAmpl   = amplitude[chan];
     
     channelPtr[sample].x = native_cos (currentAngle) * currentAmpl;
     channelPtr[sample].y = native_sin (currentAngle) * currentAmpl;
@@ -39,12 +39,12 @@ kernel void oscillatorFillNextSampleBufferReal (global float*       restrict buf
                                                 global const float* restrict angleDelta,
                                                 global const float* restrict amplitude)
 {
-    const int channel = get_global_id (0);
-    const int sample  = get_global_id (1);
+    const int chan   = get_global_id (0);
+    const int sample = get_global_id (1);
     
-    global float* channelPtr = bufferToFill + channelList[channel];
-    const float currentAngle = angle[channel] + angleDelta[channel] * sample;
-    const float currentAmpl  = amplitude[channel];
+    global float* channelPtr = bufferToFill + channelList[chan];
+    const float currentAngle = angle[chan] + angleDelta[chan] * sample;
+    const float currentAmpl  = amplitude[chan];
     
     channelPtr[sample] = native_sin (currentAngle) * currentAmpl;
 };
