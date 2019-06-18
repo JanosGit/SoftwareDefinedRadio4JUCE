@@ -96,7 +96,7 @@ namespace ntlab
                 else
                 {
                     auto threeArgFunction = (ThreeArgFunctionSecondArgIsPtr)functionPointer;
-                    return threeArgFunction (firstArg, secondArg, thirdArg);
+                    return threeArgFunction (firstArg, secondArg.asVoidPrt, thirdArg);
                 }
             }
             case 4:
@@ -104,12 +104,12 @@ namespace ntlab
                 if (containsDouble)
                 {
                     auto fourArgFunction = (FourArgFunctionSecondArgIsDouble) functionPointer;
-                    return fourArgFunction (firstArg, secondArg.asDouble, thirdArg, fourthArg);
+                    return fourArgFunction (firstArg, secondArg.asDouble, thirdArg, fourthArg.asVoidPtr);
                 }
                 else
                 {
                     auto fourArgFunction = (FourArgFunctionSecondArgIsPtr) functionPointer;
-                    return fourArgFunction (firstArg, secondArg, thirdArg, fourthArg);
+                    return fourArgFunction (firstArg, secondArg.asVoidPrt, thirdArg, fourthArg.asVoidPtr);
                 }
             }
             default:

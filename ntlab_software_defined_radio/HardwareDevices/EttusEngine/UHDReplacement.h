@@ -299,6 +299,7 @@ namespace ntlab
                 double       asDouble;
                 TuneRequest* asTuneRequestPtr;
                 char*        asCharPtr;
+                void*        asVoidPrt;
             } secondArg;
 
             size_t thirdArg;
@@ -307,14 +308,15 @@ namespace ntlab
             {
                 TuneResult* asTuneResultPtr;
                 char*       asCharPtr;
+                void*       asVoidPtr;
             } fourthArg;
 
             // The C ABI calling conventions for X86 place a floating point value on a different stack (st0)
             // This is why a function with a double in its signature needs different handling
-            typedef int (*ThreeArgFunctionSecondArgIsPtr)   (USRPHandle, SecondArg, size_t);
-            typedef int (*ThreeArgFunctionSecondArgIsDouble)(USRPHandle, double,    size_t);
-            typedef int (*FourArgFunctionSecondArgIsPtr)    (USRPHandle, SecondArg, size_t, FourthArg);
-            typedef int (*FourArgFunctionSecondArgIsDouble) (USRPHandle, double,    size_t, FourthArg);
+            typedef int (*ThreeArgFunctionSecondArgIsPtr)   (USRPHandle, void* , size_t);
+            typedef int (*ThreeArgFunctionSecondArgIsDouble)(USRPHandle, double, size_t);
+            typedef int (*FourArgFunctionSecondArgIsPtr)    (USRPHandle, void*,  size_t, void*);
+            typedef int (*FourArgFunctionSecondArgIsDouble) (USRPHandle, double, size_t, void*);
 
             int invoke() const;
 
