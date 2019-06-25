@@ -15,6 +15,8 @@ You should have received a copy of the GNU General Public License
 along with SoftwareDefinedRadio4JUCE. If not, see <http://www.gnu.org/licenses/>.
 */
 
+#pragma once
+
 #include <juce_events/juce_events.h>
 
 namespace ntlab
@@ -28,7 +30,7 @@ namespace ntlab
      *
      * In the actual processing callback, a ScopedProcessingTimeMeasurement helps recording the processing time.
      */
-    class ProcessingTimeMeasurement : private juce::Timer
+    class ProcessingTimeMeasurement : private juce::Thread
     {
     public:
 
@@ -65,14 +67,16 @@ namespace ntlab
         /**
          * Creates a ProcessingTimeMeasurement that roughly invokes the measurement result callback after the desired
          * number of samples has been processed. The default callback will print the results to the current juce::Logger,
-         * you can alternatively pass in a custom callback. The callback will always be invoked from the message thread.
+         * you can alternatively pass in a custom callback. The callback will always be invoked from a thread owned by
+         * this class.
          */
         ProcessingTimeMeasurement (int numSamplesToAverage,
                                    MeasurementResultCallback callback = [] (double us, double load, juce::int64)
                                    {
                                         juce::Logger::writeToLog ("Processing time measurement results: " + juce::String (us) + "μs per sample, " + juce::String (load) + "% load");
                                    })
-         : numSampsToAverage (numSamplesToAverage),
+         : juce::Thread ("ntlab_ProcessingTimeMeasurement_thread"),
+           numSampsToAverage (numSamplesToAverage),
            resultCallback    (callback) {}
 
         /** Always call this before starting to stream */
@@ -81,21 +85,15 @@ namespace ntlab
             availableProcessingTimePerSampleMicroSeconds = 1e6 / sampleRate;
 
             double timeForNumSampsToAverage  = numSampsToAverage / sampleRate;
-            double timerIntervalSeconds      = timeForNumSampsToAverage / 3;
-            int    timerIntervalMilliseconds = static_cast<int> (timerIntervalSeconds * 1000);
+            periodMilliseconds = static_cast<int> (timeForNumSampsToAverage * 1000);
 
-            ticks    = 0;
-            numSamps = 0;
-
-            startTimer (timerIntervalMilliseconds);
+            startThread (1);
         }
 
         /** Always call this afer streaming has stopped */
         void processingEnds()
         {
-            stopTimer();
-
-            juce::MessageManager::callAsync ([=]() { invokeResultCallback (ticks, numSamps); });
+            stopThread (2 * periodMilliseconds);
         }
 
         /**
@@ -110,29 +108,39 @@ namespace ntlab
 
     private:
         juce::SpinLock            counterLock;
-        juce::int64               ticks, numSamps;
+        juce::int64               ticks = 0, numSamps = 0;
         MeasurementResultCallback resultCallback;
         const int                 numSampsToAverage;
+        int                       periodMilliseconds;
         double                    availableProcessingTimePerSampleMicroSeconds = 0;
 
-        void timerCallback() override
+        void run() override
         {
             juce::int64 currentTicks, currentNumSamps;
 
+            while (!threadShouldExit())
             {
-                juce::GenericScopedLock<juce::SpinLock> l (counterLock);
+                wait (periodMilliseconds);
+                {
+                    juce::GenericScopedLock<juce::SpinLock> l (counterLock);
 
-                if (numSamps < numSampsToAverage)
-                    return;
+                    if (numSamps < numSampsToAverage)
+                        continue;
 
-                currentTicks    = ticks;
-                currentNumSamps = numSamps;
+                    currentTicks    = ticks;
+                    currentNumSamps = numSamps;
 
-                ticks    = 0;
-                numSamps = 0;
+                    ticks    = 0;
+                    numSamps = 0;
+                }
+
+                invokeResultCallback (currentTicks, currentNumSamps);
             }
 
-            invokeResultCallback (currentTicks, currentNumSamps);
+            invokeResultCallback (ticks, numSamps);
+
+            ticks = 0;
+            numSamps = 0;
         }
 
         void invokeResultCallback (juce::int64 currentTicks, juce::int64 currentNumSamps)
