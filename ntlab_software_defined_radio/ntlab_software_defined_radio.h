@@ -128,7 +128,7 @@ along with SoftwareDefinedRadio4JUCE. If not, see <http://www.gnu.org/licenses/>
 #include "MCVFileFormat/MCVWriter.h"
 #include "MCVFileFormat/MCVReader.h"
 
-
+#include "PerformanceMeasurement/ProcessingTimeMeasurement.h"
 
 #include "SampleBuffers/VectorOperations.h"
 #include "SampleBuffers/SampleBuffers.h"
