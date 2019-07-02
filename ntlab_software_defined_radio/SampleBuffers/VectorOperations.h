@@ -33,6 +33,7 @@ along with SoftwareDefinedRadio4JUCE. If not, see <http://www.gnu.org/licenses/>
 #define NTLAB_USE_AVX2 1
 #elif JUCE_ARM
 //#define NTLAB_USE_NEON 1 // enable as soon as NEON operations are implemented
+#undef NTLAB_NO_SIMD
 #define NTLAB_NO_SIMD 1
 #else
 #error "Unsupported target architecture for SIMD operations"
