@@ -25,6 +25,7 @@ along with SoftwareDefinedRadio4JUCE. If not, see <http://www.gnu.org/licenses/>
 
 #include "UHDEngine.h"
 #include "../../ErrorHandling/ErrorHandlingMacros.h"
+#include "../ThreadedCallback.h"
 
 #include <typeinfo> // for std::bad_cast
 
@@ -1455,35 +1456,54 @@ namespace ntlab
         if (txChannelMapping != nullptr)
             numTxChannels = txChannelMapping->numChannels;
 
-        int maxBlockSize = desiredBlockSize;
+
+        int maxHardwareBlockSize = desiredBlockSize;
 
         if (rxStream != nullptr)
-            maxBlockSize = std::min (maxBlockSize, rxStream->getMaxNumSamplesPerBlock());
+            maxHardwareBlockSize = std::min (maxHardwareBlockSize, rxStream->getMaxNumSamplesPerBlock());
 
         if (txStream != nullptr)
-            maxBlockSize = std::min (maxBlockSize, txStream->getMaxNumSamplesPerBlock());
+            maxHardwareBlockSize = std::min (maxHardwareBlockSize, txStream->getMaxNumSamplesPerBlock());
 
-        activeCallback->prepareForStreaming (getSampleRate(), numRxChannels, numTxChannels, maxBlockSize);
+#ifdef NTLAB_FORCED_BLOCKSIZE
+        int maxBufferSize = NTLAB_FORCED_BLOCKSIZE;
+
+        std::vector<std::complex<float>*> rxBufferPtrs (numRxChannels);
+        std::vector<std::complex<float>*> txBufferPtrs (numTxChannels);
+        int txBufferStartIdx = 0;
+
+        ThreadedCallback threadedCallback (activeCallback, rxEnabled, txEnabled, txBufferStartIdx, numRxChannels, numTxChannels);
+        SDRIODeviceCallback* activeCallback =  &threadedCallback;
+
+        usrp->setRealtimeThreadID (threadedCallback.getThreadId());
+#else
+        int maxBufferSize = maxHardwareBlockSize;
+#endif
+
+        activeCallback->prepareForStreaming (getSampleRate(), numRxChannels, numTxChannels, maxBufferSize);
 
 #if NTLAB_USE_CL_SAMPLE_BUFFER_COMPLEX_FOR_SDR_IO_DEVICE_CALLBACK
 
         if (rxStream != nullptr)
-            rxBuffer.reset (new CLSampleBufferComplex<float> (numRxChannels, maxBlockSize, clQueue, clContext, false, CL_MEM_READ_ONLY, CL_MAP_WRITE));
+            rxBuffer.reset (new CLSampleBufferComplex<float> (numRxChannels, maxBufferSize, clQueue, clContext, false, CL_MEM_READ_ONLY, CL_MAP_WRITE));
         else
             rxBuffer.reset (new CLSampleBufferComplex<float> (0, 0, clQueue, clContext));
 
         if (txStream != nullptr)
-            txBuffer.reset (new CLSampleBufferComplex<float> (numTxChannels, maxBlockSize, clQueue, clContext, false, CL_MEM_WRITE_ONLY, CL_MAP_READ));
+        {
+            txBuffer.reset (new CLSampleBufferComplex<float>(numTxChannels, maxBufferSize, clQueue, clContext, false, CL_MEM_WRITE_ONLY, CL_MAP_READ));
+            txBuffer->clearBufferRegion();
+        }
         else
             txBuffer.reset (new CLSampleBufferComplex<float> (0, 0, clQueue, clContext));
 #else
         if (rxStream != nullptr)
-            rxBuffer.reset (new SampleBufferComplex<float> (numRxChannels, maxBlockSize));
+            rxBuffer.reset (new SampleBufferComplex<float> (numRxChannels, maxBufferSize));
         else
             rxBuffer.reset (new SampleBufferComplex<float> (0, 0));
 
         if (txStream != nullptr)
-            txBuffer.reset (new SampleBufferComplex<float> (numTxChannels, maxBlockSize));
+            txBuffer.reset (new SampleBufferComplex<float> (numTxChannels, maxBufferSize));
         else
             txBuffer.reset (new SampleBufferComplex<float> (0, 0));
 #endif
@@ -1514,7 +1534,7 @@ namespace ntlab
         if (rxStream != nullptr)
         {
             UHDr::StreamCmd streamCmd;
-            streamCmd.numSamples = static_cast<size_t> (maxBlockSize);
+            streamCmd.numSamples = static_cast<size_t> (maxHardwareBlockSize);
             streamCmd.streamMode = UHDr::StreamMode::startContinuous;
             streamCmd.streamNow = false;
             streamCmd.timeSpecFracSecs = 0;
@@ -1531,27 +1551,45 @@ namespace ntlab
 
         while (!threadShouldExit())
         {
+            int numSamplesThisBlock = 0;
+
             if (rxEnabled)
             {
                 UHDr::Error error;
-                int numSamplesReceived = rxStream->receive (rxBuffer->getArrayOfWritePointers(), maxBlockSize, error, false, 0.5);
 
-                if (error)
-                {
-                    activeCallback->handleError ("Error executing UHDr::USRP::RxStream::receive: " + UHDr::errorDescription (error) + ". Stopping stream.");
+#ifdef NTLAB_FORCED_BLOCKSIZE
+                rxBuffer->fillArrayOfPointersForAppending (rxBufferPtrs.data());
+
+                int numDesiredSamplesThisBlock = std::min (maxHardwareBlockSize, maxBufferSize - rxBuffer->getNumSamples());
+
+                numSamplesThisBlock = rxStream->receive(rxBufferPtrs.data(), numDesiredSamplesThisBlock, error, false, 0.5);
+#else
+                numSamplesThisBlock = rxStream->receive (rxBuffer->getArrayOfWritePointers(), maxHardwareBlockSize, error, false, 0.5);
+#endif
+
+                if (error) {
+                    activeCallback->handleError(
+                            "Error executing UHDr::USRP::RxStream::receive: " + UHDr::errorDescription (error) +
+                            ". Stopping stream.");
                     activeCallback->streamingHasStopped();
                     return;
                 }
 
+#ifdef NTLAB_FORCED_BLOCKSIZE
+                rxBuffer->incrementNumSamples (numSamplesThisBlock);
+            }
+#else
                 rxBuffer->setNumSamples (numSamplesReceived);
                 if (txEnabled)
                     txBuffer->setNumSamples (numSamplesReceived);
+
             }
             else
             {
                 rxBuffer->setNumSamples (0);
-                txBuffer->setNumSamples (maxBlockSize);
+                txBuffer->setNumSamples (maxBufferSize);
             }
+#endif
 
             // if this value changes in the callback, still process tx data after this callback
             bool txWasEnabled = txEnabled;
@@ -1566,18 +1604,29 @@ namespace ntlab
 
             if (txWasEnabled)
             {
+
                 UHDr::Error error;
-                auto numSamplesToSend = txBuffer->getNumSamples();
-                auto numSamplesSent = txStream->send (txBuffer->getArrayOfWritePointers(), numSamplesToSend, error, 0.5);
+#ifdef NTLAB_FORCED_BLOCKSIZE
+                if (!rxEnabled)
+                    numSamplesThisBlock = std::min (maxHardwareBlockSize, NTLAB_FORCED_BLOCKSIZE - txBufferStartIdx);
+
+                txBuffer->fillArrayOfPointersForReadingFrom (txBufferPtrs.data(), txBufferStartIdx);
+                auto numSamplesSent = txStream->send (txBufferPtrs.data(), numSamplesThisBlock, error, 0.5);
+                txBufferStartIdx += numSamplesSent;
+
+#else
+                numSamplesThisBlock = txBuffer->getNumSamples();
+                auto numSamplesSent = txStream->send (txBuffer->getArrayOfWritePointers(), numSamplesThisBlock, error, 0.5);
+#endif
 
                 if (error)
                 {
-                    activeCallback->handleError ("Error executing UHDr::USRP::'TxStream::send: " + UHDr::errorDescription (error) + ". Stopping stream.");
+                    activeCallback->handleError ("Error executing UHDr::USRP::TxStream::send: " + UHDr::errorDescription (error) + ". Stopping stream.");
                     activeCallback->streamingHasStopped();
                     return;
                 }
 
-                if (numSamplesSent != numSamplesToSend)
+                if (numSamplesSent != numSamplesThisBlock)
                 {
                     activeCallback->handleError ("Error sending samples: " + txStream->getLastError());
                 }
