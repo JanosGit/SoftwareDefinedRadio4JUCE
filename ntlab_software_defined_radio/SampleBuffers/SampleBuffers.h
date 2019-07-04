@@ -18,6 +18,7 @@ along with SoftwareDefinedRadio4JUCE. If not, see <http://www.gnu.org/licenses/>
 #pragma once
 
 #include <complex>
+#include <utility>
 #include <juce_core/juce_core.h>
 #include "VectorOperations.h"
 
@@ -175,6 +176,13 @@ namespace ntlab
             numSamplesUsed = newNumSamples;
         }
 
+        /** Increments the number of samples stored in the buffer */
+        void incrementNumSamples (int numSamplesToAdd)
+        {
+            numSamplesUsed += numSamplesToAdd;
+            jassert (juce::isPositiveAndNotGreaterThan (numSamplesUsed, numSamplesAllocated));
+        }
+
         /** Returns the number of channels held by this buffer */
         const int getNumChannels() const {return  numChannelsAllocated; }
 
@@ -201,16 +209,36 @@ namespace ntlab
         }
 
         /**
-         * Returns a read-only array of pointers to the host memory buffers for all channels. Always use this for
+         * Returns a read-only array of pointers to the memory buffers for all channels. Always use this for
          * read-only operations.
          */
         const SampleType** getArrayOfReadPointers() const {return const_cast<const SampleType**> (channelPtrs); }
 
         /**
-         * Returns an array of pointers to the host memory buffers for all channels. Use this if you want to write to
+         * Returns an array of pointers to the memory buffers for all channels. Use this if you want to write to
          * the buffer, otherwise use getReadPointer.
          */
         SampleType** getArrayOfWritePointers() {return channelPtrs; }
+
+        /**
+         * Fills the array passed with pointers to the memory buffers for all channels so that you can append data
+         * to the buffer. Remember to call setNumSamples or incrementNumSamples after having filled it.
+         */
+        void fillArrayOfPointersForAppending (std::complex<SampleType>** arrayToFill)
+        {
+            for (int channel = 0; channel < numChannelsAllocated; ++channel)
+                arrayToFill[channel] = channelPtrs[channel] + numSamplesUsed;
+        }
+
+        /**
+         * Fills the array passed in with pointers to the memory buffers for all channels so that you can read them
+         * from a desired start offset.
+         */
+        void fillArrayOfPointersForReadingFrom (std::complex<SampleType>** arrayToFill, int startOffset)
+        {
+            for (int channel = 0; channel < numChannelsAllocated; ++channel)
+                arrayToFill[channel] = channelPtrs[channel] + startOffset;
+        }
 
         /** Sets all samples in the region to zero. Passing -1 to endOfRegion leads to fill the buffer until its end */
         void clearBufferRegion (int startOfRegion = 0, int endOfRegion = -1)
@@ -411,6 +439,13 @@ namespace ntlab
             numSamplesUsed = newNumSamples;
         }
 
+        /** Increments the number of samples stored in the buffer */
+        void incrementNumSamples (int numSamplesToAdd)
+        {
+            numSamplesUsed += numSamplesToAdd;
+            jassert (juce::isPositiveAndNotGreaterThan (numSamplesUsed, numSamplesAllocated));
+        }
+
         /** Returns the number of channels held by this buffer */
         const int getNumChannels() const {return  numChannelsAllocated; }
 
@@ -437,16 +472,36 @@ namespace ntlab
         }
 
         /**
-         * Returns a read-only array of pointers to the host memory buffers for all channels. Always use this for
+         * Returns a read-only array of pointers to the memory buffers for all channels. Always use this for
          * read-only operations.
          */
         const std::complex<SampleType>** getArrayOfReadPointers() const {return const_cast<const std::complex<SampleType>**> (channelPtrs); }
 
         /**
-         * Returns an array of pointers to the host memory buffers for all channels. Use this if you want to write to
+         * Returns an array of pointers to the memory buffers for all channels. Use this if you want to write to
          * the buffer, otherwise use getReadPointer.
          */
         std::complex<SampleType>** getArrayOfWritePointers() {return channelPtrs; }
+
+        /**
+         * Fills the array passed with pointers to the memory buffers for all channels so that you can append data
+         * to the buffer. Remember to call setNumSamples or incrementNumSamples after having filled it.
+         */
+        void fillArrayOfPointersForAppending (std::complex<SampleType>** arrayToFill)
+        {
+            for (int channel = 0; channel < numChannelsAllocated; ++channel)
+                arrayToFill[channel] = channelPtrs[channel] + numSamplesUsed;
+        }
+
+        /**
+         * Fills the array passed in with pointers to the memory buffers for all channels so that you can read them
+         * from a desired start offset.
+         */
+        void fillArrayOfPointersForReadingFrom (std::complex<SampleType>** arrayToFill, int startOffset)
+        {
+            for (int channel = 0; channel < numChannelsAllocated; ++channel)
+                arrayToFill[channel] = channelPtrs[channel] + startOffset;
+        }
 
         /** Sets all samples in the region to zero. Passing -1 to endOfRegion leads to fill the buffer until its end */
         void clearBufferRegion (int startOfRegion = 0, int endOfRegion = -1)
@@ -780,6 +835,17 @@ namespace ntlab
             NTLAB_OPERATION_ON_ALL_CHANNELS (ComplexVectorOperations::abs (readPtr, writePtr, numSamlesToCopy))
         }
 
+        void swapWith (SampleBufferComplex<SampleType>& other)
+        {
+            // Swapping an owning- and non-owning buffer will most likely lead to nasty bugs
+            jassert (ownsBuffer == other.ownsBuffer);
+
+            std::swap (numChannelsAllocated, other.numChannelsAllocated);
+            std::swap (numSamplesAllocated,  other.numSamplesAllocated);
+            std::swap (numSamplesUsed,       other.numSamplesUsed);
+            std::swap (channelPtrs,          other.channelPtrs);
+        }
+
         /** Helper to create one Sample of the buffers SampleType in templated code */
         template <typename OriginalType>
         static std::complex<SampleType> castToSampleType (std::complex<OriginalType> sample) {return {static_cast<SampleType> (sample.real()), static_cast<SampleType> (sample.imag())}; }
@@ -958,6 +1024,13 @@ namespace ntlab
             numSamplesUsed = newNumSamples;
         }
 
+        /** Increments the number of samples stored in the buffer */
+        void incrementNumSamples (int numSamplesToAdd)
+        {
+            numSamplesUsed += numSamplesToAdd;
+            jassert (juce::isPositiveAndNotGreaterThan (numSamplesUsed, numSamplesAllocated));
+        }
+
         /** Returns the number of channels held by this buffer */
         const int getNumChannels() const {return  numChannelsAllocated; }
 
@@ -994,6 +1067,26 @@ namespace ntlab
          * the buffer, otherwise use getReadPointer.
          */
         SampleType** getArrayOfWritePointers() {return channelPtrs.data(); }
+
+        /**
+         * Fills the array passed with pointers to the host memory buffers for all channels so that you can append data
+         * to the buffer. Remember to call setNumSamples or incrementNumSamples after having filled it.
+         */
+        void fillArrayOfPointersForAppending (std::complex<SampleType>** arrayToFill)
+        {
+            for (int channel = 0; channel < numChannelsAllocated; ++channel)
+                arrayToFill[channel] = channelPtrs[channel] + numSamplesUsed;
+        }
+
+        /**
+         * Fills the array passed in with pointers to the host memory buffers for all channels so that you can read them
+         * from a desired start offset.
+         */
+        void fillArrayOfPointersForReadingFrom (std::complex<SampleType>** arrayToFill, int startOffset)
+        {
+            for (int channel = 0; channel < numChannelsAllocated; ++channel)
+                arrayToFill[channel] = channelPtrs[channel] + startOffset;
+        }
 
         /**
          * Returns a reference to the underlying cl::Buffer object that holds the samples. Never map or unmap the
@@ -1260,6 +1353,13 @@ namespace ntlab
             numSamplesUsed = newNumSamples;
         }
 
+        /** Increments the number of samples stored in the buffer */
+        void incrementNumSamples (int numSamplesToAdd)
+        {
+            numSamplesUsed += numSamplesToAdd;
+            jassert (juce::isPositiveAndNotGreaterThan (numSamplesUsed, numSamplesAllocated));
+        }
+
         /** Returns the number of channels held by this buffer */
         const int getNumChannels() const {return  numChannelsAllocated; }
 
@@ -1298,6 +1398,26 @@ namespace ntlab
          * enabled, so be careful when using it.
          */
         std::complex<SampleType>** getArrayOfWritePointers() { return channelPtrs.data(); }
+
+        /**
+         * Fills the array passed with pointers to the host memory buffers for all channels so that you can append data
+         * to the buffer. Remember to call setNumSamples or incrementNumSamples after having filled it.
+         */
+        void fillArrayOfPointersForAppending (std::complex<SampleType>** arrayToFill)
+        {
+            for (int channel = 0; channel < numChannelsAllocated; ++channel)
+                arrayToFill[channel] = channelPtrs[channel] + numSamplesUsed;
+        }
+
+        /**
+         * Fills the array passed in with pointers to the host memory buffers for all channels so that you can read them
+         * from a desired start offset.
+         */
+        void fillArrayOfPointersForReadingFrom (std::complex<SampleType>** arrayToFill, int startOffset)
+        {
+            for (int channel = 0; channel < numChannelsAllocated; ++channel)
+                arrayToFill[channel] = channelPtrs[channel] + startOffset;
+        }
 
         /**
          * Returns a reference to the underlying cl::Buffer object that holds the samples. Never map or unmap the
@@ -1669,6 +1789,25 @@ namespace ntlab
             // buffer needs to be mapped to be copied in host memory space
             jassert (isMapped);
             NTLAB_OPERATION_ON_ALL_CHANNELS (ComplexVectorOperations::abs (readPtr, writePtr, numSamlesToCopy))
+        }
+
+        void swapWith (CLSampleBufferComplex<SampleType>& other)
+        {
+            // You can only swap buffers that use the same queue and context
+            jassert (queue   == other.queue);
+            jassert (context == other.context);
+
+            // You can only swaped unmapped buffers
+            jassert (!isMapped && !other.isMapped);
+
+            std::swap (numChannelsAllocated, other.numChannelsAllocated);
+            std::swap (numSamplesAllocated,  other.numSamplesAllocated);
+            std::swap (numSamplesUsed,       other.numSamplesUsed);
+            std::swap (clBuffer,             other.clBuffer);
+            std::swap (channelList,          other.channelList);
+            std::swap (mapFlags,             other.mapFlags);
+            std::swap (numBytesInBuffer,     other.numBytesInBuffer);
+            std::swap (channelPtrs,          other.channelPtrs);
         }
 
         /** Helper to create one Sample of the buffers SampleType in templated code */
