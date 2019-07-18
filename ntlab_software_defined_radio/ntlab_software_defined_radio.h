@@ -97,6 +97,7 @@ along with SoftwareDefinedRadio4JUCE. If not, see <http://www.gnu.org/licenses/>
 
 #if !JUCE_IOS
 #include "HardwareDevices/EttusEngine/UHDReplacement.h"
+#include "HardwareDevices/HackRFEngine/HackRFReplacement.h"
 #endif
 #include "HardwareDevices/EttusEngine/UHDEngine.h"
 #include "HardwareDevices/MCVFileEngine/MCVFileEngine.h"
@@ -107,6 +108,7 @@ along with SoftwareDefinedRadio4JUCE. If not, see <http://www.gnu.org/licenses/>
 #if JUCE_MODULE_AVAILABLE_juce_gui_basics
 #include "GUI/UHDConfigComponent.h"
 #include "GUI/MCVConfigComponent.h"
+#include "GUI/HackRFConfigComponent.h"
 #endif
 
 #include "DSP/Oscillator.h"

@@ -19,6 +19,7 @@ along with SoftwareDefinedRadio4JUCE. If not, see <http://www.gnu.org/licenses/>
 
 #include "MCVFileEngine/MCVFileEngine.h"
 #include "EttusEngine/UHDEngine.h"
+#include "HackRFEngine/HackRfEngine.h"
 
 namespace ntlab
 {
@@ -100,9 +101,16 @@ namespace ntlab
 #if !JUCE_IOS
         if (!currentEngines.contains ("UHD Engine"))
         {
-            std::unique_ptr<UHDEngineManager> uhdEngineManager (new UHDEngineManager);
+            auto uhdEngineManager = std::make_unique<UHDEngineManager>();
             if (uhdEngineManager->isEngineAvailable())
                 managers.add (uhdEngineManager.release());
+        }
+
+        if (!currentEngines.contains ("HackRF Engine"))
+        {
+            auto hackRFEngineManager = std::make_unique<HackRFEngineManager>();
+            if (hackRFEngineManager->isEngineAvailable())
+                managers.add (hackRFEngineManager.release());
         }
 #endif
 

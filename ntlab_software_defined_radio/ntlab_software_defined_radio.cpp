@@ -20,11 +20,14 @@ along with SoftwareDefinedRadio4JUCE. If not, see <http://www.gnu.org/licenses/>
 
 #include "HardwareDevices/EttusEngine/UHDReplacement.cpp"
 #include "HardwareDevices/EttusEngine/UHDEngine.cpp"
+#include "HardwareDevices/HackRFEngine/HackRFReplacement.cpp"
+#include "HardwareDevices/HackRFEngine/HackRFEngine.cpp"
 #include "HardwareDevices/MCVFileEngine/MCVFileEngine.cpp"
 
 #if JUCE_MODULE_AVAILABLE_juce_gui_basics
 #include "GUI/UHDConfigComponent.cpp"
 #include "GUI/MCVConfigComponent.cpp"
+#include "GUI/HackRFConfigComponent.cpp"
 #endif
 
 #include "DSP/Oscillator.cpp"
