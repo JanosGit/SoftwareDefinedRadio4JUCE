@@ -64,7 +64,56 @@ namespace ntlab
         {
             juce::File inFile (inFilePathLabel.getText());
 
-            //if (inFile.)
+            if (inFile.existsAsFile() && inFile.hasFileExtension ("mcv"))
+            {
+                currentSettings.setProperty (MCVFileEngine::propertyInFile, inFile.getFullPathName(), nullptr);
+            }
+        };
+
+        outFilePathLabel.onTextChange = [this]()
+        {
+            juce::File outFile (outFilePathLabel.getText());
+
+            if (outFile.hasFileExtension ("mcv"))
+            {
+                currentSettings.setProperty (MCVFileEngine::propertyOutFile, outFile.getFullPathName(), nullptr);
+            }
+        };
+
+        inFileBrowseButton.onClick = [this]()
+        {
+            juce::FileChooser fileChooser ("Select input file",
+                                           juce::File::getSpecialLocation (juce::File::userHomeDirectory),
+                                           "*.mcv");
+
+            if (fileChooser.browseForFileToOpen())
+            {
+                auto newInFile = fileChooser.getResult().getFullPathName();
+                currentSettings.setProperty (MCVFileEngine::propertyInFile, newInFile, nullptr);
+                inFilePathLabel.setText     (newInFile, juce::NotificationType::dontSendNotification);
+            }
+        };
+
+        outFileBrowseButton.onClick = [this]()
+        {
+            juce::FileChooser fileChooser ("Select output file",
+                                           juce::File::getSpecialLocation (juce::File::userHomeDirectory),
+                                           "*.mcv");
+
+            if (fileChooser.browseForFileToSave (true))
+            {
+                auto newOutFile = fileChooser.getResult().getFullPathName();
+                currentSettings.setProperty (MCVFileEngine::propertyOutFile, newOutFile, nullptr);
+                outFilePathLabel.setText    (newOutFile, juce::NotificationType::dontSendNotification);
+            }
+        };
+
+        numOutChannelsLabel.onTextChange = [this]()
+        {
+            auto newNumOutChannels = numOutChannelsLabel.getText();
+
+            if (newNumOutChannels.containsOnly ("0123456789"))
+                currentSettings.setProperty (MCVFileEngine::propertyNumOutChannels, newNumOutChannels.getIntValue(), nullptr);
         };
 
         applySettingsButton.onClick = [this]()
