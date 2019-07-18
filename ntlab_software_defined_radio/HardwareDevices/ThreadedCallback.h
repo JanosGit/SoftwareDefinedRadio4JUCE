@@ -17,6 +17,7 @@ along with SoftwareDefinedRadio4JUCE. If not, see <http://www.gnu.org/licenses/>
 
 #pragma once
 
+#ifdef NTLAB_FORCED_BLOCKSIZE
 namespace ntlab
 {
 
@@ -117,3 +118,5 @@ namespace ntlab
         int threadTimeout = 0;
     };
 }
+
+#endif // NTLAB_FORCED_BLOCKSIZE
