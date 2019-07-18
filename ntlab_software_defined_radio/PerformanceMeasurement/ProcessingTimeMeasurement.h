@@ -76,8 +76,8 @@ namespace ntlab
                                         juce::Logger::writeToLog ("Processing time measurement results: " + juce::String (us) + "μs per sample, " + juce::String (load) + "% load");
                                    })
          : juce::Thread ("ntlab_ProcessingTimeMeasurement_thread"),
-           numSampsToAverage (numSamplesToAverage),
-           resultCallback    (callback) {}
+           resultCallback    (callback),
+           numSampsToAverage (numSamplesToAverage) {}
 
         /** Always call this before starting to stream */
         void processingStarts (double sampleRate)
