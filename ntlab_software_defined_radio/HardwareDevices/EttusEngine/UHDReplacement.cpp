@@ -19,6 +19,7 @@ along with SoftwareDefinedRadio4JUCE. If not, see <http://www.gnu.org/licenses/>
 
 #include "UHDReplacement.h"
 #include "../../ErrorHandling/ErrorHandlingMacros.h"
+#include "../DynamicLibHelpers.h"
 
 namespace ntlab
 {
@@ -202,75 +203,68 @@ namespace ntlab
 
             // try loading all functions
             juce::String functionName;
-            LoadingError loadingError (functionName, result);
+            LoadingError<UHDr> loadingError (functionName, result);
 
-            // Define a macro to avoid a lot of repetitive boilerplate code
-#define NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS(fptr, fptrType, fnName) u->fptr = (fptrType) lib.getFunction (functionName = fnName); \
-                                                                          if (u->fptr == nullptr) \
-                                                                              return loadingError.lastFunction();
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (u, usrpMake,                 "uhd_usrp_make")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (u, usrpFree,                 "uhd_usrp_free")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (u, rxStreamerMake,           "uhd_rx_streamer_make")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (u, rxStreamerFree,           "uhd_rx_streamer_free")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (u, rxMetadataMake,           "uhd_rx_metadata_make")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (u, rxMetadataFree,           "uhd_rx_metadata_free")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (u, txStreamerMake,           "uhd_tx_streamer_make")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (u, txStreamerFree,           "uhd_tx_streamer_free")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (u, txMetadataMake,           "uhd_tx_metadata_make")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (u, txMetadataFree,           "uhd_tx_metadata_free")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (u, txMetadataLastError,      "uhd_tx_metadata_last_error")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (u, subdevSpecMake,           "uhd_subdev_spec_make")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (u, subdevSpecFree,           "uhd_subdev_spec_free")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (u, stringVectorMake,         "uhd_string_vector_make")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (u, stringVectorFree,         "uhd_string_vector_free")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (u, stringVectorSize,         "uhd_string_vector_size")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (u, stringVectorAt,           "uhd_string_vector_at")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (u, find,                     "uhd_usrp_find")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (u, getNumRxChannels,         "uhd_usrp_get_rx_num_channels")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (u, getNumTxChannels,         "uhd_usrp_get_tx_num_channels")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (u, setRxSampleRate,          "uhd_usrp_set_rx_rate")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (u, getRxSampleRate,          "uhd_usrp_get_rx_rate")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (u, setTxSampleRate,          "uhd_usrp_set_tx_rate")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (u, getTxSampleRate,          "uhd_usrp_get_tx_rate")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (u, setRxGain,                "uhd_usrp_set_rx_gain")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (u, getRxGain,                "uhd_usrp_get_rx_gain")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (u, setTxGain,                "uhd_usrp_set_tx_gain")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (u, getTxGain,                "uhd_usrp_get_tx_gain")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (u, getRxGainElementNames,    "uhd_usrp_get_rx_gain_names");
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (u, getTxGainElementNames,    "uhd_usrp_get_tx_gain_names");
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (u, setRxFrequency,           "uhd_usrp_set_rx_freq")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (u, getRxFrequency,           "uhd_usrp_get_rx_freq")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (u, setTxFrequency,           "uhd_usrp_set_tx_freq")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (u, getTxFrequency,           "uhd_usrp_get_tx_freq")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (u, setRxBandwidth,           "uhd_usrp_set_rx_bandwidth")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (u, getRxBandwidth,           "uhd_usrp_get_rx_bandwidth")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (u, setTxBandwidth,           "uhd_usrp_set_tx_bandwidth")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (u, getTxBandwidth,           "uhd_usrp_get_tx_bandwidth")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (u, setRxAntenna,             "uhd_usrp_set_rx_antenna")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (u, getRxAntenna,             "uhd_usrp_get_rx_antenna")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (u, getRxAntennas,            "uhd_usrp_get_rx_antennas")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (u, setTxAntenna,             "uhd_usrp_set_tx_antenna")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (u, getTxAntenna,             "uhd_usrp_get_tx_antenna")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (u, getTxAntennas,            "uhd_usrp_get_tx_antennas")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (u, setRxSubdevSpec,          "uhd_usrp_set_rx_subdev_spec")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (u, setTxSubdevSpec,          "uhd_usrp_set_tx_subdev_spec")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (u, setClockSource,           "uhd_usrp_set_clock_source")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (u, setTimeSource,            "uhd_usrp_set_time_source")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (u, setTimeUnknownPPS,        "uhd_usrp_set_time_unknown_pps")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (u, setTimeNow,               "uhd_usrp_set_time_now")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (u, getRxStream,              "uhd_usrp_get_rx_stream")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (u, getTxStream,              "uhd_usrp_get_tx_stream")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (u, getRxStreamMaxNumSamples, "uhd_rx_streamer_max_num_samps")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (u, getTxStreamMaxNumSamples, "uhd_tx_streamer_max_num_samps")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (u, rxStreamerIssueStreamCmd, "uhd_rx_streamer_issue_stream_cmd")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (u, rxStreamerReceive,        "uhd_rx_streamer_recv")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (u, txStreamerSend,           "uhd_tx_streamer_send")
+            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (u, getRxMetadataErrorCode,   "uhd_rx_metadata_error_code")
 
-            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (usrpMake,                 USRPMake,                 "uhd_usrp_make")
-            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (usrpFree,                 USRPFree,                 "uhd_usrp_free")
-            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (rxStreamerMake,           RxStreamerMake,           "uhd_rx_streamer_make")
-            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (rxStreamerFree,           RxStreamerFree,           "uhd_rx_streamer_free")
-            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (rxMetadataMake,           RxMetadataMake,           "uhd_rx_metadata_make")
-            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (rxMetadataFree,           RxMetadataFree,           "uhd_rx_metadata_free")
-            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (txStreamerMake,           TxStreamerMake,           "uhd_tx_streamer_make")
-            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (txStreamerFree,           TxStreamerFree,           "uhd_tx_streamer_free")
-            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (txMetadataMake,           TxMetadataMake,           "uhd_tx_metadata_make")
-            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (txMetadataFree,           TxMetadataFree,           "uhd_tx_metadata_free")
-            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (txMetadataLastError,      TxMetadataLastError,      "uhd_tx_metadata_last_error")
-            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (subdevSpecMake,           SubdevSpecMake,           "uhd_subdev_spec_make")
-            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (subdevSpecFree,           SubdevSpecFree,           "uhd_subdev_spec_free")
-            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (stringVectorMake,         StringVectorMake,         "uhd_string_vector_make")
-            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (stringVectorFree,         StringVectorFree,         "uhd_string_vector_free")
-            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (stringVectorSize,         StringVectorSize,         "uhd_string_vector_size")
-            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (stringVectorAt,           StringVectorAt,           "uhd_string_vector_at")
-            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (find,                     Find,                     "uhd_usrp_find")
-            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (getNumRxChannels,         GetNumRxChannels,         "uhd_usrp_get_rx_num_channels")
-            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (getNumTxChannels,         GetNumTxChannels,         "uhd_usrp_get_tx_num_channels")
-            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (setRxSampleRate,          SetSampleRate,            "uhd_usrp_set_rx_rate")
-            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (getRxSampleRate,          GetSampleRate,            "uhd_usrp_get_rx_rate")
-            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (setTxSampleRate,          SetSampleRate,            "uhd_usrp_set_tx_rate")
-            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (getTxSampleRate,          GetSampleRate,            "uhd_usrp_get_tx_rate")
-            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (setRxGain,                SetGain,                  "uhd_usrp_set_rx_gain")
-            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (getRxGain,                GetGain,                  "uhd_usrp_get_rx_gain")
-            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (setTxGain,                SetGain,                  "uhd_usrp_set_tx_gain")
-            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (getTxGain,                GetGain,                  "uhd_usrp_get_tx_gain")
-            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (getRxGainElementNames,    GetGainElementNames,      "uhd_usrp_get_rx_gain_names");
-            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (getTxGainElementNames,    GetGainElementNames,      "uhd_usrp_get_tx_gain_names");
-            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (setRxFrequency,           SetFrequency,             "uhd_usrp_set_rx_freq")
-            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (getRxFrequency,           GetFrequency,             "uhd_usrp_get_rx_freq")
-            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (setTxFrequency,           SetFrequency,             "uhd_usrp_set_tx_freq")
-            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (getTxFrequency,           GetFrequency,             "uhd_usrp_get_tx_freq")
-            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (setRxBandwidth,           SetBandwidth,             "uhd_usrp_set_rx_bandwidth")
-            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (getRxBandwidth,           GetBandwidth,             "uhd_usrp_get_rx_bandwidth")
-            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (setTxBandwidth,           SetBandwidth,             "uhd_usrp_set_tx_bandwidth")
-            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (getTxBandwidth,           GetBandwidth,             "uhd_usrp_get_tx_bandwidth")
-            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (setRxAntenna,             SetAntenna,               "uhd_usrp_set_rx_antenna")
-            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (getRxAntenna,             GetAntenna,               "uhd_usrp_get_rx_antenna")
-            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (getRxAntennas,            GetAntennas,              "uhd_usrp_get_rx_antennas")
-            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (setTxAntenna,             SetAntenna,               "uhd_usrp_set_tx_antenna")
-            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (getTxAntenna,             GetAntenna,               "uhd_usrp_get_tx_antenna")
-            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (getTxAntennas,            GetAntennas,              "uhd_usrp_get_tx_antennas")
-            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (setRxSubdevSpec,          SetSubdevSpec,            "uhd_usrp_set_rx_subdev_spec")
-            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (setTxSubdevSpec,          SetSubdevSpec,            "uhd_usrp_set_tx_subdev_spec")
-            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (setClockSource,           SetSource,                "uhd_usrp_set_clock_source")
-            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (setTimeSource,            SetSource,                "uhd_usrp_set_time_source")
-            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (setTimeUnknownPPS,        SetTimeUnknownPPS,        "uhd_usrp_set_time_unknown_pps")
-            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (setTimeNow,               SetTimeNow,               "uhd_usrp_set_time_now")
-            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (getRxStream,              GetRxStream,              "uhd_usrp_get_rx_stream")
-            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (getTxStream,              GetTxStream,              "uhd_usrp_get_tx_stream")
-            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (getRxStreamMaxNumSamples, GetRxStreamMaxNumSamples, "uhd_rx_streamer_max_num_samps")
-            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (getTxStreamMaxNumSamples, GetTxStreamMaxNumSamples, "uhd_tx_streamer_max_num_samps")
-            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (rxStreamerIssueStreamCmd, RxStreamerIssueStreamCmd, "uhd_rx_streamer_issue_stream_cmd")
-            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (rxStreamerReceive,        RxStreamerReceive,        "uhd_rx_streamer_recv")
-            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (txStreamerSend,           TxStreamerSend,           "uhd_tx_streamer_send")
-            NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS (getRxMetadataErrorCode,   GetRxMetadataErrorCode,   "uhd_rx_metadata_error_code")
-
-#undef NTLAB_LOAD_FUNCTION_AND_CHECK_FOR_SUCCESS
-
-            // if the code reached this point, all functions were successully loaded. The object may now be safely constructed
+            // if the code reached this point, all functions were successully loaded. The object may now be used safely
             result = "Successfully loaded library " + library;
             return u;
         }

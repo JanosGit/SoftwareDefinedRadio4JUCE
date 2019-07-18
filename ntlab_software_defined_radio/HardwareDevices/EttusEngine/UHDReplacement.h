@@ -701,25 +701,6 @@ namespace ntlab
 
     private:
 
-        // a helper class that takes care of closing the library and generating an automated error message containing
-        // the function name that couldn't be loaded
-        class LoadingError {
-        public:
-            LoadingError (juce::String &functionName, juce::String &result) :
-                    fnName (functionName),
-                    res (result) {};
-
-            // this is called if loading the most recent function failed.
-            UHDr *lastFunction() {
-                res = "Error loading function " + fnName;
-                return nullptr;
-            }
-
-        private:
-            juce::String &fnName;
-            juce::String &res;
-        };
-
         // all loaded function pointers
         USRPMake                 usrpMake;
         USRPFree                 usrpFree;
