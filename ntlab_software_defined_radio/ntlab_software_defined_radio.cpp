@@ -39,6 +39,8 @@ along with SoftwareDefinedRadio4JUCE. If not, see <http://www.gnu.org/licenses/>
 
 #include "UnitTestHelpers/UnitTestHelpers.cpp"
 
+#include "Utilities/VarStreamOperator.cpp"
+
 #if NTLAB_USE_CL_DSP
 #include "OpenCL2/SharedCLDevice.cpp"
 #endif
