@@ -40,6 +40,7 @@ namespace ntlab
         class ConfigurationConstraints
         {
         public:
+
             enum ConstrainedValue
             {
                 sampleRate,
@@ -191,6 +192,13 @@ namespace ntlab
             }
         };
 
+        enum RxTxState : uint8_t
+        {
+            rxEnabled   = 0b01,
+            txEnabled   = 0b10,
+            rxTxEnabled = 0b11
+        };
+
         virtual ~SDRIOEngineConfigurationInterface () {};
 
         /**
@@ -260,13 +268,13 @@ namespace ntlab
          * Allows you to enable and disable rx and tx, also from within the SDRIODeviceCallback::processRFSampleBlock
          * callback. This allows full or half duplex applications, depending on the hardware capabilities. Returns true
          * if the setting could be applied, false otherwise. E.g. if the hardware supports only half duplex a call to
-         * enableRxTxChannels(true, true) would fail while enableRxTxChannels(true, false) or
-         * enableRxTxChannels(false, true) would both be successful. Disabling both, in- and output will fail in every
-         * case.
+         * enableRxTxChannels (rxTxEnabled) would fail while enableRxTxChannels (rxEnabled) or
+         * enableRxTxChannels (txEnabled) would both be successful.
+         *
          * If you call this from withing the SDRIODeviceCallback::processRFSampleBlock callback settings will be applied
          * in the next callback.
          */
-        virtual bool enableRxTx (bool enableRx, bool enableTx) = 0;
+        virtual bool enableRxTx (RxTxState rxTxState) = 0;
 
     protected:
 #if NTLAB_USE_CL_SAMPLE_BUFFER_COMPLEX_FOR_SDR_IO_DEVICE_CALLBACK

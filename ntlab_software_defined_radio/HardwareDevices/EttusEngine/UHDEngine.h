@@ -174,7 +174,7 @@ namespace ntlab
 
         bool isStreaming() override;
 
-        bool enableRxTx (bool enableRx, bool enableTx) override;
+        bool enableRxTx (RxTxState rxTxState) override;
 
         bool setRxCenterFrequency (double newCenterFrequency, int channel) override;
 

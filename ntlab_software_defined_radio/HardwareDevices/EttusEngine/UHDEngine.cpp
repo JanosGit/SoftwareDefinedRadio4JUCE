@@ -560,19 +560,16 @@ namespace ntlab
         return isThreadRunning();
     }
 
-    bool UHDEngine::enableRxTx (bool enableRx, bool enableTx)
+    bool UHDEngine::enableRxTx (RxTxState rxTxState)
     {
-        // You can not disable both, rx and tx streams. Call stopStreaming for this.
-        NTLAB_RETURN_FALSE_AND_ASSERT_IF (!(enableRx || enableTx));
-
         // You cannot enable rx if you haven set up your rx channels successfully
-        NTLAB_RETURN_FALSE_AND_ASSERT_IF (enableRx && (rxStream == nullptr));
+        NTLAB_RETURN_FALSE_AND_ASSERT_IF ((rxTxState & RxTxState::rxEnabled) && (rxStream == nullptr));
 
         // You cannot enable rx if you haven set up your tx channels successfully
-        NTLAB_RETURN_FALSE_AND_ASSERT_IF (enableTx && (txStream == nullptr));
+        NTLAB_RETURN_FALSE_AND_ASSERT_IF ((rxTxState & RxTxState::txEnabled) && (txStream == nullptr));
 
-        rxEnabled = enableRx;
-        txEnabled = enableTx;
+        rxEnabled = rxTxState & RxTxState::rxEnabled;
+        txEnabled = rxTxState & RxTxState::txEnabled;
 
         return true;
     }
@@ -1579,9 +1576,9 @@ namespace ntlab
                 rxBuffer->incrementNumSamples (numSamplesThisBlock);
             }
 #else
-                rxBuffer->setNumSamples (numSamplesReceived);
+                rxBuffer->setNumSamples (numSamplesThisBlock);
                 if (txEnabled)
-                    txBuffer->setNumSamples (numSamplesReceived);
+                    txBuffer->setNumSamples (numSamplesThisBlock);
 
             }
             else

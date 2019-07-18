@@ -235,13 +235,10 @@ namespace ntlab
 
     bool MCVFileEngine::isStreaming() {return streamingIsRunning; }
 
-    bool MCVFileEngine::enableRxTx (bool enableRx, bool enableTx)
+    bool MCVFileEngine::enableRxTx (RxTxState rxTxState)
     {
-        if ((enableRx == false) && (enableTx == false))
-            return false;
-
-        rxEnabled = enableRx;
-        txEnabled = enableTx;
+        rxEnabled = rxTxState & RxTxState::rxEnabled;
+        txEnabled = rxTxState & RxTxState::txEnabled;
 
         engineConfig.setProperty (propertyRxEnabled, rxEnabled, nullptr);
         engineConfig.setProperty (propertyTxEnabled, txEnabled, nullptr);
