@@ -75,29 +75,34 @@ namespace ntlab
         /** Appends the content of this sample buffer to the file */
         void appendSampleBuffer (SampleBufferComplex<double>& bufferToAppend);
 
-        /** Writes a complete SampleBufferReal<float> to the desired output file */
-        static bool writeSampleBuffer (SampleBufferReal<float>& bufferToWrite, juce::File& outputFile);
+        /** Writes a SampleBuffer to the desired output file. Allowed types are all ntlab SampleBuffer classes and juce
+         * AudioBuffer. In case you pass in an ntlab CLSampleBuffer, make sure it is mapped.
+         */
+        template <typename BufferType>
+        static bool writeSampleBuffer (const BufferType& bufferToWrite, const juce::File& outputFile)
+        {
+            // Make sure your CL buffer is mapped
+            if constexpr (IsSampleBuffer<BufferType>::cl())
+                jassert (bufferToWrite.isCurrentlyMapped());
 
-        /** Writes a complete SampleBufferReal<double> to the desired output file */
-        static bool writeSampleBuffer (SampleBufferReal<double>& bufferToWrite, juce::File& outputFile);
-
-        /** Writes a complete SampleBufferComplex<float> to the desired output file */
-        static bool writeSampleBuffer (SampleBufferComplex<float>& bufferToWrite, juce::File& outputFile);
-
-        /** Writes a complete SampleBufferComplex<double> to the desired output file */
-        static bool writeSampleBuffer (SampleBufferComplex<double>& bufferToWrite, juce::File& outputFile);
-
-        /** Writes the content of the raw array to the desired output file */
-        static bool writeRawArray (const float** rawArray, int64_t numColsOrChannels, int64_t numRowsOrSamples, juce::File& outputFile);
+            return writeRawArray (bufferToWrite.getArrayOfReadPointers(), bufferToWrite.getNumChannels(), bufferToWrite.getNumSamples(), outputFile);
+        };
 
         /** Writes the content of the raw array to the desired output file */
-        static bool writeRawArray (const double** rawArray, int64_t numColsOrChannels, int64_t numRowsOrSamples, juce::File& outputFile);
+        static bool writeRawArray (const float** rawArray, int64_t numColsOrChannels, int64_t numRowsOrSamples, const juce::File& outputFile);
 
         /** Writes the content of the raw array to the desired output file */
-        static bool writeRawArray (const std::complex<float>** rawArray, int64_t numColsOrChannels, int64_t numRowsOrSamples, juce::File& outputFile);
+        static bool writeRawArray (const double** rawArray, int64_t numColsOrChannels, int64_t numRowsOrSamples, const juce::File& outputFile);
 
         /** Writes the content of the raw array to the desired output file */
-        static bool writeRawArray (const std::complex<double>** rawArray, int64_t numColsOrChannels, int64_t numRowsOrSamples, juce::File& outputFile);
+        static bool writeRawArray (const std::complex<float>** rawArray, int64_t numColsOrChannels, int64_t numRowsOrSamples, const juce::File& outputFile);
+
+        /** Writes the content of the raw array to the desired output file */
+        static bool writeRawArray (const std::complex<double>** rawArray, int64_t numColsOrChannels, int64_t numRowsOrSamples, const juce::File& outputFile);
+
+        /** Writes the content of the raw array to the desired output file. This version writes a 1D array to a row vector */
+        template <typename ArrayType>
+        static bool writeRawArray (const ArrayType* rawArray, int64_t numElements, juce::File& outputFile) { return writeRawArray (&rawArray, 1, numElements, outputFile); }
 
 #if NTLAB_INCLUDE_EIGEN
         /** Writes the content of an Eigen::Matrix to the output file. Only available if NTLAB_INCLUDE_EIGEN is enabled */
@@ -172,6 +177,6 @@ namespace ntlab
 
         void setTmpChannelPointersToIndex (int index);
 
-        static bool writeRaw (const void** rawArray, int64_t numColsOrChannels, int64_t numRowsOrSamples, bool isComplex, bool isDouble, juce::File& outputFile);
+        static bool writeRaw (const void** rawArray, int64_t numColsOrChannels, int64_t numRowsOrSamples, bool isComplex, bool isDouble, const juce::File& outputFile);
     };
 }

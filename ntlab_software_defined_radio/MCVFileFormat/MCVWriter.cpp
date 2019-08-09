@@ -202,42 +202,22 @@ namespace ntlab
         mcvWriterThread->notify();
     }
 
-    bool MCVWriter::writeSampleBuffer (ntlab::SampleBufferReal<float>& bufferToWrite, juce::File& outputFile)
-    {
-        return writeRawArray (bufferToWrite.getArrayOfReadPointers(), bufferToWrite.getNumChannels(), bufferToWrite.getNumSamples(), outputFile);
-    }
-
-    bool MCVWriter::writeSampleBuffer (ntlab::SampleBufferReal<double>& bufferToWrite, juce::File& outputFile)
-    {
-        return writeRawArray (bufferToWrite.getArrayOfReadPointers(), bufferToWrite.getNumChannels(), bufferToWrite.getNumSamples(), outputFile);
-    }
-
-    bool MCVWriter::writeSampleBuffer (ntlab::SampleBufferComplex<float>& bufferToWrite, juce::File& outputFile)
-    {
-        return writeRawArray (bufferToWrite.getArrayOfReadPointers(), bufferToWrite.getNumChannels(), bufferToWrite.getNumSamples(), outputFile);
-    }
-
-    bool MCVWriter::writeSampleBuffer (ntlab::SampleBufferComplex<double>& bufferToWrite, juce::File& outputFile)
-    {
-        return writeRawArray (bufferToWrite.getArrayOfReadPointers(), bufferToWrite.getNumChannels(), bufferToWrite.getNumSamples(), outputFile);
-    }
-
-    bool MCVWriter::writeRawArray (const float** rawArray, int64_t numColsOrChannels, int64_t numRowsOrSamples, juce::File& outputFile)
+    bool MCVWriter::writeRawArray (const float** rawArray, int64_t numColsOrChannels, int64_t numRowsOrSamples, const juce::File& outputFile)
     {
         return writeRaw (reinterpret_cast<const void**> (rawArray), numColsOrChannels, numRowsOrSamples, false, false, outputFile);
     }
 
-    bool MCVWriter::writeRawArray (const double** rawArray, int64_t numColsOrChannels, int64_t numRowsOrSamples, juce::File& outputFile)
+    bool MCVWriter::writeRawArray (const double** rawArray, int64_t numColsOrChannels, int64_t numRowsOrSamples, const juce::File& outputFile)
     {
         return writeRaw (reinterpret_cast<const void**> (rawArray), numColsOrChannels, numRowsOrSamples, false, true, outputFile);
     }
 
-    bool MCVWriter::writeRawArray (const std::complex<float>** rawArray, int64_t numColsOrChannels, int64_t numRowsOrSamples, juce::File& outputFile)
+    bool MCVWriter::writeRawArray (const std::complex<float>** rawArray, int64_t numColsOrChannels, int64_t numRowsOrSamples, const juce::File& outputFile)
     {
         return writeRaw (reinterpret_cast<const void**> (rawArray), numColsOrChannels, numRowsOrSamples, true, false, outputFile);
     }
 
-    bool MCVWriter::writeRawArray (const std::complex<double>** rawArray, int64_t numColsOrChannels, int64_t numRowsOrSamples, juce::File& outputFile)
+    bool MCVWriter::writeRawArray (const std::complex<double>** rawArray, int64_t numColsOrChannels, int64_t numRowsOrSamples, const juce::File& outputFile)
     {
         return writeRaw (reinterpret_cast<const void**> (rawArray), numColsOrChannels, numRowsOrSamples, true, true, outputFile);
     }
@@ -331,7 +311,7 @@ namespace ntlab
             tmpChannelPointers[i] = juce::addBytesToPointer (fifoBuffers[i].getData(), index * numBytesPerValue);
     }
 
-    bool MCVWriter::writeRaw (const void** rawArray, int64_t numColsOrChannels, int64_t numRowsOrSamples, bool isComplex, bool isDouble, juce::File& outputFile)
+    bool MCVWriter::writeRaw (const void** rawArray, int64_t numColsOrChannels, int64_t numRowsOrSamples, bool isComplex, bool isDouble, const juce::File& outputFile)
     {
         jassert (outputFile.hasFileExtension ("mcv"));
 
