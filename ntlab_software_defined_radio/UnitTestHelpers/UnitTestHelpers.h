@@ -50,7 +50,10 @@ namespace ntlab
             for (int i = 0; i < length; ++i)
             {
                 if (!juce::approximatelyEqual (buffer1[i], T1(buffer2[i])))
+                {
+                    DBG ("Wrong value at idx " << i << ". Value 1: " << buffer1[i] << ", value 2: "  << buffer2[i]);
                     return false;
+                }
             }
 
             return true;
@@ -62,10 +65,16 @@ namespace ntlab
             for (int i = 0; i < length; ++i)
             {
                 if (!juce::approximatelyEqual (buffer1[i].real(), T1(buffer2[i].real())))
+                {
+                    DBG ("Wrong real value at idx " << i << ". Value 1: " << buffer1[i].real() << ", value 2: "  << buffer2[i].real());
                     return false;
+                }
 
                 if (!juce::approximatelyEqual (buffer1[i].imag(), T1(buffer2[i].imag())))
+                {
+                    DBG ("Wrong imag value at idx " << i << ". Value 1: " << buffer1[i].imag() << ", value 2: "  << buffer2[i].imag());
                     return false;
+                }
             }
 
             return true;
