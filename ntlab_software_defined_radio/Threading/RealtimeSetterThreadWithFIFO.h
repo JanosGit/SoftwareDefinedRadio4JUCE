@@ -39,6 +39,8 @@ class RealtimeSetterThreadWithFIFO : private juce::AbstractFifo, private juce::T
 public:
     static_assert (std::is_trivially_copyable<RealtimeCapableSetter>::value, "RealtimeCapableSetter must be trivially copyable");
 
+    using NoneRealtimeCriticalLambda = std::function<int()>;
+
     RealtimeSetterThreadWithFIFO() : juce::AbstractFifo (fifoSize), juce::Thread ("Realtime setter thread")
     {
         startThread (8);
@@ -56,8 +58,9 @@ public:
     void setRealtimeThreadID (juce::Thread::ThreadID newRealtimeThreadID) {realtimeThreadID = newRealtimeThreadID; }
 
     /**
-     * Invokes a RealtimeCapableSetter directly and returns it return value if this call is not comming from the real
-     * time thread. If it
+     * Invokes a RealtimeCapableSetter directly and returns it return value if this call is not coming from the real
+     * time thread. If it comes from the realtime thread it will be pushed to a queue and will be executed on a
+     * separate thread owned by this class. In this case, the return value will always be noErrorValue.
      */
     int call (const RealtimeCapableSetter& setter)
     {
@@ -80,11 +83,35 @@ public:
         return setter.invoke();
     }
 
-    std::function<void(int, void*)> errorFromSetterThread = [] (int, void*) {};
+    /**
+     * This can be used to handle a non-realtime critical task on the setter thread. Calling this function is not
+     * realtime-safe. It will invoke the lambda directly and return its return value if the call is not coming from the
+     * real time thread. If it comes from the realtime thread it will be pushed to a queue and will be executed on a
+     * separate thread owned by this class. In this case, the return value will always be noErrorValue.
+     */
+    int callLambda (NoneRealtimeCriticalLambda&& lambdaToCall)
+    {
+        if (realtimeThreadID == getCurrentThreadId())
+        {
+            lambdas.push_back (lambdaToCall);
+            notify();
+            return noErrorValue;
+        }
+
+        return lambdaToCall();
+    }
+
+    /**
+     * Will be invoked if a RealtimeCapableSetter was executed on the internal thread and threw an error. The context
+     * pointer will be the return value of RealtimeCapableSetter::getErrorContext
+     */
+    std::function<void(int, void*)> errorFromSetterThread = [] (int returnValue, void* context) {};
 
 private:
     std::array<RealtimeCapableSetter, fifoSize> setterQueue;
     juce::Thread::ThreadID realtimeThreadID = nullptr;
+
+    std::vector<NoneRealtimeCriticalLambda> lambdas;
 
     void run() override
     {
@@ -108,6 +135,11 @@ private:
                         errorFromSetterThread (error, setterQueue[readHandle.startIndex2 + i].getErrorContext());
                 }
             }
+
+            for (auto& lambda : lambdas)
+                lambda();
+
+            lambdas.clear();
 
             wait (-1);
         }
