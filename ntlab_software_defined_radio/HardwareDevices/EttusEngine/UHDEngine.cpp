@@ -47,8 +47,7 @@ namespace ntlab
 #define errorDescription UHDr::errorDescription
 
     const juce::String UHDEngine::defaultCpuFormat ("fc32");
-    const juce::String UHDEngine::defaultOtwFormat ("sc16");
-    const juce::String UHDEngine::defaultArgs;
+    const juce::String UHDEngine::emptyArg;
 #endif
 
     const juce::Identifier UHDEngine::propertyUSRPDevice       ("USRP_Device");
@@ -248,8 +247,8 @@ namespace ntlab
         streamArgs.numChannels = rxChannelMapping->numChannels;
         streamArgs.channelList = rxChannelMapping->getStreamArgsChannelList();
         streamArgs.cpuFormat   = const_cast<char*> (defaultCpuFormat.toRawUTF8());
-        streamArgs.otwFormat   = const_cast<char*> (defaultOtwFormat.toRawUTF8());
-        streamArgs.args        = const_cast<char*> (defaultArgs.toRawUTF8());
+        streamArgs.otwFormat   = const_cast<char*> (emptyArg.toRawUTF8());
+        streamArgs.args        = const_cast<char*> (emptyArg.toRawUTF8());
         rxStream.reset (usrp->makeRxStream (streamArgs, error));
 
         if (error)
@@ -296,8 +295,8 @@ namespace ntlab
         streamArgs.numChannels = txChannelMapping->numChannels;
         streamArgs.channelList = txChannelMapping->getStreamArgsChannelList();
         streamArgs.cpuFormat   = const_cast<char*> (defaultCpuFormat.toRawUTF8());
-        streamArgs.otwFormat   = const_cast<char*> (defaultOtwFormat.toRawUTF8());
-        streamArgs.args        = const_cast<char*> (defaultArgs.toRawUTF8());
+        streamArgs.otwFormat   = const_cast<char*> (emptyArg.toRawUTF8());
+        streamArgs.args        = const_cast<char*> (emptyArg.toRawUTF8());
 
         txStream.reset (usrp->makeTxStream (streamArgs, error));
 
@@ -552,7 +551,9 @@ namespace ntlab
 
     void UHDEngine::stopStreaming ()
     {
-        stopThread (20000);
+        // this will be executed on a different thread if called from within the realtime thread
+        auto st = [this]() { return stopThread (20000); };
+        usrp->callLambda (st);
     }
 
     bool UHDEngine::isStreaming ()
@@ -1081,6 +1082,13 @@ namespace ntlab
                 gainElementsMap[c][UHDGainElements::analog] = idxOfAnalogGain;
                 static const juce::Identifier propertyGainRangePGA0 ("Gain_range_PGA0");
                 gainElementSubtree[c][UHDGainElements::analog] = frontendBufferOrder[c].getChildWithName (propertyGainRangePGA0);
+            }
+            else if ((idxOfAnalogGain = gainElements[c].indexOf ("all")) > -1)
+            {
+                // The device has an automatic gain management, e.g. N310
+                gainElementsMap[c][UHDGainElements::analog] = idxOfAnalogGain;
+                static const juce::Identifier propertyGainRangeAll ("Gain_range_all");
+                gainElementSubtree[c][UHDGainElements::analog] = frontendBufferOrder[c].getChildWithName (propertyGainRangeAll);
             }
             if ((idxOfDigitalGainCoarse = gainElements[c].indexOf ("ADC-digital")) > -1)
             {
@@ -1648,8 +1656,25 @@ namespace ntlab
         // find all devices
         juce::StringArray allIPAddresses;
         auto allDevices = uhdr->findAllDevices ("");
+#if NTLAB_DEBUGPRINT_UHDTREE
+        std::cout << "findAllDevices output:\n---------------------------------\n";
+#endif
         for (auto& d : allDevices)
+        {
+            if (d.getValue ("claimed", "False") != "False")
+                jassertfalse;
+
             allIPAddresses.add (d.getValue ("addr", "0.0.0.0"));
+
+#if NTLAB_DEBUGPRINT_UHDTREE
+            auto size = d.size();
+            auto allKeys = d.getAllKeys();
+            auto allValues = d.getAllValues();
+            for (int i = 0; i < size; ++i)
+                std::cout << allKeys[i] << ": " << allValues[i] << std::endl;
+            std::cout << "---------------------------------" << std::endl;
+#endif
+        }
 
         juce::ValueTree tree (propertyUSRPDevice);
 
@@ -1742,6 +1767,19 @@ namespace ntlab
                     // create a pair of property and value
                     auto valuePair = juce::StringArray::fromTokens (line, ":", "");
 
+                    if (valuePair.size() != 2)
+                    {
+                        // Multiple ":" characters would be an interesting case, please raise an issue on GitHub with
+                        // information regarding the USRP device you use
+                        jassert (valuePair.size() < 2);
+
+                        continue;
+                    }
+
+                    // Found this case for entry "RFNoC blocks on this device"
+                    if (valuePair[1].isEmpty())
+                        continue;
+
                     // special case: mac-address has multiple ':' chars leading to unintended string splits
                     if (valuePair[0].equalsIgnoreCase ("mac-addr"))
                         valuePair.set (1, line.fromFirstOccurrenceOf ("mac-addr: ", false, true));
@@ -1752,6 +1790,10 @@ namespace ntlab
                     if (level == device)
                     {
                         juce::ValueTree deviceTree (valuePair[1].replaceCharacter (' ', '_').removeCharacters ("/"));
+
+                        // sometimes the ip address is not in the parsed output, so better set it here
+                        deviceTree.setProperty (propertyIPAddress, a, nullptr);
+
                         treeHistory.getLast().addChild (deviceTree, -1, nullptr);
                         treeHistory.add (deviceTree);
                         lastLevel = mboard;

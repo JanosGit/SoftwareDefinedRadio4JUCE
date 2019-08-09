@@ -339,8 +339,8 @@ namespace ntlab
 
         // default streaming args
         static const juce::String defaultCpuFormat;
-        static const juce::String defaultOtwFormat;
-        static const juce::String defaultArgs;
+        //static const juce::String defaultOtwFormat;
+        static const juce::String emptyArg;
 
         juce::String lastError;
 

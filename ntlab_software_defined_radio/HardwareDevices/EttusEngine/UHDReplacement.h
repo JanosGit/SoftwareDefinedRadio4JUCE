@@ -606,8 +606,8 @@ namespace ntlab
                 RxStream (UHDr::Ptr uhdr, USRPHandle &usrpHandle, StreamArgs &streamArgs, Error &error);
 
                 UHDr::Ptr uhd;
-                RxStreamerHandle rxStreamerHandle;
-                RxMetadataHandle rxMetadataHandle;
+                RxStreamerHandle rxStreamerHandle = nullptr;
+                RxMetadataHandle rxMetadataHandle = nullptr;
                 int numActiveChannels;
                 size_t maxNumSamples;
 
@@ -657,9 +657,13 @@ namespace ntlab
                 TxStream (UHDr::Ptr uhdr, USRPHandle &usrpHandle, StreamArgs &streamArgs, Error &error);
 
                 UHDr::Ptr uhd;
-                TxStreamerHandle txStreamerHandle;
-                TxMetadataHandle txMetadataStartOfBurst, txMetadataContinous, txMetadataEndOfBurst;
-                TxMetadataHandle txMetadataHandle;
+
+                TxStreamerHandle txStreamerHandle       = nullptr;
+                TxMetadataHandle txMetadataStartOfBurst = nullptr;
+                TxMetadataHandle txMetadataContinous    = nullptr;
+                TxMetadataHandle txMetadataEndOfBurst   = nullptr;
+                TxMetadataHandle txMetadataHandle       = nullptr;
+
                 int numActiveChannels;
                 size_t maxNumSamples;
 
