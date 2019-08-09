@@ -104,17 +104,53 @@ namespace ntlab
 
         /**
          * Tries to create a SampleBufferComplex<float> from the whole mcv file content. If the file contains real
-         * values all imaginary values in the resulting file will be set to 0. It the file has not been opened
+         * values all imaginary values in the resulting file will be set to 0. If the file has not been opened
          * successful it will return an empty buffer.
          */
         SampleBufferComplex<float> createSampleBufferComplexFloat();
 
         /**
          * Tries to create a SampleBufferComplex<float> from the whole mcv file content. If the file contains real
-         * values all imaginary values in the resulting file will be set to 0. It the file has not been opened
+         * values all imaginary values in the resulting file will be set to 0. If the file has not been opened
          * successful it will return an empty buffer.
          */
         SampleBufferComplex<double> createSampleBufferComplexDouble();
+
+        /**
+         * Tries to fill a sample buffer of any type with data from the file and returns true in case of success.
+         * Existing data in the buffer will be overwritten. Note that reading complex valued samples into a real valued
+         * buffer won't work, so better check if the source data matches the buffer type before using this function.
+         * In this case or iff the file has not been opened successful or the number of channels/samples in the buffer d
+         * oes not match the file, false will be returned.
+         */
+        template <typename SampleBufferType>
+        bool fillSampleBuffer (SampleBufferType& sampleBufferToFill)
+        {
+            if (!valid)
+                return false;
+
+            // The channel count must match the data in the file
+            jassert (metadata->getNumColsOrChannels() == sampleBufferToFill.getNumChannels());
+            if (metadata->getNumColsOrChannels() != sampleBufferToFill.getNumChannels())
+                return false;
+
+            // The sample count of the source data must not be greater than the buffer capacity
+            jassert (metadata->getNumRowsOrSamples() <= sampleBufferToFill.getMaxNumSamples());
+            if (metadata->getNumRowsOrSamples() > sampleBufferToFill.getMaxNumSamples())
+                return false;
+
+            // Writing complex data to a real-valued buffer won't work
+            if (IsSampleBuffer<SampleBufferType>::real() && isComplex())
+            {
+                jassertfalse;
+                return false;
+            }
+
+            fillBuffer (sampleBufferToFill.getArrayOfWritePointers(), beginOfSamples, getNumRowsOrSamples());
+            sampleBufferToFill.setNumSamples (metadata->getNumRowsOrSamples());
+
+            return true;
+        }
 
 #if NTLAB_INCLUDE_EIGEN
         /**
