@@ -111,6 +111,7 @@ along with SoftwareDefinedRadio4JUCE. If not, see <http://www.gnu.org/licenses/>
 #include "GUI/HackRFConfigComponent.h"
 #endif
 
+#include "DSP/GPSCaCodeGenerator.h"
 #include "DSP/Oscillator.h"
 
 #if NTLAB_INCLUDE_EIGEN
