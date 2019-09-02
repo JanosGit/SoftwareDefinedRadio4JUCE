@@ -333,8 +333,11 @@ namespace ntlab
         stopTimer ();
         timerThreadIDisValid = false;
 
-        mcvWriter->waitForEmptyFIFO ();
-        mcvWriter->updateMetadataHeader ();
+        if (mcvWriter != nullptr)
+        {
+            mcvWriter->waitForEmptyFIFO();
+            mcvWriter->updateMetadataHeader();
+        }
 
         // close files
         mcvWriter.reset (nullptr);
