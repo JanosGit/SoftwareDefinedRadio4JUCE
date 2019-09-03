@@ -298,6 +298,10 @@ namespace ntlab
         friend class SDRIODeviceManager;
         friend class juce::ContainerDeletePolicy<SDRIOEngineManager>;
         friend class MCVFileEngineTest;
+
+    public:
+        virtual ~SDRIOEngineManager() {};
+
     private:
 
         /** Returns an array of all engines that can be created */
@@ -344,7 +348,6 @@ namespace ntlab
         virtual std::unique_ptr<juce::Component> createEngineConfigurationComponent (SDRIOEngineConfigurationInterface& configurationInterface, SDRIOEngineConfigurationInterface::ConfigurationConstraints& constraints) = 0;
 #endif
     protected:
-        virtual ~SDRIOEngineManager () {};
 
         virtual juce::String getEngineName() = 0;
 

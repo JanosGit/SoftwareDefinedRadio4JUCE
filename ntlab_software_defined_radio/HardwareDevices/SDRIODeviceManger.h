@@ -34,6 +34,9 @@ namespace ntlab
         /** Adds all engines that come with this module */
         void addDefaultEngines();
 
+        /** Adds a custom engine */
+        void addEngine (std::unique_ptr<SDRIOEngineManager>&& engineManager);
+
         /** Retuns an array of the name of all engines currently managed by this instance */
         juce::StringArray getEngineNames();
 

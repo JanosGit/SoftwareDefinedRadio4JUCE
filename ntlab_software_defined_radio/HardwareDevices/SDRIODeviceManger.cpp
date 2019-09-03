@@ -39,6 +39,11 @@ namespace ntlab
         SDRIOEngineManager::registerDefaultEngines();
     }
 
+    void SDRIODeviceManager::addEngine (std::unique_ptr<SDRIOEngineManager>&& engineManager)
+    {
+        SDRIOEngineManager::registerSDREngine (engineManager.release());
+    }
+
     juce::StringArray SDRIODeviceManager::getEngineNames () {return SDRIOEngineManager::getAvailableEngines(); }
 
     bool SDRIODeviceManager::selectEngine (juce::StringRef engineName)
