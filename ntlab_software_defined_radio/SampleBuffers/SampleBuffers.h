@@ -20,6 +20,7 @@ along with SoftwareDefinedRadio4JUCE. If not, see <http://www.gnu.org/licenses/>
 #include <complex>
 #include <utility>
 #include <juce_core/juce_core.h>
+#import <ntlab_software_defined_radio/OpenCL2/SharedCLDevice.h>
 #include "VectorOperations.h"
 
 #include "../OpenCL2/cl2WithVersionChecks.h"
@@ -273,7 +274,7 @@ namespace ntlab
         {
             NTLAB_ASSERT_CHANNEL_AND_SAMPLE_COUNTS_PASSED_ARE_VALID
             // buffer needs to be mapped to be copied in host memory space
-            jassert (otherBuffer.isMapped);
+            jassert (otherBuffer.isCurrentlyMapped());
             NTLAB_OPERATION_ON_ALL_CHANNELS (std::memcpy (writePtr, readPtr, numSamlesToCopy * sizeof (SampleType)))
         }
 
@@ -536,7 +537,7 @@ namespace ntlab
         {
             NTLAB_ASSERT_CHANNEL_AND_SAMPLE_COUNTS_PASSED_ARE_VALID
             // buffer needs to be mapped to be copied in host memory space
-            jassert (otherBuffer.isMapped);
+            jassert (otherBuffer.isCurrentlyMapped());
             NTLAB_OPERATION_ON_ALL_CHANNELS (std::memcpy (writePtr, readPtr, numSamlesToCopy * sizeof (std::complex<SampleType>)))
         }
 
@@ -590,7 +591,7 @@ namespace ntlab
         {
             NTLAB_ASSERT_CHANNEL_AND_SAMPLE_COUNTS_PASSED_ARE_VALID
             // buffer needs to be mapped to be copied in host memory space
-            jassert (otherBuffer.isMapped);
+            jassert (otherBuffer.isCurrentlyMapped());
             // todo
             jassertfalse;
         }
@@ -646,7 +647,7 @@ namespace ntlab
         {
             NTLAB_ASSERT_CHANNEL_AND_SAMPLE_COUNTS_PASSED_ARE_VALID
             // buffer needs to be mapped to be copied in host memory space
-            jassert (otherBuffer.isMapped);
+            jassert (otherBuffer.isCurrentlyMapped());
             NTLAB_OPERATION_ON_ALL_CHANNELS (ComplexVectorOperations::extractRealPart (readPtr, writePtr, numSamlesToCopy))
         }
 
@@ -700,7 +701,7 @@ namespace ntlab
         {
             NTLAB_ASSERT_CHANNEL_AND_SAMPLE_COUNTS_PASSED_ARE_VALID
             // buffer needs to be mapped to be copied in host memory space
-            jassert (otherBuffer.isMapped);
+            jassert (otherBuffer.isCurrentlyMapped());
             //todo
             jassertfalse;
         }
@@ -756,7 +757,7 @@ namespace ntlab
         {
             NTLAB_ASSERT_CHANNEL_AND_SAMPLE_COUNTS_PASSED_ARE_VALID
             // buffer needs to be mapped to be copied in host memory space
-            jassert (otherBuffer.isMapped);
+            jassert (otherBuffer.isCurrentlyMapped());
             NTLAB_OPERATION_ON_ALL_CHANNELS (ComplexVectorOperations::extractImagPart (readPtr, writePtr, numSamlesToCopy))
         }
 
@@ -807,7 +808,7 @@ namespace ntlab
         {
             NTLAB_ASSERT_CHANNEL_AND_SAMPLE_COUNTS_PASSED_ARE_VALID
             // buffer needs to be mapped to be copied in host memory space
-            jassert (otherBuffer.isMapped);
+            jassert (otherBuffer.isCurrentlyMapped());
             NTLAB_OPERATION_ON_ALL_CHANNELS (ComplexVectorOperations::abs (readPtr, writePtr, numSamlesToCopy))
         }
 
@@ -874,11 +875,11 @@ namespace ntlab
 
         CLSampleBufferReal (const int numChannels,
                             const int numSamples,
-                            const cl::CommandQueue& queueToUse,
-                            const cl::Context& contextToUse,
-                            bool initWithZeros = false,
-                            cl_mem_flags clMemAccessFlags = CL_MEM_READ_WRITE,
-                            cl_map_flags clMapFlags = CL_MAP_READ | CL_MAP_WRITE) 
+                            const cl::CommandQueue& queueToUse = SharedCLDevice::getInstance()->getCommandQueue(),
+                            const cl::Context&    contextToUse = SharedCLDevice::getInstance()->getContext(),
+                            bool initWithZeros                 = false,
+                            cl_mem_flags clMemAccessFlags      = CL_MEM_READ_WRITE,
+                            cl_map_flags clMapFlags            = CL_MAP_READ | CL_MAP_WRITE)
           : numChannelsAllocated (numChannels),
             numSamplesAllocated  (numSamples),
             numSamplesUsed       (numSamples),
@@ -1141,7 +1142,7 @@ namespace ntlab
             NTLAB_ASSERT_CHANNEL_AND_SAMPLE_COUNTS_PASSED_ARE_VALID
             // both buffers need to be mapped to be copied in host memory space
             jassert (isMapped);
-            jassert (otherBuffer.isMapped);
+            jassert (otherBuffer.isCurrentlyMapped());
             NTLAB_OPERATION_ON_ALL_CHANNELS (std::memcpy (writePtr, readPtr, numSamlesToCopy * sizeof (SampleType)))
         }
 
@@ -1200,11 +1201,11 @@ namespace ntlab
 
         CLSampleBufferComplex (const int numChannels,
                                const int numSamples,
-                               const cl::CommandQueue& queueToUse,
-                               const cl::Context& contextToUse,
-                               bool initWithZeros = false,
-                               cl_mem_flags clMemAccessFlags = CL_MEM_READ_WRITE,
-                               cl_map_flags clMapFlags = CL_MAP_READ | CL_MAP_WRITE)
+                               const cl::CommandQueue& queueToUse = SharedCLDevice::getInstance()->getCommandQueue(),
+                               const cl::Context&    contextToUse = SharedCLDevice::getInstance()->getContext(),
+                               bool initWithZeros                 = false,
+                               cl_mem_flags clMemAccessFlags      = CL_MEM_READ_WRITE,
+                               cl_map_flags clMapFlags            = CL_MAP_READ | CL_MAP_WRITE)
           : numChannelsAllocated (numChannels),
             numSamplesAllocated  (numSamples),
             numSamplesUsed       (numSamples),
@@ -1471,7 +1472,7 @@ namespace ntlab
             NTLAB_ASSERT_CHANNEL_AND_SAMPLE_COUNTS_PASSED_ARE_VALID
             // both buffers need to be mapped to be copied in host memory space
             jassert (isMapped);
-            jassert (otherBuffer.isMapped);
+            jassert (otherBuffer.isCurrentlyMapped());
             NTLAB_OPERATION_ON_ALL_CHANNELS (std::memcpy (writePtr, readPtr, numSamlesToCopy * sizeof (std::complex<SampleType>)))
         }
 
@@ -1528,7 +1529,7 @@ namespace ntlab
             NTLAB_ASSERT_CHANNEL_AND_SAMPLE_COUNTS_PASSED_ARE_VALID
             // both buffers need to be mapped to be copied in host memory space
             jassert (isMapped);
-            jassert (otherBuffer.isMapped);
+            jassert (otherBuffer.isCurrentlyMapped());
             // todo
             jassertfalse;
         }
@@ -1588,7 +1589,7 @@ namespace ntlab
             NTLAB_ASSERT_CHANNEL_AND_SAMPLE_COUNTS_PASSED_ARE_VALID
             // both buffers need to be mapped to be copied in host memory space
             jassert (isMapped);
-            jassert (otherBuffer.isMapped);
+            jassert (otherBuffer.isCurrentlyMapped());
             NTLAB_OPERATION_ON_ALL_CHANNELS (ComplexVectorOperations::extractRealPart (readPtr, writePtr, numSamlesToCopy))
         }
 
@@ -1645,7 +1646,7 @@ namespace ntlab
             NTLAB_ASSERT_CHANNEL_AND_SAMPLE_COUNTS_PASSED_ARE_VALID
             // both buffers need to be mapped to be copied in host memory space
             jassert (isMapped);
-            jassert (otherBuffer.isMapped);
+            jassert (otherBuffer.isCurrentlyMapped());
             //todo
             jassertfalse;
         }
@@ -1705,7 +1706,7 @@ namespace ntlab
             NTLAB_ASSERT_CHANNEL_AND_SAMPLE_COUNTS_PASSED_ARE_VALID
             // both buffers need to be mapped to be copied in host memory space
             jassert (isMapped);
-            jassert (otherBuffer.isMapped);
+            jassert (otherBuffer.isCurrentlyMapped());
             NTLAB_OPERATION_ON_ALL_CHANNELS (ComplexVectorOperations::extractImagPart (readPtr, writePtr, numSamlesToCopy))
         }
 
@@ -1760,7 +1761,7 @@ namespace ntlab
             NTLAB_ASSERT_CHANNEL_AND_SAMPLE_COUNTS_PASSED_ARE_VALID
             // both buffers need to be mapped to be copied in host memory space
             jassert (isMapped);
-            jassert (otherBuffer.isMapped);
+            jassert (otherBuffer.isCurrentlyMapped());
             NTLAB_OPERATION_ON_ALL_CHANNELS (ComplexVectorOperations::abs (readPtr, writePtr, numSamlesToCopy))
         }
 
@@ -1797,8 +1798,8 @@ namespace ntlab
             jassert (queue   == other.queue);
             jassert (context == other.context);
 
-            // You can only swaped unmapped buffers
-            jassert (!isMapped && !other.isMapped);
+            // You can only swap mapped buffers
+            jassert (isMapped && other.isMapped);
 
             std::swap (numChannelsAllocated, other.numChannelsAllocated);
             std::swap (numSamplesAllocated,  other.numSamplesAllocated);
