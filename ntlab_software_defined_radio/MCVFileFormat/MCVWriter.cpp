@@ -19,7 +19,7 @@ along with SoftwareDefinedRadio4JUCE. If not, see <http://www.gnu.org/licenses/>
 
 namespace ntlab
 {
-    MCVWriter::MCVWriter (int numChannels, bool useDoublePrecision, bool isComplex, juce::File& outputFile, int fifoSize)
+    MCVWriter::MCVWriter (int numChannels, bool useDoublePrecision, bool isComplex, const juce::File& outputFile, int fifoSize)
       : juce::AbstractFifo (fifoSize),
         outputStream (outputFile)
     {

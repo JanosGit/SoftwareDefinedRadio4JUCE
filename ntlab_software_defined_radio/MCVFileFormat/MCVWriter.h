@@ -42,7 +42,7 @@ namespace ntlab
          * Create an MCVWriter instance if you want to continously write and append samples to a MCV File. In case you
          * want to write a matrix or a sample buffer at once, use on of the static member functions
          */
-        MCVWriter (int numChannels, bool useDoublePrecision, bool isComplex, juce::File& outputFile, int fifoSize = 8192);
+        MCVWriter (int numChannels, bool useDoublePrecision, bool isComplex, const juce::File& outputFile, int fifoSize = 8192);
 
         ~MCVWriter();
 
