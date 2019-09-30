@@ -47,3 +47,6 @@ along with SoftwareDefinedRadio4JUCE. If not, see <http://www.gnu.org/licenses/>
 #if NTLAB_USE_CL_DSP
 #include "OpenCL2/SharedCLDevice.cpp"
 #endif
+
+#include "DSP/GNSSAquisition.cpp"
+#include "DSP/GNSSAquisitionTwiddleTable.cpp"
