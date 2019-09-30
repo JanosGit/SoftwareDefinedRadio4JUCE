@@ -20,10 +20,11 @@ along with SoftwareDefinedRadio4JUCE. If not, see <http://www.gnu.org/licenses/>
 #include "ntlab_OpenCLHelpers.h"
 #include "clException.h"
 #include <juce_core/juce_core.h>
+#include <juce_events/juce_events.h>
 
 namespace ntlab
 {
-    class SharedCLDevice
+    class SharedCLDevice : juce::DeletedAtShutdown
     {
     public:
         SharedCLDevice()
@@ -69,7 +70,10 @@ namespace ntlab
             cl::Program program (context, programSources, build, &err);
 
             if (err != CL_SUCCESS)
-                throw CLException ("Error creating program from sources", err);
+            {
+                auto buildLog = program.getBuildInfo<CL_PROGRAM_BUILD_LOG>();
+                throw CLException (err, buildLog[0]);
+            }
 
             return program;
         }

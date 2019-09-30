@@ -15,6 +15,12 @@ namespace ntlab
 		/** Creates an exception where the description string is placed before the error code interpretation. */
 		CLException (const juce::String& description, cl_int errorCode) : message (description + ": " + OpenCLHelpers::getErrorString(errorCode)) {};
 
+
+		CLException (cl_int errorCode, const std::pair<cl::Device, std::string>& deviceBuildLog)
+		: message ("Error building CL program: " + OpenCLHelpers::getErrorString (errorCode) +
+		           ". Build log for device "     + deviceBuildLog.first.getInfo<CL_DEVICE_NAME>() +
+		           ":\n"                         + deviceBuildLog.second) {};
+
 		/** Creates an exception just containig the description. */
 		CLException (const juce::String& description) : message (description) {};
 
