@@ -199,4 +199,48 @@ namespace ntlab
                 absOutVector[i] = std::abs (complexInVector[i]);
         }
     };
+
+    struct VectorOperations
+    {
+        /**
+         * Reverses the bits of the integer passed in. Examples:
+         * reverseTheBits (32) will output 67108864 as the binary representation of 32 is 00000000000000000000000000100000
+         * and the binary representation of 67108864 is 00000100000000000000000000000000
+         *
+         * reverseTheBits<7> (32) will output 2 as the binary representation of 32 with 7 significant bits is 0100000
+         * and the binary representation of 2 with 7 significant bits is 0000010
+         *
+         * Mostly useful for shuffling vectors under the hood of some fancy fft algorithms
+         */
+        template <uint8_t numSignificantBits = 32>
+        static uint32_t reverseTheBits (uint32_t x)
+        {
+            static_assert (numSignificantBits <= 32, "A 32 Bit int cannot have more than 32 significant bits");
+
+            x = (((x & 0xaaaaaaaa) >> 1) | ((x & 0x55555555) << 1));
+            x = (((x & 0xcccccccc) >> 2) | ((x & 0x33333333) << 2));
+            x = (((x & 0xf0f0f0f0) >> 4) | ((x & 0x0f0f0f0f) << 4));
+            x = (((x & 0xff00ff00) >> 8) | ((x & 0x00ff00ff) << 8));
+            x = (x >> 16)                | (x << 16);
+
+            return x >> (32 - numSignificantBits);
+        }
+
+        /** Permutes the elements of the vector into a bit-reversed indexed order */
+        template <uint8_t order, typename T>
+        static void permuteInBitReversedOrder (T* array)
+        {
+            constexpr int numItemsToPermute = 1 << order;
+
+            for (unsigned int i = 0; i < numItemsToPermute; ++i)
+            {
+                const auto iReversed = reverseTheBits<order> (i);
+
+                if (i == iReversed) continue; // no need to swap an item with itself
+                if (iReversed < i)  continue; // already did this one
+
+                std::swap (array[i], array[iReversed]);
+            }
+        }
+    };
 }
