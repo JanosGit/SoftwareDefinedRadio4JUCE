@@ -33,9 +33,29 @@ namespace ntlab
 
         void setSampleRate (double newSampleRate);
 
-        template <typename BufferType>
-        void processNextSampleBuffer (const BufferType& bufferToProcess, const cl_int caCodeToAquire = -1)
+        /**
+         * Processes the next sample buffer. In case swapBufferIfPossible is true this might exchange the content of the
+         * buffer passed in with some old data for performance reasons.
+         */
+        template <bool swapBufferIfPossible = true, typename BufferType>
+        void processNextSampleBuffer (BufferType& bufferToProcess, const cl_int caCodeToAquire = -1)
         {
+            if constexpr (IsSampleBuffer<BufferType, float>::cl() && IsSampleBuffer<BufferType, float>::complex() && swapBufferIfPossible)
+            {
+                if (bufferToProcess.getNumSamples() == fftSize)
+                {
+                    if (inputSignalLock.try_lock())
+                    {
+                        // was probably set to 0 during previous processing steps
+                        inputSignal.setNumSamples (fftSize);
+
+                        bufferToProcess.swapWith (inputSignal);
+                        notify();
+                    }
+                    return;
+                }
+            }
+
             auto numInterpolatedSamplesAvailable = static_cast<int> (bufferToProcess.getNumSamples() / interpolatorRatio);
 
             if (inputSignalLock.try_lock())
@@ -43,6 +63,7 @@ namespace ntlab
                 auto numSamplesInInputBuffer = inputSignal.getNumSamples();
                 auto numSamplesToAppend = std::min (fftSize - numSamplesInInputBuffer, numInterpolatedSamplesAvailable);
 
+#ifndef OPEN_CL_INTEL_FPGA
                 if (needsSampleRateConversion)
                 {
                     auto numSamplesConsumed = resampler.process (interpolatorRatio,
@@ -53,9 +74,8 @@ namespace ntlab
                     juce::ignoreUnused (numSamplesConsumed);
                 }
                 else
-                {
+#endif
                     bufferToProcess.copyTo (inputSignal, numSamplesToAppend, 1, 0, numSamplesInInputBuffer);
-                }
 
                 inputSignal.incrementNumSamples (numSamplesToAppend);
 
@@ -70,10 +90,12 @@ namespace ntlab
             }
             else
             {
+#ifndef OPEN_CL_INTEL_FPGA
                 // Not getting the lock means that we drop some input samples as the acquisition thread is still working
                 // on the buffer. This is no big problem, however we better clear our resampler state as the data won't
                 // be contignous anymore
                 resampler.reset();
+#endif
 
 #ifdef GNSS_ACQUISITION_ENABLE_PERFORMANCE_MEASUREMENT
                 numSamplesDropped += numInterpolatedSamplesAvailable;
@@ -128,9 +150,14 @@ namespace ntlab
 
         std::mutex inputSignalLock;
 
+#ifndef OPEN_CL_INTEL_FPGA
         bool needsSampleRateConversion = false;
         juce::LagrangeResampler<std::complex<float>, float> resampler;
         double interpolatorRatio = 1.0;
+#else
+        static const bool needsSampleRateConversion = false;
+        static const int  interpolatorRatio = 1;
+#endif
 
 #ifdef GNSS_ACQUISITION_ENABLE_PERFORMANCE_MEASUREMENT
         const juce::File loggingFile {juce::File::getSpecialLocation (juce::File::currentExecutableFile).getSiblingFile ("GNSSAcqPerformanceLoggingResults.csv")};

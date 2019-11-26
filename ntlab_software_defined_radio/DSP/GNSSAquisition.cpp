@@ -77,8 +77,8 @@ namespace ntlab
 
         std::cout << "Performance logging file located at " << loggingFilePath << std::endl;
 
-        juce::String cmd = "cat " + loggingFilePath;
-        std::system (cmd.toRawUTF8());
+        //juce::String cmd = "cat " + loggingFilePath;
+        //std::system (cmd.toRawUTF8());
 #endif
     }
 
@@ -217,6 +217,11 @@ namespace ntlab
 
     void GNSSAquisition::setSampleRate (double newSampleRate)
     {
+#ifdef OPEN_CL_INTEL_FPGA
+        // You have to make sure that your frontend generates the exact sample rate needed - resampling on the tiny
+        // ARM of your FPGA SoC is a really bad idea so the resampler is disabled for this setup
+        jassert (newSampleRate == targetSampleRate);
+#else
         if (newSampleRate == targetSampleRate)
         {
             interpolatorRatio = 1.0;
@@ -227,6 +232,7 @@ namespace ntlab
         interpolatorRatio = newSampleRate / targetSampleRate;
         needsSampleRateConversion = true;
         resampler.reset();
+#endif
     }
 
     void GNSSAquisition::performAcquisition()
@@ -237,8 +243,11 @@ namespace ntlab
 #endif
 
             // First mix the signal to the different frequency offsets and perform an FFT on the results
-            queue.enqueueNDRangeKernel (mixKernel, cl::NullRange, cl::NDRange (numFreqOffsets));
+            auto err = queue.enqueueNDRangeKernel (mixKernel, cl::NullRange, cl::NDRange (numFreqOffsets));
+            if (err != CL_SUCCESS)
+                std::cerr << OpenCLHelpers::getErrorString (err);
             queue.finish();
+
         }
 
         // The input buffer won't be needed anymore at this point and can be unmapped and released so that new samples
@@ -270,6 +279,7 @@ namespace ntlab
                     std::cerr << OpenCLHelpers::getErrorString (err);
 
                 queue.finish();
+
 
                 acquisitionSpecMaxPositions.map (CL_FALSE, CL_MAP_READ);
                 acquisitionSpecMaxValues   .map (CL_FALSE, CL_MAP_READ);

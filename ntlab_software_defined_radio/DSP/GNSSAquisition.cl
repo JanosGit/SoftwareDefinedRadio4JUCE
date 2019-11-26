@@ -32,8 +32,11 @@ R"(
 #define M_PI 3.14159265358979323846
 #endif
 
-/** Multiplies the complex vector a and the complex conjugated values of vector b and puts the result into dest. a, b and dest might overlap */
-void complexConjVectorMultiply (global float2* dest, const global float2* a, const global float2* b, const int vecLength);
+/**
+ * Multiplies the complex vector a and the complex conjugated values of vector b and puts the result into dest. a, b and
+ * dest must not‚ overlap. All vectors must be of the size FFT_LENGTH.
+ */
+void complexConjVectorMultiply (global float2* restrict dest, const global float2* restrict a, const global float2* restrict b);
 
 /** Multiplies a and b and returns the result */
 float2 complexMultiply     (const float2 a, const float2 b);
@@ -42,7 +45,8 @@ float2 complexMultiply     (const float2 a, const float2 b);
 float2 complexConjMultiply (const float2 a, const float2 b);
 
 /** Mixes down the input samples. Needed once per aquisition */
-kernel void gnssMixInput (const global float2* inSamples, global float2* inSamplesMixed, const global float2* twiddleTable)
+__attribute__((reqd_work_group_size(NUM_FREQ_STEPS, 1, 1)))
+kernel void gnssMixInput (const global float2* restrict inSamples, global float2* restrict inSamplesMixed, const global float2* restrict twiddleTable)
 {
     const int freqOffsetIdx = get_global_id (0);
     const int freqOffsetHz  = MIN_FREQ + freqOffsetIdx * FREQ_SPACING_HZ;
@@ -90,15 +94,16 @@ kernel void gnssMixInput (const global float2* inSamples, global float2* inSampl
 }
 
 /** Correlates mixed signal with the CA code. Needed once per CA code */
-kernel void gnssAcquisition (const global float2* inSamplesMixed,
-                             const global float2* caCodes,
-                             global float2*       intermediateResults,
-                             const global float2* twiddleTable,
-                             const int            caCodeToUse,
-                             global uchar*        acquisitionSpectrum,
-                             global int*          idxOfMax,
-                             global float*        valueOfMax,
-                             global float*        meanValues)
+__attribute__((reqd_work_group_size(NUM_FREQ_STEPS, 1, 1)))
+kernel void gnssAcquisition (const global float2* restrict inSamplesMixed,
+                             const global float2* restrict caCodes,
+                             global float2*       restrict intermediateResults,
+                             const global float2* restrict twiddleTable,
+                             const int                     caCodeToUse,
+                             global uchar*        restrict acquisitionSpectrum,
+                             global int*          restrict idxOfMax,
+                             global float*        restrict valueOfMax,
+                             global float*        restrict meanValues)
 {
     const int freqOffsetIdx = get_global_id (0);
     
@@ -114,7 +119,7 @@ kernel void gnssAcquisition (const global float2* inSamplesMixed,
     
     // Third step: Element wise multiplication with the PRN code to perform the correlation in the frequency domain.
     // Note: it is expected that the PRN code is already shuffled in a bit reversed indexed order and that the values are complex conjugated
-    complexConjVectorMultiply (workingBuffer, InBuffer, caCode, FFT_LENGTH);
+    complexConjVectorMultiply (workingBuffer, InBuffer, caCode);
 
     // Fourth step: An IFFT, implemented as DIT FFT --> can work on shuffled vector and will output a correctly ordered vector
     global float2* currentTwiddles = twiddleTable + FFT_LENGTH - 1;
@@ -175,14 +180,12 @@ kernel void gnssAcquisition (const global float2* inSamplesMixed,
     meanValues[freqOffsetIdx] = meanVal;
 }
 
-void complexConjVectorMultiply (global float2* dest, const global float2* a, const global float2* b, const int vecLength)
+void complexConjVectorMultiply (global float2* restrict dest, const global float2* restrict a, const global float2* restrict b)
 {
-    for (int i = 0; i < vecLength; ++i)
+    for (int i = 0; i < FFT_LENGTH; ++i)
     {
-        float2 tmp;
-        tmp.x = a[i].x * b[i].x + a[i].y * b[i].y;
-        tmp.y = a[i].y * b[i].x - a[i].x * b[i].y;
-        dest[i] = tmp;
+        dest[i].x = a[i].x * b[i].x + a[i].y * b[i].y;
+        dest[i].y = a[i].y * b[i].x - a[i].x * b[i].y;
     }
 }
 
