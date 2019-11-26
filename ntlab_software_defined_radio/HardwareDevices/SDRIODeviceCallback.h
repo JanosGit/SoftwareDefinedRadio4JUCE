@@ -67,6 +67,6 @@ namespace ntlab
          * If any error occurs during the streaming, this callback will be invoked. Streaming might or might not
          * continue after an error, depending on the type of error.
          */
-        virtual void handleError (const juce::String& errorMessage) = 0;
+        virtual void handleError (juce::StringRef errorMessage) = 0;
     };
 }
