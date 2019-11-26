@@ -10,7 +10,6 @@
 # desired cl sourcefiles relative to the ntlab_software_defined_radio
 # base folder as arguments to the script.
 
-sourceBaseDir="`dirname "$0"`/ntlab_software_defined_radio"
 
 argcount=1
 
@@ -21,7 +20,7 @@ do
         outputFile=$clSource;
         rm $outputFile
     else
-        head -n -1 "$sourceBaseDir/$clSource" | tail -n +18 >> $outputFile
+        head -n -1 "$clSource" | tail -n +18 >> $outputFile
     fi
 
     argcount=$((argcount + 1))
