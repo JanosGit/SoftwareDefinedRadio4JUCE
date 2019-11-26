@@ -225,7 +225,7 @@ namespace ntlab
                         // the device does not seem to react when trying to stop it...
                         jassertfalse;
 
-                        currentCallback->handleError ("Stopping stream by force, additional false processing callbacks might occur");
+                        currentCallback->handleError (GeneralErrorMessageNonOwning ("Stopping stream by force, additional false processing callbacks might occur"));
                         break;
                     }
 

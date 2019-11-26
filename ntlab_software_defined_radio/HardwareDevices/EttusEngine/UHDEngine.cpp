@@ -954,22 +954,13 @@ namespace ntlab
 
     std::streambuf::int_type UHDEngine::UHDLogStreambuffer::overflow (std::streambuf::int_type character)
     {
-        if (callback != nullptr)
+        if (callback != nullptr && logTempBuffer.contains ("[ERROR]"))
         {
-            if (logTempBuffer.contains ("[ERROR]"))
-            {
-                callback->handleError (logTempBuffer);
-            }
+            callback->handleError (GeneralErrorMessageNonOwning (logTempBuffer));
         }
         else
         {
-#if JUCE_MAC
-            CFStringRef messageCFString = logTempBuffer.toCFString();
-            NSLog (@"%@", (NSString*)messageCFString);
-            CFRelease (messageCFString);
-#else
             std::cerr << logTempBuffer;
-#endif
         }
 
         logTempBuffer.clear();
@@ -1548,7 +1539,7 @@ namespace ntlab
             auto issueStreamCmd = rxStream->issueStreamCmd (streamCmd);
             if (issueStreamCmd.failed())
             {
-                activeCallback->handleError (issueStreamCmd.getErrorMessage() + ". Stopping stream.");
+                activeCallback->handleError (GeneralErrorMessageNonOwning (issueStreamCmd.getErrorMessage() + ". Stopping stream."));
                 activeCallback->streamingHasStopped();
                 return;
             }
@@ -1571,11 +1562,11 @@ namespace ntlab
 #else
                 numSamplesThisBlock = rxStream->receive (rxBuffer->getArrayOfWritePointers(), maxHardwareBlockSize, error, false, 0.5);
 #endif
-
-                if (error) {
-                    activeCallback->handleError(
+                if (error)
+                {
+                    activeCallback->handleError ( GeneralErrorMessageNonOwning (
                             "Error executing UHDr::USRP::RxStream::receive: " + UHDr::errorDescription (error) +
-                            ". Stopping stream.");
+                            ". Stopping stream."));
                     activeCallback->streamingHasStopped();
                     return;
                 }
@@ -1626,14 +1617,14 @@ namespace ntlab
 
                 if (error)
                 {
-                    activeCallback->handleError ("Error executing UHDr::USRP::TxStream::send: " + UHDr::errorDescription (error) + ". Stopping stream.");
+                    activeCallback->handleError (GeneralErrorMessageNonOwning ("Error executing UHDr::USRP::TxStream::send: " + UHDr::errorDescription (error) + ". Stopping stream."));
                     activeCallback->streamingHasStopped();
                     return;
                 }
 
                 if (numSamplesSent != numSamplesThisBlock)
                 {
-                    activeCallback->handleError ("Error sending samples: " + txStream->getLastError());
+                    activeCallback->handleError (GeneralErrorMessageNonOwning ("Error sending samples: " + txStream->getLastError()));
                 }
             }
         }
@@ -1643,7 +1634,7 @@ namespace ntlab
             auto error = txStream->sendEndOfBurst();
             if (error)
             {
-                activeCallback->handleError ("Warning: Error sending TX endOfBurst flag. " + UHDr::errorDescription (error));
+                activeCallback->handleError (GeneralErrorMessageNonOwning ("Warning: Error sending TX endOfBurst flag. " + UHDr::errorDescription (error)));
             }
 
         }
