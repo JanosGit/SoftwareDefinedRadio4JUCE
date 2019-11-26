@@ -59,6 +59,8 @@ namespace ntlab
     class SampleBufferReal
     {
     public:
+        using SamplePtrType = SampleType*;
+        using NonCLBufferType = SampleBufferReal<SampleType>;
 
         /**
          * Constructs a SampleBufferReal and allocates heap memory for a buffer of the desired size. The memory is
@@ -323,6 +325,9 @@ namespace ntlab
     class SampleBufferComplex
     {
     public:
+        using SamplePtrType = std::complex<SampleType>*;
+        using NonCLBufferType = SampleBufferComplex<SampleType>;
+
         /**
          * Constructs a SampleBufferComplex and allocates heap memory for a buffer of the desired size. The memory is
          * managed by this instance, e.g. it gets deleted when the buffer goes out of scope.
@@ -872,6 +877,8 @@ namespace ntlab
     class CLSampleBufferReal
     {
     public:
+        using SamplePtrType = SampleType*;
+        using NonCLBufferType = SampleBufferReal<SampleType>;
 
         CLSampleBufferReal (const int numChannels,
                             const int numSamples,
@@ -1198,6 +1205,8 @@ namespace ntlab
     class CLSampleBufferComplex
     {
     public:
+        using SamplePtrType = std::complex<SampleType>*;
+        using NonCLBufferType = SampleBufferComplex<SampleType>;
 
         CLSampleBufferComplex (const int numChannels,
                                const int numSamples,

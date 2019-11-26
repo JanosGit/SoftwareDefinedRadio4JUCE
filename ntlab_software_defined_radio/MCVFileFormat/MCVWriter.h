@@ -64,16 +64,54 @@ namespace ntlab
         void waitForEmptyFIFO (int timeout = -1);
 
         /** Appends the content of this sample buffer to the file */
-        void appendSampleBuffer (SampleBufferReal<float>& bufferToAppend);
+        template <typename BufferType>
+        void appendSampleBuffer (const BufferType& bufferToAppend)
+        {
+            jassert (bufferToAppend.getNumChannels() == metadata->getNumColsOrChannels());
 
-        /** Appends the content of this sample buffer to the file */
-        void appendSampleBuffer (SampleBufferReal<double>& bufferToAppend);
+            // Making sure the buffer passed in matches
+            if constexpr (IsSampleBuffer<BufferType, double>::complexOrReal())
+                jassert (metadata->hasDoublePrecision()); // you are passing a double buffer to a float writer
+            else if constexpr (IsSampleBuffer<BufferType, float>::complexOrReal())
+                jassert (!metadata->hasDoublePrecision()); // you are passing a float buffer to a double writer
+            else
+                jassertfalse; // you are passing a buffer that is neiter float nor double
 
-        /** Appends the content of this sample buffer to the file */
-        void appendSampleBuffer (SampleBufferComplex<float>& bufferToAppend);
+            if constexpr (IsSampleBuffer<BufferType>::complex())
+                jassert (metadata->isComplex()); // you are passing a complex buffer to a real writer
+            else
+                jassert (!metadata->isComplex()); // you are passing a real buffer to a complex writer
 
-        /** Appends the content of this sample buffer to the file */
-        void appendSampleBuffer (SampleBufferComplex<double>& bufferToAppend);
+            int numSamplesToWrite = bufferToAppend.getNumSamples();
+
+            if (numSamplesToWrite)
+                waitForEmptyFIFOEvent.reset();
+
+            int fifoStartIdx1, fifoBlockSize1, fifoStartIdx2, fifoBlockSize2;
+            prepareToWrite (numSamplesToWrite, fifoStartIdx1, fifoBlockSize1, fifoStartIdx2, fifoBlockSize2);
+
+            if (fifoBlockSize1 > 0)
+            {
+                setTmpChannelPointersToIndex (fifoStartIdx1);
+                typename BufferType::NonCLBufferType fifoBlock1 (static_cast<int> (metadata->getNumColsOrChannels()), fifoBlockSize1, reinterpret_cast<typename BufferType::SamplePtrType*> (tmpChannelPointers.data()));
+                bufferToAppend.copyTo (fifoBlock1, fifoBlockSize1, static_cast<int> (metadata->getNumColsOrChannels()));
+            }
+
+            if (fifoBlockSize2 > 0)
+            {
+                setTmpChannelPointersToIndex (fifoStartIdx2);
+                typename BufferType::NonCLBufferType fifoBlock2 (static_cast<int> (metadata->getNumColsOrChannels()), fifoBlockSize2, reinterpret_cast<typename BufferType::SamplePtrType*> (tmpChannelPointers.data()));
+                bufferToAppend.copyTo (fifoBlock2, fifoBlockSize2, static_cast<int> (metadata->getNumColsOrChannels()), fifoBlockSize1);
+            }
+
+            // If this assert fires, the fifo size is too small
+            jassert (fifoBlockSize1 + fifoBlockSize2 < numSamplesToWrite);
+
+
+            finishedWrite (fifoBlockSize1 + fifoBlockSize2);
+
+            mcvWriterThread->notify();
+        }
 
         /** Writes a SampleBuffer to the desired output file. Allowed types are all ntlab SampleBuffer classes and juce
          * AudioBuffer. In case you pass in an ntlab CLSampleBuffer, make sure it is mapped.
