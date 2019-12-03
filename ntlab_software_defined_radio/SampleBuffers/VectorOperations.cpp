@@ -235,6 +235,32 @@ namespace ntlab
         absNonSIMD (complexInVector + numElementsToProcessWithSIMD, absOutVector + numElementsToProcessWithSIMD, numElementsToProcessWithoutSIMD);
     }
 
+    void ComplexVectorOperations::multiply (const std::complex<float>* a, const std::complex<float>* b, std::complex<float>* result, int length, bool conjugateA, bool conjugateB)
+    {
+        // todo: simd optimized solution
+        if ((!conjugateA) && (!conjugateB))
+        {
+            for (int i = 0; i < length; ++i)
+                result[i] = a[i] * b[i];
+        }
+        else if ((conjugateA) && (!conjugateB))
+        {
+            for (int i = 0; i < length; ++i)
+                result[i] = std::conj (a[i]) * b[i];
+        }
+        else if ((!conjugateA) && (conjugateB))
+        {
+            for (int i = 0; i < length; ++i)
+                result[i] = a[i] * std::conj (b[i]);
+        }
+        else
+        {
+            for (int i = 0; i < length; ++i)
+                result[i] = std::conj (a[i]) * std::conj (b[i]);
+        }
+
+    }
+
 #elif NTLAB_USE_NEON
 
 #elif NTLAB_NO_SIMD
