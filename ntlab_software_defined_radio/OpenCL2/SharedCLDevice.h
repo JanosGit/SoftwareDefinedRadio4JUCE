@@ -132,7 +132,7 @@ namespace ntlab
 
             if (allDevices.size() > 0)
             {
-                device = allDevices[0];
+                device = allDevices.back();
             }
             else
             {
