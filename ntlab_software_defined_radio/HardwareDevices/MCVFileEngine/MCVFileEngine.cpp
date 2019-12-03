@@ -114,10 +114,14 @@ namespace ntlab
         if (streamingIsRunning)
             return false;
 
+#ifdef NTLAB_FORCED_BLOCKSIZE
+        return newBlockSize == NTLAB_FORCED_BLOCKSIZE;
+#else
         blockSize = newBlockSize;
         reallocateBuffers();
 
         return true;
+#endif
     }
 
     bool MCVFileEngine::setSampleRate (double newSampleRate)

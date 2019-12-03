@@ -25,7 +25,14 @@ namespace ntlab
     const uint32_t HackRFEngine::txVGAGainMax = 62;
     const uint32_t HackRFEngine::txVGAGainStep = 1;
 
-    HackRFEngine::HackRFEngine (HackRFr::Ptr hackRfLibrary) : hackrfr (hackRfLibrary) {}
+    HackRFEngine::HackRFEngine (HackRFr::Ptr hackRfLibrary) : hackrfr (hackRfLibrary)
+    {
+#ifdef NTLAB_FORCED_BLOCKSIZE
+        // Fixed blocksize currently not implemented for HackRF
+        // Fixed blocksize Approach should be removed anyway
+        jassertfalse;
+#endif
+    }
 
     juce::Result HackRFEngine::selectDevice (const juce::String& deviceName)
     {

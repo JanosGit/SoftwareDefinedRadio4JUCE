@@ -85,7 +85,11 @@ namespace ntlab
 
         juce::ValueTree engineConfig;
 
+#ifdef NTLAB_FORCED_BLOCKSIZE
+        static const int blockSize = NTLAB_FORCED_BLOCKSIZE;
+#else
         int blockSize = 512;
+#endif
         int numOutChannels = 0;
         double sampleRate = 1e6;
 
