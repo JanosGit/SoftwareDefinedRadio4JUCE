@@ -1,2 +1,6 @@
 
 concatenatedCLSources\.cl
+
+UnitTests/Builds/
+
+UnitTests/JuceLibraryCode/

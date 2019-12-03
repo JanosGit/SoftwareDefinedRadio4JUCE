@@ -26,15 +26,48 @@ class SimpleUnitTestRunner : public UnitTestRunner
 };
 
 //==============================================================================
-int main (int argc, char* argv[])
+class UnitTestApplication : public juce::JUCEApplicationBase
 {
+public:
+    const juce::String getApplicationName()    override {return ProjectInfo::projectName; }
+    const juce::String getApplicationVersion() override {return ProjectInfo::versionString; }
+
+    bool moreThanOneInstanceAllowed() override { return false; };
+    void initialise (const juce::String& commandLine) override
+    {
+        auto commands = juce::StringArray::fromTokens (commandLine, true);
+        if (commands.size() == 1)
+            runner.runAllTests();
+        else
+        {
+            int64_t seed = commands[1].getHexValue64();
+            runner.runAllTests (seed);
+        }
+
+        for (int i = 0; i < runner.getNumResults(); ++i)
+        {
+            if (runner.getResult(i)->failures > 0)
+                setApplicationReturnValue (1);
+            else
+                setApplicationReturnValue (0);
+        }
+
+        quit();
+    }
+
+    void systemRequestedQuit()                        override { quit(); }
+    void shutdown()                                   override {}
+    void anotherInstanceStarted (const juce::String&) override {}
+    void suspended()                                  override {}
+    void resumed()                                    override {}
+    
+    void unhandledException (const std::exception* exception, const juce::String& sourceFileName, int lineNumber) override
+    {
+        std::cerr << "Unhandled exception from " << sourceFileName << " line " << lineNumber << ":\n" << exception->what() << std::endl;
+    }
+
+private:
     SimpleUnitTestRunner runner;
+};
 
-    runner.runAllTests();
-
-    for (int i = 0; i < runner.getNumResults(); ++i)
-        if (runner.getResult(i)->failures > 0)
-            return 1;
-
-    return 0;
-}
+START_JUCE_APPLICATION (UnitTestApplication);
