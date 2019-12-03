@@ -4,3 +4,7 @@ concatenatedCLSources\.cl
 UnitTests/Builds/
 
 UnitTests/JuceLibraryCode/
+
+Demos/OscillatorDemo/Builds/
+
+Demos/OscillatorDemo/JuceLibraryCode/

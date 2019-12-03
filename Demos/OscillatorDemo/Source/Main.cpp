@@ -25,7 +25,16 @@ public:
     //==============================================================================
     void initialise (const juce::String& commandLine) override
     {
-        // This method is where you should put your application's initialisation code..
+        try
+        {
+            ntlab::GNSSAquisition aquisition;
+            aquisition.executeTest();
+        }
+        catch (ntlab::CLException& clException)
+        {
+            std::cerr << "OpenCL error: " << clException.what () << std::endl;
+        }
+
 
         mainWindow.reset (new MainWindow (getApplicationName()));
     }

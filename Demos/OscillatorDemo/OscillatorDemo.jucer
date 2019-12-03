@@ -2,7 +2,7 @@
 
 <JUCERPROJECT id="bv3k11" name="OscillatorDemo" projectType="guiapp" jucerVersion="5.4.3"
               cppLanguageStandard="17" companyName="NTLab" companyWebsite="https://www.fh-muenster.de/eti/labore_forschung/nt/index.php"
-              defines="DONT_SET_USING_JUCE_NAMESPACE=1&#10;NTLAB_PREFERRED_CL_DEVICE_TYPE=CL_DEVICE_TYPE_CPU">
+              defines="DONT_SET_USING_JUCE_NAMESPACE=1&#10;NTLAB_PREFERRED_CL_DEVICE_TYPE=CL_DEVICE_TYPE_GPU">
   <MAINGROUP id="cbiBuy" name="OscillatorDemo">
     <GROUP id="{7D0FAC02-6F7E-004D-19E4-15FA792EA251}" name="Source">
       <FILE id="dFlleE" name="MainComponent.h" compile="0" resource="0" file="Source/MainComponent.h"/>

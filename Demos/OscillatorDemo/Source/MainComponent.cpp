@@ -214,15 +214,14 @@ void MainComponent::streamingHasStopped ()
         setEngineState (false);
     });
 
-	auto timePerBlock = juce::String(juce::Time::highResolutionTicksToSeconds(timeInCallback / numCallbacks));
-	juce::Logger::writeToLog("Spent " + timePerBlock + "sec per block");
+	//auto timePerBlock = juce::String(juce::Time::highResolutionTicksToSeconds(timeInCallback / numCallbacks));
+	//juce::Logger::writeToLog("Spent " + timePerBlock + "sec per block");
 
 #if NTLAB_USE_CL_DSP
 	auto timePerUnmap = juce::String(juce::Time::highResolutionTicksToSeconds(timeForUnmapping / numCallbacks));
 	auto timePerOsc   = juce::String(juce::Time::highResolutionTicksToSeconds(timeForOscillator / numCallbacks));
 	auto timePerMap   = juce::String(juce::Time::highResolutionTicksToSeconds(timeForMapping / numCallbacks));
 	juce::Logger::writeToLog(timePerUnmap + "sec per unmap, " + timePerOsc + "sec per osc callback, " + timePerMap + "sec per map");
-	oscillator.printTimeResults (numCallbacks);
 	timeForMapping = 0;
 	timeForOscillator = 0;
 	timeForUnmapping = 0;
@@ -242,7 +241,7 @@ void MainComponent::setUpEngine()
 {
     auto* selectedEngine = deviceManager.getSelectedEngine();
 
-    selectedEngine->enableRxTx (false, true);
+    selectedEngine->enableRxTx (ntlab::SDRIOEngine::txEnabled);
 
     if (auto* hardwareEngine = dynamic_cast<ntlab::SDRIOHardwareEngine*> (selectedEngine))
     {
@@ -250,6 +249,8 @@ void MainComponent::setUpEngine()
 
         bandwidth = hardwareEngine->getSampleRate();
         setupSliderRanges (hardwareEngine->getTxCenterFrequency (0));
+
+        hardwareEngine->setTxGain (20, ntlab::SDRIOHardwareEngine::GainElement::analog, 0);
     }
     else
     {
@@ -285,8 +286,8 @@ void MainComponent::setEngineState (bool engineHasStarted)
 
 void MainComponent::setupSliderRanges (double centerFreq)
 {
-    centerFreqSlider.setRange (centerFreq - 0.03e9, centerFreq + 0.03e9, 1000);
-    centerFreqSlider.setValue (centerFreq, juce::NotificationType::dontSendNotification);
+    centerFreqSlider    .setRange (centerFreq - 0.03e9, centerFreq + 0.03e9, 1000);
+    centerFreqSlider    .setValue (centerFreq, juce::NotificationType::dontSendNotification);
     oscillatorFreqSlider.setRange (centerFreq, centerFreq + bandwidth, 10);
     oscillatorFreqSlider.setValue (centerFreq, juce::NotificationType::dontSendNotification);
 }
