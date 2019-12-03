@@ -34,8 +34,18 @@ namespace ntlab
         void setSampleRate (double newSampleRate);
 
         /**
+         * Resets the internal buffer holding the samples for the next block to be processed. Call this in case
+         * of an interrupted stream
+         */
+        void resetProcessing();
+
+        /**
          * Processes the next sample buffer. In case swapBufferIfPossible is true this might exchange the content of the
          * buffer passed in with some old data for performance reasons.
+         * @tparam swapBufferIfPossible
+         * @tparam BufferType
+         * @param bufferToProcess
+         * @param caCodeToAquire
          */
         template <bool swapBufferIfPossible = true, typename BufferType>
         void processNextSampleBuffer (BufferType& bufferToProcess, const cl_int caCodeToAquire = -1)

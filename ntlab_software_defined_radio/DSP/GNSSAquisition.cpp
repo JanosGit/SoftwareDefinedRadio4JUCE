@@ -82,6 +82,18 @@ namespace ntlab
 #endif
     }
 
+    void GNSSAquisition::resetProcessing ()
+    {
+        if (inputSignalLock.try_lock())
+        {
+            inputSignal.setNumSamples (0);
+            inputSignalLock.unlock();
+        }
+#ifndef OPEN_CL_INTEL_FPGA
+        resampler.reset();
+#endif
+    }
+
     void GNSSAquisition::setupKernels()
     {
         cl_int err;
