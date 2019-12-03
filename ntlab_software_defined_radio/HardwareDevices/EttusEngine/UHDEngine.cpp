@@ -25,6 +25,7 @@ along with SoftwareDefinedRadio4JUCE. If not, see <http://www.gnu.org/licenses/>
 
 #include "UHDEngine.h"
 #include "../../ErrorHandling/ErrorHandlingMacros.h"
+#include "../../Threading/ChildProcessReplacement.h"
 #include "../ThreadedCallback.h"
 
 #include <typeinfo> // for std::bad_cast
@@ -1681,7 +1682,7 @@ namespace ntlab
             TreeLevel lastLevel = device;
             probeArgs.set (1, "--args=addr=" + a);
 
-            juce::ChildProcess uhdUSRPProbe;
+            ntlab::ChildProcess uhdUSRPProbe;
             bool success = uhdUSRPProbe.start (probeArgs);
 
             if (!success)

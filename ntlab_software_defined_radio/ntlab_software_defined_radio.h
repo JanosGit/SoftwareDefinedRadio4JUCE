@@ -138,6 +138,7 @@ along with SoftwareDefinedRadio4JUCE. If not, see <http://www.gnu.org/licenses/>
 #include "SampleBuffers/SampleBuffers.h"
 
 #include "Threading/RealtimeSetterThreadWithFIFO.h"
+#include "Threading/ChildProcessReplacement.h"
 
 #include "UnitTestHelpers/UnitTestHelpers.h"
 

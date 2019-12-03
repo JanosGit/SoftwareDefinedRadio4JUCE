@@ -16,3 +16,7 @@ along with SoftwareDefinedRadio4JUCE. If not, see <http://www.gnu.org/licenses/>
 */
 
 #include "ntlab_software_defined_radio.cpp"
+
+#if JUCE_MAC
+#include "Threading/ChildProcessReplacement.mm"
+#endif
