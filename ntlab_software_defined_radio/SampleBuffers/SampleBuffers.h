@@ -55,6 +55,113 @@ namespace ntlab
     template <typename SampleType>
     class CLSampleBufferComplex;
 
+    /**
+     * A placeholder to be used as template parameter for IsSampleBuffer if you want to check if a buffer contains
+     * either float, double, int16 or int32 samples.
+     */
+    struct AllValidSampleTypes;
+
+    /**
+     * A handy helper class if you write templated DSP functions that accept some kind of SampleBuffer. You can use it
+     * this way
+     *
+     * Example 1: Your DSP class only accepts buffer with a certain SampleType same to the DSP class template type
+     * @code
+     * template <typename SampleType>
+     * class MyDSPClass
+     * {
+     * public:
+     *     template <typename BufferType>
+     *     void processRealBuffer (BufferType& buffer)
+     *     {
+     *         static_assert (IsSampleBuffer<BufferType, SampleType>::real(), "Only real valued buffers supported");
+     *     }
+     *
+     *     template <typename BufferType>
+     *     void processCplxBuffer (BufferType& buffer)
+     *     {
+     *         static_assert (IsSampleBuffer<BufferType, SampleType>::complex(), "Only complex valued buffers supported");
+     *     }
+     * }
+     * @endcode
+     *
+     * Example 2: Your DSP class will accept any buffer type. This works as the default parameter for ExpectedSampleType
+     * is AllValidSampleTypes.
+     * @code
+     * class MyDSPClass
+     * {
+     * public:
+     *     template <typename BufferType>
+     *     void processRealBuffer (BufferType& buffer)
+     *     {
+     *         static_assert (IsSampleBuffer<BufferType>::complexOrReal(), "Only SampleBuffers supported");
+     *     }
+     * @endcode
+     */
+    template <typename BufferTypeToCheck, typename ExpectedSampleType = AllValidSampleTypes>
+    struct IsSampleBuffer
+    {
+        /** Returns true if it is a SampleBufferReal<ExpectedSampleType> or CLSampleBufferReal<ExpectedSampleType> */
+        static constexpr bool real()
+        {
+            if constexpr (std::is_same<ExpectedSampleType, AllValidSampleTypes>::value)
+            {
+                return std::is_same<BufferTypeToCheck, SampleBufferReal<float>>::value     ||
+                        std::is_same<BufferTypeToCheck, CLSampleBufferReal<float>>::value   ||
+                        std::is_same<BufferTypeToCheck, SampleBufferReal<double>>::value    ||
+                        std::is_same<BufferTypeToCheck, CLSampleBufferReal<double>>::value  ||
+                        std::is_same<BufferTypeToCheck, SampleBufferReal<int16_t>>::value   ||
+                        std::is_same<BufferTypeToCheck, CLSampleBufferReal<int16_t>>::value ||
+                        std::is_same<BufferTypeToCheck, SampleBufferReal<int32_t>>::value   ||
+                        std::is_same<BufferTypeToCheck, CLSampleBufferReal<int32_t>>::value;
+            }
+            return std::is_same<BufferTypeToCheck, SampleBufferReal<ExpectedSampleType>>::value ||
+                    std::is_same<BufferTypeToCheck, CLSampleBufferReal<ExpectedSampleType>>::value;
+        }
+
+        /** Returns true if it is a SampleBufferComplex<ExpectedSampleType> or CLSampleBufferComplex<ExpectedSampleType> */
+        static constexpr bool complex()
+        {
+            if constexpr (std::is_same<ExpectedSampleType, AllValidSampleTypes>::value)
+            {
+                return std::is_same<BufferTypeToCheck, SampleBufferComplex<float>>::value     ||
+                        std::is_same<BufferTypeToCheck, CLSampleBufferComplex<float>>::value   ||
+                        std::is_same<BufferTypeToCheck, SampleBufferComplex<double>>::value    ||
+                        std::is_same<BufferTypeToCheck, CLSampleBufferComplex<double>>::value  ||
+                        std::is_same<BufferTypeToCheck, SampleBufferComplex<int16_t>>::value   ||
+                        std::is_same<BufferTypeToCheck, CLSampleBufferComplex<int16_t>>::value ||
+                        std::is_same<BufferTypeToCheck, SampleBufferComplex<int32_t>>::value   ||
+                        std::is_same<BufferTypeToCheck, CLSampleBufferComplex<int32_t>>::value;
+            }
+            return std::is_same<BufferTypeToCheck, SampleBufferComplex<ExpectedSampleType>>::value ||
+                    std::is_same<BufferTypeToCheck, CLSampleBufferComplex<ExpectedSampleType>>::value;
+        }
+
+        /** Returns true if it is one of the four SampleBuffer classes with the expected sample type */
+        static constexpr bool complexOrReal()
+        {
+            return real() || complex();
+        }
+
+        static constexpr bool cl()
+        {
+            if constexpr (std::is_same<ExpectedSampleType, AllValidSampleTypes>::value)
+            {
+                return  std::is_same<BufferTypeToCheck, CLSampleBufferComplex<float>>::value   ||
+                        std::is_same<BufferTypeToCheck, CLSampleBufferReal<float>>::value      ||
+                        std::is_same<BufferTypeToCheck, CLSampleBufferComplex<double>>::value  ||
+                        std::is_same<BufferTypeToCheck, CLSampleBufferReal<double>>::value     ||
+                        std::is_same<BufferTypeToCheck, CLSampleBufferComplex<int16_t>>::value ||
+                        std::is_same<BufferTypeToCheck, CLSampleBufferReal<int16_t>>::value    ||
+                        std::is_same<BufferTypeToCheck, CLSampleBufferComplex<int32_t>>::value ||
+                        std::is_same<BufferTypeToCheck, CLSampleBufferReal<int32_t>>::value;
+            }
+            return std::is_same<BufferTypeToCheck, CLSampleBufferComplex<ExpectedSampleType>>::value ||
+                    std::is_same<BufferTypeToCheck, CLSampleBufferReal<ExpectedSampleType>>::value;
+        }
+
+    };
+
     template <typename SampleType>
     class SampleBufferReal
     {
@@ -194,7 +301,7 @@ namespace ntlab
          * operations. For speed reasons it does not check if the channelNumber is inside the valid range, so be careful
          * when using it.
          */
-        const SampleType* getReadPointer (int channelNumber) const
+        const SamplePtrType getReadPointer (int channelNumber) const
         {
             jassert (juce::isPositiveAndBelow (channelNumber, numChannelsAllocated));
             return channelPtrs[channelNumber];
@@ -205,7 +312,7 @@ namespace ntlab
          * buffer, otherwise use getReadPointer. For speed reasons it does not check if the channelNumber is inside
          * the valid range, so be careful when using it.
          */
-        SampleType* getWritePointer (int channelNumber)
+        SamplePtrType getWritePointer (int channelNumber)
         {
             jassert (juce::isPositiveAndBelow (channelNumber, numChannelsAllocated));
             return channelPtrs[channelNumber];
@@ -215,19 +322,19 @@ namespace ntlab
          * Returns a read-only array of pointers to the memory buffers for all channels. Always use this for
          * read-only operations.
          */
-        const SampleType** getArrayOfReadPointers() const {return const_cast<const SampleType**> (channelPtrs); }
+        const SamplePtrType* getArrayOfReadPointers() const {return const_cast<const SampleType**> (channelPtrs); }
 
         /**
          * Returns an array of pointers to the memory buffers for all channels. Use this if you want to write to
          * the buffer, otherwise use getReadPointer.
          */
-        SampleType** getArrayOfWritePointers() {return channelPtrs; }
+        SamplePtrType* getArrayOfWritePointers() {return channelPtrs; }
 
         /**
          * Fills the array passed with pointers to the memory buffers for all channels so that you can append data
          * to the buffer. Remember to call setNumSamples or incrementNumSamples after having filled it.
          */
-        void fillArrayOfPointersForAppending (std::complex<SampleType>** arrayToFill)
+        void fillArrayOfPointersForAppending (SamplePtrType* arrayToFill)
         {
             for (int channel = 0; channel < numChannelsAllocated; ++channel)
                 arrayToFill[channel] = channelPtrs[channel] + numSamplesUsed;
@@ -237,7 +344,7 @@ namespace ntlab
          * Fills the array passed in with pointers to the memory buffers for all channels so that you can read them
          * from a desired start offset.
          */
-        void fillArrayOfPointersForReadingFrom (std::complex<SampleType>** arrayToFill, int startOffset)
+        void fillArrayOfPointersForReadingFrom (SamplePtrType* arrayToFill, int startOffset)
         {
             for (int channel = 0; channel < numChannelsAllocated; ++channel)
                 arrayToFill[channel] = channelPtrs[channel] + startOffset;
@@ -254,9 +361,9 @@ namespace ntlab
         }
 
         /**
-         * Copies the content of this buffer to another CLSampleBufferReal via the host CPU. For speed reasons it
-         * does neither check if the parameters passed are in the valid range, nor if host device access is enabled for
-         * the destination buffer, so be careful when using it.
+         * Copies the content of this buffer to another buffer via the host CPU. For speed reasons it does neither
+         * check if the parameters passed are in the valid range, nor if host device access is enabled for a CL
+         * destination buffer, so be careful when using it.
          *
          * @param otherBuffer                   Reference to the destination buffer
          * @param numSamlesToCopy               Number of samples that should be copied
@@ -266,41 +373,21 @@ namespace ntlab
          * @param sourceStartChannelNumber      The index of the first source channel to copy
          * @param destinationStartChannelNumber The index of the first destination channel to copy
          */
-        void copyTo(CLSampleBufferReal<SampleType>& otherBuffer,
-                int numSamlesToCopy,
-                int numChannelsToCopy,
-                int sourceStartSample = 0,
-                int destinationStartSample = 0,
-                int sourceStartChannelNumber = 0,
-                int destinationStartChannelNumber = 0) const
+        template <typename RealBufferType>
+        void copyTo (RealBufferType& otherBuffer,
+                     int numSamlesToCopy,
+                     int numChannelsToCopy,
+                     int sourceStartSample = 0,
+                     int destinationStartSample = 0,
+                     int sourceStartChannelNumber = 0,
+                     int destinationStartChannelNumber = 0) const
         {
+            static_assert (IsSampleBuffer<RealBufferType>::real(), "Copying a real buffer to a complex buffer is not implemented");
             NTLAB_ASSERT_CHANNEL_AND_SAMPLE_COUNTS_PASSED_ARE_VALID
             // buffer needs to be mapped to be copied in host memory space
-            jassert (otherBuffer.isCurrentlyMapped());
-            NTLAB_OPERATION_ON_ALL_CHANNELS (std::memcpy (writePtr, readPtr, numSamlesToCopy * sizeof (SampleType)))
-        }
+            if constexpr (IsSampleBuffer<RealBufferType>::cl())
+                jassert (otherBuffer.isCurrentlyMapped());
 
-        /**
-         * Copies the content of this buffer to a SampleBufferReal. For speed reasons it does not check if the
-         * parameters passed are in the valid range, so be careful when using it.
-         *
-         * @param otherBuffer                   Reference to the destination buffer
-         * @param numSamlesToCopy               Number of samples that should be copied
-         * @param numChannelsToCopy             Number of channels that should be copied
-         * @param sourceStartSample             The index of the first source sample for each channel copied
-         * @param destinationStartSample        The index of the first destination sample for each channel copied
-         * @param sourceStartChannelNumber      The index of the first source channel to copy
-         * @param destinationStartChannelNumber The index of the first destination channel to copy
-         */
-        void copyTo (SampleBufferReal<SampleType>& otherBuffer,
-                int numSamlesToCopy,
-                int numChannelsToCopy,
-                int sourceStartSample = 0,
-                int destinationStartSample = 0,
-                int sourceStartChannelNumber = 0,
-                int destinationStartChannelNumber = 0) const
-        {
-            NTLAB_ASSERT_CHANNEL_AND_SAMPLE_COUNTS_PASSED_ARE_VALID
             NTLAB_OPERATION_ON_ALL_CHANNELS (std::memcpy (writePtr, readPtr, numSamlesToCopy * sizeof (SampleType)))
         }
 
@@ -460,7 +547,7 @@ namespace ntlab
          * operations. For speed reasons it does not check if the channelNumber is inside the valid range, so be careful
          * when using it.
          */
-        const std::complex<SampleType>* getReadPointer (int channelNumber) const
+        const SamplePtrType getReadPointer (int channelNumber) const
         {
             jassert (juce::isPositiveAndBelow (channelNumber, numChannelsAllocated));
             return channelPtrs[channelNumber];
@@ -471,7 +558,7 @@ namespace ntlab
          * buffer, otherwise use getReadPointer. For speed reasons it does not check if the channelNumber is inside
          * the valid range, so be careful when using it.
          */
-        std::complex<SampleType>* getWritePointer (int channelNumber)
+        SamplePtrType getWritePointer (int channelNumber)
         {
             jassert (juce::isPositiveAndBelow (channelNumber, numChannelsAllocated));
             return channelPtrs[channelNumber];
@@ -1047,7 +1134,7 @@ namespace ntlab
          * operations. For speed reasons it does not check if the channelNumber is inside the valid range, so be careful
          * when using it.
          */
-        const SampleType* getReadPointer (int channelNumber) const
+        const SamplePtrType getReadPointer (int channelNumber) const
         {
             jassert (juce::isPositiveAndBelow (channelNumber, numChannelsAllocated));
             return channelPtrs[channelNumber];
@@ -1058,7 +1145,7 @@ namespace ntlab
          * buffer, otherwise use getReadPointer. For speed reasons it does not check if the channelNumber is inside
          * the valid range, so be careful when using it.
          */
-        SampleType* getWritePointer (int channelNumber)
+        SamplePtrType getWritePointer (int channelNumber)
         {
             jassert (juce::isPositiveAndBelow (channelNumber, numChannelsAllocated));
             return channelPtrs[channelNumber];
@@ -1126,9 +1213,9 @@ namespace ntlab
         }
 
         /**
-         * Copies the content of this buffer to another CLSampleBufferReal via the host CPU. For speed reasons it
-         * does neither check if the parameters passed are in the valid range, nor if host device access is enabled for
-         * the destination buffer, so be careful when using it.
+         * Copies the content of this buffer to another buffer via the host CPU. For speed reasons it does neither
+         * check if the parameters passed are in the valid range, nor if host device access is enabled for a CL
+         * destination buffer, so be careful when using it.
          *
          * @param otherBuffer                   Reference to the destination buffer
          * @param numSamlesToCopy               Number of samples that should be copied
@@ -1138,44 +1225,21 @@ namespace ntlab
          * @param sourceStartChannelNumber      The index of the first source channel to copy
          * @param destinationStartChannelNumber The index of the first destination channel to copy
          */
-        void copyTo (CLSampleBufferReal<SampleType>& otherBuffer,
-                int numSamlesToCopy,
-                int numChannelsToCopy,
-                int sourceStartSample = 0,
-                int destinationStartSample = 0,
-                int sourceStartChannelNumber = 0,
-                int destinationStartChannelNumber = 0) const
+        template <typename RealBufferType>
+        void copyTo (RealBufferType& otherBuffer,
+                     int numSamlesToCopy,
+                     int numChannelsToCopy,
+                     int sourceStartSample = 0,
+                     int destinationStartSample = 0,
+                     int sourceStartChannelNumber = 0,
+                     int destinationStartChannelNumber = 0) const
         {
-            NTLAB_ASSERT_CHANNEL_AND_SAMPLE_COUNTS_PASSED_ARE_VALID
-            // both buffers need to be mapped to be copied in host memory space
-            jassert (isMapped);
-            jassert (otherBuffer.isCurrentlyMapped());
-            NTLAB_OPERATION_ON_ALL_CHANNELS (std::memcpy (writePtr, readPtr, numSamlesToCopy * sizeof (SampleType)))
-        }
-
-        /**
-         * Copies the content of this buffer to a SampleBufferReal. For speed reasons it does not check if the
-         * parameters passed are in the valid range, so be careful when using it.
-         *
-         * @param otherBuffer                   Reference to the destination buffer
-         * @param numSamlesToCopy               Number of samples that should be copied
-         * @param numChannelsToCopy             Number of channels that should be copied
-         * @param sourceStartSample             The index of the first source sample for each channel copied
-         * @param destinationStartSample        The index of the first destination sample for each channel copied
-         * @param sourceStartChannelNumber      The index of the first source channel to copy
-         * @param destinationStartChannelNumber The index of the first destination channel to copy
-         */
-        void copyTo (SampleBufferReal<SampleType>& otherBuffer,
-                int numSamlesToCopy,
-                int numChannelsToCopy,
-                int sourceStartSample = 0,
-                int destinationStartSample = 0,
-                int sourceStartChannelNumber = 0,
-                int destinationStartChannelNumber = 0) const
-        {
+            static_assert (IsSampleBuffer<RealBufferType>::real(), "Copying a real buffer to a complex buffer is not implemented");
             NTLAB_ASSERT_CHANNEL_AND_SAMPLE_COUNTS_PASSED_ARE_VALID
             // buffer needs to be mapped to be copied in host memory space
-            jassert (isMapped);
+            if constexpr (IsSampleBuffer<RealBufferType>::cl())
+                jassert (otherBuffer.isCurrentlyMapped());
+
             NTLAB_OPERATION_ON_ALL_CHANNELS (std::memcpy (writePtr, readPtr, numSamlesToCopy * sizeof (SampleType)))
         }
 
@@ -1378,7 +1442,7 @@ namespace ntlab
          * operations. For speed reasons it does neither check if the channelNumber is inside the valid range nor if
          * host device access is enabled, so be careful when using it.
          */
-        const std::complex<SampleType>* getReadPointer (int channelNumber) const
+        const SamplePtrType getReadPointer (int channelNumber) const
         {
             jassert (juce::isPositiveAndBelow (channelNumber, numChannelsAllocated));
             return channelPtrs[channelNumber];
@@ -1389,7 +1453,7 @@ namespace ntlab
          * buffer, otherwise use getReadPointer. For speed reasons it does neither check if the channelNumber is inside
          * the valid range nor if host device access is enabled, so be careful when using it.
          */
-        std::complex<SampleType>* getWritePointer (int channelNumber)
+        SamplePtrType getWritePointer (int channelNumber)
         {
             jassert (juce::isPositiveAndBelow (channelNumber, numChannelsAllocated));
             return channelPtrs[channelNumber];
@@ -1844,113 +1908,6 @@ namespace ntlab
         bool isMapped = true;
 
         JUCE_LEAK_DETECTOR (CLSampleBufferComplex)
-    };
-
-    /**
-     * A placeholder to be used as template parameter for IsSampleBuffer if you want to check if a buffer contains
-     * either float, double, int16 or int32 samples.
-     */
-    struct AllValidSampleTypes;
-
-    /**
-     * A handy helper class if you write templated DSP functions that accept some kind of SampleBuffer. You can use it
-     * this way
-     *
-     * Example 1: Your DSP class only accepts buffer with a certain SampleType same to the DSP class template type
-     * @code
-     * template <typename SampleType>
-     * class MyDSPClass
-     * {
-     * public:
-     *     template <typename BufferType>
-     *     void processRealBuffer (BufferType& buffer)
-     *     {
-     *         static_assert (IsSampleBuffer<BufferType, SampleType>::real(), "Only real valued buffers supported");
-     *     }
-     *
-     *     template <typename BufferType>
-     *     void processCplxBuffer (BufferType& buffer)
-     *     {
-     *         static_assert (IsSampleBuffer<BufferType, SampleType>::complex(), "Only complex valued buffers supported");
-     *     }
-     * }
-     * @endcode
-     *
-     * Example 2: Your DSP class will accept any buffer type. This works as the default parameter for ExpectedSampleType
-     * is AllValidSampleTypes.
-     * @code
-     * class MyDSPClass
-     * {
-     * public:
-     *     template <typename BufferType>
-     *     void processRealBuffer (BufferType& buffer)
-     *     {
-     *         static_assert (IsSampleBuffer<BufferType>::complexOrReal(), "Only SampleBuffers supported");
-     *     }
-     * @endcode
-     */
-    template <typename BufferTypeToCheck, typename ExpectedSampleType = AllValidSampleTypes>
-    struct IsSampleBuffer
-    {
-        /** Returns true if it is a SampleBufferReal<ExpectedSampleType> or CLSampleBufferReal<ExpectedSampleType> */
-        static constexpr bool real()
-        {
-            if constexpr (std::is_same<ExpectedSampleType, AllValidSampleTypes>::value)
-            {
-                return std::is_same<BufferTypeToCheck, SampleBufferReal<float>>::value     ||
-                       std::is_same<BufferTypeToCheck, CLSampleBufferReal<float>>::value   ||
-                       std::is_same<BufferTypeToCheck, SampleBufferReal<double>>::value    ||
-                       std::is_same<BufferTypeToCheck, CLSampleBufferReal<double>>::value  ||
-                       std::is_same<BufferTypeToCheck, SampleBufferReal<int16_t>>::value   ||
-                       std::is_same<BufferTypeToCheck, CLSampleBufferReal<int16_t>>::value ||
-                       std::is_same<BufferTypeToCheck, SampleBufferReal<int32_t>>::value   ||
-                       std::is_same<BufferTypeToCheck, CLSampleBufferReal<int32_t>>::value;
-            }
-            return std::is_same<BufferTypeToCheck, SampleBufferReal<ExpectedSampleType>>::value ||
-                   std::is_same<BufferTypeToCheck, CLSampleBufferReal<ExpectedSampleType>>::value;
-        }
-
-        /** Returns true if it is a SampleBufferComplex<ExpectedSampleType> or CLSampleBufferComplex<ExpectedSampleType> */
-        static constexpr bool complex()
-        {
-            if constexpr (std::is_same<ExpectedSampleType, AllValidSampleTypes>::value)
-            {
-                return std::is_same<BufferTypeToCheck, SampleBufferComplex<float>>::value     ||
-                       std::is_same<BufferTypeToCheck, CLSampleBufferComplex<float>>::value   ||
-                       std::is_same<BufferTypeToCheck, SampleBufferComplex<double>>::value    ||
-                       std::is_same<BufferTypeToCheck, CLSampleBufferComplex<double>>::value  ||
-                       std::is_same<BufferTypeToCheck, SampleBufferComplex<int16_t>>::value   ||
-                       std::is_same<BufferTypeToCheck, CLSampleBufferComplex<int16_t>>::value ||
-                       std::is_same<BufferTypeToCheck, SampleBufferComplex<int32_t>>::value   ||
-                       std::is_same<BufferTypeToCheck, CLSampleBufferComplex<int32_t>>::value;
-            }
-            return std::is_same<BufferTypeToCheck, SampleBufferComplex<ExpectedSampleType>>::value ||
-                   std::is_same<BufferTypeToCheck, CLSampleBufferComplex<ExpectedSampleType>>::value;
-        }
-
-        /** Returns true if it is one of the four SampleBuffer classes with the expected sample type */
-        static constexpr bool complexOrReal()
-        {
-            return real() || complex();
-        }
-
-        static constexpr bool cl()
-        {
-            if constexpr (std::is_same<ExpectedSampleType, AllValidSampleTypes>::value)
-            {
-                return  std::is_same<BufferTypeToCheck, CLSampleBufferComplex<float>>::value   ||
-                        std::is_same<BufferTypeToCheck, CLSampleBufferReal<float>>::value      ||
-                        std::is_same<BufferTypeToCheck, CLSampleBufferComplex<double>>::value  ||
-                        std::is_same<BufferTypeToCheck, CLSampleBufferReal<double>>::value     ||
-                        std::is_same<BufferTypeToCheck, CLSampleBufferComplex<int16_t>>::value ||
-                        std::is_same<BufferTypeToCheck, CLSampleBufferReal<int16_t>>::value    ||
-                        std::is_same<BufferTypeToCheck, CLSampleBufferComplex<int32_t>>::value ||
-                        std::is_same<BufferTypeToCheck, CLSampleBufferReal<int32_t>>::value;
-            }
-            return std::is_same<BufferTypeToCheck, CLSampleBufferComplex<ExpectedSampleType>>::value ||
-                   std::is_same<BufferTypeToCheck, CLSampleBufferReal<ExpectedSampleType>>::value;
-        }
-
     };
 }
 
