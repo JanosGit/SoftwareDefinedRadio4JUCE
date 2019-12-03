@@ -16,7 +16,7 @@ along with SoftwareDefinedRadio4JUCE. If not, see <http://www.gnu.org/licenses/>
 */
 
 #include <ntlab_software_defined_radio/HardwareDevices/MCVFileEngine/MCVFileEngine.h>
-#include "CovarianceMatrix.h"
+#include "CLCovarianceMatrix.h"
 
 #ifdef NTLAB_SOFTWARE_DEFINED_RADIO_UNIT_TESTS
 
@@ -66,10 +66,15 @@ public:
 
         beginTest ("Compute covariance matrix");
 
-        ntlab::SampleBufferComplex<float> inputBuffer (numChannels, 1004);
+        ntlab::CLSampleBufferComplex<float> inputBuffer (numChannels, 1004);
         while (numCallbacks < 5)
         {
+            // unmap cl buffer and wait for unmap operation to finish
+            inputBuffer.unmapHostMemory();
+            inputBuffer.getQueueAssociatedWithThisBuffer().finish();
+
             oscillator.fillNextSampleBuffer (inputBuffer);
+            inputBuffer.mapHostMemory();
             covarianceMatrix.processNextSampleBlock (inputBuffer);
         }
     }
