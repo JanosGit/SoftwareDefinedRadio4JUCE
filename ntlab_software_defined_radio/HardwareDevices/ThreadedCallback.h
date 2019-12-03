@@ -68,10 +68,15 @@ namespace ntlab
                     return;
             }
 
+
+
             processingSyncPoint.wait();
             rxSamples.swapWith (rxSwapBuffer);
             txSamples.swapWith (txSwapBuffer);
             notify();
+
+
+            //originalCallback.processRFSampleBlock (rxSamples, txSamples);
 
             rxSamples.setNumSamples (0);
             txBufferStartIdx = 0;
