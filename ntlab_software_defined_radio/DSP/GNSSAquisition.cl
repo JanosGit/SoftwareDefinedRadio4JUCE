@@ -45,7 +45,7 @@ float2 complexMultiply     (const float2 a, const float2 b);
 float2 complexConjMultiply (const float2 a, const float2 b);
 
 /** Mixes down the input samples. Needed once per aquisition */
-__attribute__((reqd_work_group_size(NUM_FREQ_STEPS, 1, 1)))
+//__attribute__((reqd_work_group_size(NUM_FREQ_STEPS, 1, 1)))
 kernel void gnssMixInput (const global float2* restrict inSamples, global float2* restrict inSamplesMixed, const global float2* restrict twiddleTable)
 {
     const int freqOffsetIdx = get_global_id (0);
@@ -94,7 +94,7 @@ kernel void gnssMixInput (const global float2* restrict inSamples, global float2
 }
 
 /** Correlates mixed signal with the CA code. Needed once per CA code */
-__attribute__((reqd_work_group_size(NUM_FREQ_STEPS, 1, 1)))
+//__attribute__((reqd_work_group_size(NUM_FREQ_STEPS, 1, 1)))
 kernel void gnssAcquisition (const global float2* restrict inSamplesMixed,
                              const global float2* restrict caCodes,
                              global float2*       restrict intermediateResults,
