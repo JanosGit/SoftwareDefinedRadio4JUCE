@@ -38,7 +38,7 @@ along with SoftwareDefinedRadio4JUCE. If not, see <http://www.gnu.org/licenses/>
 
 #include "SampleBuffers/VectorOperations.cpp"
 
-#include "Matrix/CovarianceMatrix.cpp"
+//#include "Matrix/CovarianceMatrix.cpp"
 
 #include "UnitTestHelpers/UnitTestHelpers.cpp"
 
